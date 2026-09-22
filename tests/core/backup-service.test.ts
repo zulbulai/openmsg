@@ -25,7 +25,7 @@ describe('BackupService', () => {
     const preview = BackupService.previewBackup(jsonStr);
 
     expect(preview.valid).toBe(true);
-    expect(preview.schemaVersion).toBe(1);
+    expect(preview.schemaVersion).toBe(4);
     expect(preview.counts.contacts).toBe(1);
   });
 

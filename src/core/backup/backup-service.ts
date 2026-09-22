@@ -27,6 +27,11 @@ export interface BackupPayload {
     pipelines?: unknown[];
     stageHistory?: unknown[];
     savedFilters?: unknown[];
+    followUps?: unknown[];
+    followUpActivities?: unknown[];
+    followUpSettings?: unknown[];
+    sequences?: unknown[];
+    sequenceEnrollments?: unknown[];
   };
 }
 
@@ -39,7 +44,7 @@ export interface RestorePreview {
 }
 
 export class BackupService {
-  private static readonly CURRENT_SCHEMA_VERSION = 2;
+  private static readonly CURRENT_SCHEMA_VERSION = 4;
   private static readonly APP_VERSION = '0.1.0';
 
   /**
@@ -68,6 +73,11 @@ export class BackupService {
         pipelines: await db.pipelines.toArray(),
         stageHistory: await db.stageHistory.toArray(),
         savedFilters: await db.savedFilters.toArray(),
+        followUps: await db.followUps.toArray(),
+        followUpActivities: await db.followUpActivities.toArray(),
+        followUpSettings: await db.followUpSettings.toArray(),
+        sequences: await db.sequences.toArray(),
+        sequenceEnrollments: await db.sequenceEnrollments.toArray(),
       },
     };
 
@@ -148,6 +158,14 @@ export class BackupService {
       db.scheduledMessages,
       db.templates,
       db.webhooks,
+      db.pipelines,
+      db.stageHistory,
+      db.savedFilters,
+      db.followUps,
+      db.followUpActivities,
+      db.followUpSettings,
+      db.sequences,
+      db.sequenceEnrollments,
     ], async () => {
       if (Array.isArray(data.contacts)) await db.contacts.bulkPut(data.contacts as any);
       if (Array.isArray(data.tags)) await db.tags.bulkPut(data.tags as any);
@@ -163,7 +181,34 @@ export class BackupService {
       if (Array.isArray(data.scheduledMessages)) await db.scheduledMessages.bulkPut(data.scheduledMessages as any);
       if (Array.isArray(data.templates)) await db.templates.bulkPut(data.templates as any);
       if (Array.isArray(data.webhooks)) await db.webhooks.bulkPut(data.webhooks as any);
+      if (Array.isArray(data.pipelines)) await db.pipelines.bulkPut(data.pipelines as any);
+      if (Array.isArray(data.stageHistory)) await db.stageHistory.bulkPut(data.stageHistory as any);
+      if (Array.isArray(data.savedFilters)) await db.savedFilters.bulkPut(data.savedFilters as any);
+      if (Array.isArray(data.followUps)) await db.followUps.bulkPut(data.followUps as any);
+      if (Array.isArray(data.followUpActivities)) await db.followUpActivities.bulkPut(data.followUpActivities as any);
+      if (Array.isArray(data.followUpSettings)) await db.followUpSettings.bulkPut(data.followUpSettings as any);
+      if (Array.isArray(data.sequences)) await db.sequences.bulkPut(data.sequences as any);
+      if (Array.isArray(data.sequenceEnrollments)) await db.sequenceEnrollments.bulkPut(data.sequenceEnrollments as any);
     });
+
+    // Validate and repair orphaned contact references safely
+    const { PipelineRepository } = await import('@/storage/repositories/pipeline.repository');
+    const defaultPipeline = await PipelineRepository.getDefaultPipeline();
+    const allPipelines = await db.pipelines.toArray();
+    const pipelineMap = new Map(allPipelines.map((p) => [p.id, p]));
+
+    const contacts = await db.contacts.toArray();
+    for (const c of contacts) {
+      const p = c.pipelineId ? pipelineMap.get(c.pipelineId) : defaultPipeline;
+      const targetPipeline = p || defaultPipeline;
+      const stageExists = targetPipeline.stages.some((s) => s.id === c.stageId);
+
+      if (!c.pipelineId || !p || !stageExists) {
+        c.pipelineId = targetPipeline.id;
+        c.stageId = targetPipeline.stages[0]?.id || defaultPipeline.stages[0]?.id;
+        await db.contacts.put(c);
+      }
+    }
 
     return {
       success: true,

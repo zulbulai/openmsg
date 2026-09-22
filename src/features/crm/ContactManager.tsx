@@ -10,6 +10,8 @@ import {
   Edit2,
   CheckSquare,
   Square,
+  KanbanSquare,
+  Table as TableIcon,
 } from 'lucide-react';
 import { Contact } from '@/storage/schemas';
 import { ContactRepository } from '@/storage/repositories/contact.repository';
@@ -17,8 +19,10 @@ import { db } from '@/storage/db';
 import { ContactModal } from './ContactModal';
 import { TagManager } from './TagManager';
 import { CRMDataTransfer } from '@/core/crm/import-export';
+import { KanbanBoard } from './kanban/KanbanBoard';
 
 export const ContactManager: React.FC = () => {
+  const [viewMode, setViewMode] = useState<'kanban' | 'table'>('kanban');
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStage, setSelectedStage] = useState<string>('all');
@@ -119,15 +123,60 @@ export const ContactManager: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col h-full bg-zinc-950 overflow-hidden">
-      {/* Top Header */}
-      <div className="h-14 border-b border-zinc-800 px-5 flex items-center justify-between bg-zinc-900/40 backdrop-blur shrink-0">
-        <div className="flex items-center gap-2">
-          <Users className="h-5 w-5 text-emerald-400" />
-          <h2 className="text-sm font-bold text-zinc-100">CRM Contacts Hub</h2>
-          <span className="text-xs bg-zinc-800 px-2 py-0.5 rounded-full text-zinc-400 font-mono ml-2">
-            {contacts.length} Total
+      {/* Top View Mode Navigation Strip */}
+      <div className="h-10 border-b border-zinc-800 bg-zinc-950 px-4 flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-2.5">
+          <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+            <Users className="h-3.5 w-3.5 text-emerald-400" />
+            CRM
           </span>
+          <span className="text-zinc-700">/</span>
+          <div className="flex rounded-lg bg-zinc-900 border border-zinc-800 p-0.5">
+            <button
+              onClick={() => setViewMode('kanban')}
+              className={`px-3 py-0.5 rounded-md text-xs font-semibold flex items-center gap-1.5 transition ${
+                viewMode === 'kanban'
+                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-sm'
+                  : 'text-zinc-400 hover:text-zinc-200'
+              }`}
+            >
+              <KanbanSquare className="h-3.5 w-3.5" />
+              Kanban
+            </button>
+            <button
+              onClick={() => setViewMode('table')}
+              className={`px-3 py-0.5 rounded-md text-xs font-semibold flex items-center gap-1.5 transition ${
+                viewMode === 'table'
+                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-sm'
+                  : 'text-zinc-400 hover:text-zinc-200'
+              }`}
+            >
+              <TableIcon className="h-3.5 w-3.5" />
+              Contacts Table
+            </button>
+          </div>
         </div>
+
+        {viewMode === 'table' && (
+          <span className="text-xs text-zinc-500 font-mono">
+            {contacts.length} Total Contacts
+          </span>
+        )}
+      </div>
+
+      {viewMode === 'kanban' ? (
+        <KanbanBoard />
+      ) : (
+        <>
+          {/* Top Header */}
+          <div className="h-14 border-b border-zinc-800 px-5 flex items-center justify-between bg-zinc-900/40 backdrop-blur shrink-0">
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-emerald-400" />
+              <h2 className="text-sm font-bold text-zinc-100">CRM Contacts Hub</h2>
+              <span className="text-xs bg-zinc-800 px-2 py-0.5 rounded-full text-zinc-400 font-mono ml-2">
+                {contacts.length} Total
+              </span>
+            </div>
 
         {/* Header Action Buttons */}
         <div className="flex items-center gap-2 text-xs">
@@ -356,6 +405,8 @@ export const ContactManager: React.FC = () => {
             <TagManager onClose={() => setIsTagManagerOpen(false)} />
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );

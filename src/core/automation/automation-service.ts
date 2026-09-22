@@ -10,6 +10,8 @@ import { WhatsAppClient } from '@/types/whatsapp';
 import { ContactRepository } from '@/storage/repositories/contact.repository';
 import { WebhookDispatcher } from '@/core/webhook/dispatcher';
 import { SafeTemplate } from '@/core/template/safe-template';
+import { FollowUpService } from '@/core/crm/followup.service';
+import { SequenceRepository } from '@/storage/repositories/sequence.repository';
 
 export interface AutomationTriggerEvent {
   id: string; // Event or message ID for deduplication
@@ -99,6 +101,23 @@ export class AutomationService {
     // Prevent duplicate processing of the same event
     if (eventDeduplication.isDuplicate(event.id)) {
       return 0;
+    }
+
+    // Auto-complete any pending follow-ups with autoCompleteOnReply enabled for this contact
+    if (event.trigger === 'MESSAGE_RECEIVED' && event.contactId) {
+      try {
+        const pendingWithAutoComplete = await db.followUps
+          .where('contactId')
+          .equals(event.contactId)
+          .filter((fu) => !!fu.autoCompleteOnReply && (fu.status === 'PENDING' || fu.status === 'DUE' || fu.status === 'SNOOZED'))
+          .toArray();
+
+        for (const fu of pendingWithAutoComplete) {
+          await FollowUpService.complete(fu.id, 'Auto-completed on customer reply.');
+        }
+      } catch (err) {
+        console.error('Failed to auto-complete follow-ups on reply:', err);
+      }
     }
 
     const rules = await db.automationRules.where('enabled').equals(1).toArray();
@@ -225,6 +244,45 @@ export class AutomationService {
               contactId: event.contactId,
               event,
             });
+            break;
+          }
+
+          case 'CREATE_FOLLOW_UP': {
+            const title = (action.config.title as string) || 'Follow-up';
+            const description = action.config.description as string | undefined;
+            const type = (action.config.followUpType as any) || 'GENERAL';
+            const priority = (action.config.priority as any) || 'MEDIUM';
+            const delayHours = Number(action.config.delayHours) || 24;
+            const reminderMinutes = action.config.reminderMinutes !== undefined ? Number(action.config.reminderMinutes) : 30;
+
+            const dueAt = Date.now() + delayHours * 60 * 60 * 1000;
+
+            await FollowUpService.create({
+              contactId: event.contactId,
+              title,
+              description,
+              type,
+              priority,
+              dueAt,
+              reminderMinutesBefore: reminderMinutes >= 0 ? reminderMinutes : undefined,
+              source: 'AUTOMATION',
+            });
+            break;
+          }
+
+          case 'ENROLL_SEQUENCE': {
+            const sequenceId = action.config.sequenceId as string;
+            if (sequenceId) {
+              await SequenceRepository.enrollContact(sequenceId, event.contactId);
+            }
+            break;
+          }
+
+          case 'UNENROLL_SEQUENCE': {
+            const sequenceId = action.config.sequenceId as string;
+            if (sequenceId) {
+              await SequenceRepository.unenrollContact(sequenceId, event.contactId);
+            }
             break;
           }
         }

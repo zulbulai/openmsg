@@ -243,3 +243,133 @@ export interface SavedFilter {
   createdAt: number;
 }
 
+// ─── Follow-up & Reminders ───────────────────────────────────────────────────
+
+export type FollowUpType =
+  | 'CALL'
+  | 'WHATSAPP'
+  | 'MEETING'
+  | 'PAYMENT'
+  | 'QUOTE'
+  | 'ORDER'
+  | 'GENERAL'
+  | 'CUSTOM';
+
+export type FollowUpStatus =
+  | 'PENDING'
+  | 'DUE'
+  | 'OVERDUE'
+  | 'COMPLETED'
+  | 'CANCELLED'
+  | 'SNOOZED';
+
+export type FollowUpPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+
+export type FollowUpSource =
+  | 'MANUAL'
+  | 'INBOX'
+  | 'CRM'
+  | 'WORKFLOW'
+  | 'AUTOMATION';
+
+export interface FollowUpRecurrence {
+  frequency: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'CUSTOM';
+  interval: number; // e.g. every 2 weeks → frequency=WEEKLY, interval=2
+  daysOfWeek?: number[]; // 0=Sun .. 6=Sat
+  endDate?: number; // stop recurrence after this timestamp
+  maxOccurrences?: number; // stop after N occurrences
+  currentOccurrence: number; // tracks how many have fired
+}
+
+export interface FollowUp {
+  id: string;
+  contactId: string;
+  conversationId?: string;
+  title: string;
+  description?: string;
+  type: FollowUpType;
+  status: FollowUpStatus;
+  priority: FollowUpPriority;
+  dueAt: number; // Unix ms
+  reminderMinutesBefore?: number; // minutes before dueAt, 0 = at due time
+  reminderAt?: number; // computed: dueAt - reminderMinutesBefore*60000
+  reminderStatus?: 'PENDING' | 'TRIGGERED' | 'SNOOZED' | 'DISMISSED' | 'COMPLETED' | 'CANCELLED';
+  completedAt?: number;
+  completionNote?: string;
+  cancelledAt?: number;
+  cancellationReason?: string;
+  snoozedUntil?: number;
+  notes?: string;
+  source: FollowUpSource;
+  relatedMessageId?: string;
+  relatedWorkflowId?: string;
+  autoCompleteOnReply?: boolean;
+  recurrence?: FollowUpRecurrence;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export type FollowUpActivityAction =
+  | 'CREATED'
+  | 'REMINDER_TRIGGERED'
+  | 'OPENED'
+  | 'SNOOZED'
+  | 'RESCHEDULED'
+  | 'COMPLETED'
+  | 'CANCELLED'
+  | 'AUTO_COMPLETED'
+  | 'EDITED';
+
+export interface FollowUpActivity {
+  id: string;
+  followUpId: string;
+  contactId: string;
+  action: FollowUpActivityAction;
+  details?: string;
+  timestamp: number;
+}
+
+export interface FollowUpSettings {
+  id: string; // singleton key, e.g. 'default'
+  enableNotifications: boolean;
+  defaultReminderMinutes: number; // default reminder offset
+  defaultPriority: FollowUpPriority;
+  workingDays: number[]; // 0=Sun .. 6=Sat, e.g. [1,2,3,4,5]
+  businessHoursStart: string; // "09:00"
+  businessHoursEnd: string; // "18:00"
+  outsideHoursBehavior: 'NOTIFY_ANYWAY' | 'MOVE_TO_NEXT_BUSINESS_HOUR';
+  holidays: number[]; // array of dates as Unix ms midnight timestamps
+}
+
+// ─── Sequences (Drip Campaigns) ───────────────────────────────────────────────
+
+export interface SequenceStep {
+  id: string; // e.g. "step_1"
+  sequenceId: string;
+  position: number; // 0, 1, 2...
+  delayMinutes: number; // delay before this step executes
+  messageTemplateId?: string;
+  messageText?: string;
+  mediaUrl?: string;
+}
+
+export interface Sequence {
+  id: string;
+  name: string;
+  description?: string;
+  isActive: boolean;
+  steps: SequenceStep[];
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface SequenceEnrollment {
+  id: string; // `${contactId}:${sequenceId}`
+  sequenceId: string;
+  contactId: string;
+  status: 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'CANCELLED' | 'FAILED';
+  currentStepIndex: number;
+  nextStepAt?: number; // Unix ms
+  completedAt?: number;
+  error?: string;
+}

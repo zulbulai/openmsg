@@ -19,6 +19,11 @@ import {
   CrmPipeline,
   ContactStageHistory,
   SavedFilter,
+  FollowUp,
+  FollowUpActivity,
+  FollowUpSettings,
+  Sequence,
+  SequenceEnrollment,
 } from './schemas';
 
 export class OpenMsgDatabase extends Dexie {
@@ -41,6 +46,11 @@ export class OpenMsgDatabase extends Dexie {
   pipelines!: Table<CrmPipeline, string>;
   stageHistory!: Table<ContactStageHistory, string>;
   savedFilters!: Table<SavedFilter, string>;
+  followUps!: Table<FollowUp, string>;
+  followUpActivities!: Table<FollowUpActivity, string>;
+  followUpSettings!: Table<FollowUpSettings, string>;
+  sequences!: Table<Sequence, string>;
+  sequenceEnrollments!: Table<SequenceEnrollment, string>;
 
   constructor() {
     super('OpenMsgDB');
@@ -70,7 +80,19 @@ export class OpenMsgDatabase extends Dexie {
       stageHistory: '&id, contactId, pipelineId, changedAt',
       savedFilters: '&id, name, createdAt',
     });
+
+    this.version(3).stores({
+      followUps: '&id, contactId, conversationId, status, priority, type, dueAt, reminderAt, snoozedUntil, createdAt',
+      followUpActivities: '&id, followUpId, contactId, action, timestamp',
+      followUpSettings: '&id',
+    });
+
+    this.version(4).stores({
+      sequences: '&id, isActive',
+      sequenceEnrollments: '&id, sequenceId, contactId, status, nextStepAt',
+    });
   }
 }
 
 export const db = new OpenMsgDatabase();
+

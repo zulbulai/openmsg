@@ -10,9 +10,13 @@ import {
   CheckCircle2,
   ArrowUpRight,
   TrendingUp,
+  Bell,
+  AlertTriangle,
 } from 'lucide-react';
 import { db } from '@/storage/db';
 import { useUIStore } from '@/ui/store';
+import { FollowUpRepository, FollowUpDashboardCounts } from '@/storage/repositories/followup.repository';
+import { FollowUp, AuditLog } from '@/storage/schemas';
 
 interface DashboardStats {
   totalContacts: number;
@@ -43,6 +47,16 @@ export const DashboardOverview: React.FC = () => {
     pendingSchedules: 0,
     totalCampaigns: 0,
   });
+  const [followUpCounts, setFollowUpCounts] = useState<FollowUpDashboardCounts>({
+    today: 0,
+    upcoming: 0,
+    overdue: 0,
+    completedToday: 0,
+    highPriority: 0,
+    total: 0,
+  });
+  const [todayFollowUps, setTodayFollowUps] = useState<FollowUp[]>([]);
+
   const [recentActivity, setRecentActivity] = useState<ActivityItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -67,6 +81,8 @@ export const DashboardOverview: React.FC = () => {
         pendingSchedules,
         totalCampaigns,
         auditLogs,
+        dashFuCounts,
+        todayFUs,
       ] = await Promise.all([
         db.contacts.count(),
         db.conversations.toArray(),
@@ -75,11 +91,16 @@ export const DashboardOverview: React.FC = () => {
         db.scheduledMessages.where('status').equals('pending').count(),
         db.broadcastCampaigns.count(),
         db.auditLogs.reverse().limit(10).toArray(),
+        FollowUpRepository.getDashboardCounts(),
+        FollowUpRepository.getTodayFollowUps(),
       ]);
 
-      const unreadCount = conversations.reduce((acc, c) => acc + (c.unreadCount || 0), 0);
-      const todaySent = todayMessages.filter((m) => m.fromMe).length;
-      const todayReceived = todayMessages.filter((m) => !m.fromMe).length;
+      setFollowUpCounts(dashFuCounts);
+      setTodayFollowUps(todayFUs.slice(0, 5));
+
+      const unreadCount = conversations.reduce((acc: number, c: any) => acc + (c.unreadCount || 0), 0);
+      const todaySent = todayMessages.filter((m: any) => m.fromMe).length;
+      const todayReceived = todayMessages.filter((m: any) => !m.fromMe).length;
 
       setStats({
         totalContacts,
@@ -95,7 +116,7 @@ export const DashboardOverview: React.FC = () => {
       const activity: ActivityItem[] = [];
 
       // Add audit items
-      auditLogs.forEach((log) => {
+      auditLogs.forEach((log: AuditLog) => {
         activity.push({
           id: log.id,
           type: 'audit',
@@ -166,7 +187,7 @@ export const DashboardOverview: React.FC = () => {
       </div>
 
       {/* Primary KPI Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3.5">
         {/* Unread Chats */}
         <div
           onClick={() => setActiveTab('inbox')}
@@ -194,6 +215,48 @@ export const DashboardOverview: React.FC = () => {
           <div className="text-2xl font-extrabold text-zinc-100">{stats.totalContacts}</div>
           <div className="text-[10px] text-zinc-500 mt-1 flex items-center gap-1">
             <span>Manage CRM contacts</span>
+          </div>
+        </div>
+
+        {/* Today's Follow-ups */}
+        <div
+          onClick={() => setActiveTab('followups')}
+          className="bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800/70 hover:border-blue-500/30 rounded-xl p-4 cursor-pointer transition flex flex-col justify-between group"
+        >
+          <div className="flex items-center justify-between text-zinc-400 mb-2">
+            <span className="text-xs font-medium">Follow-ups Today</span>
+            <Bell className="h-4 w-4 text-blue-400 group-hover:scale-110 transition" />
+          </div>
+          <div className="text-2xl font-extrabold text-zinc-100">{followUpCounts.today}</div>
+          <div className="text-[10px] text-zinc-500 mt-1 flex items-center gap-1">
+            <span>Due today</span>
+          </div>
+        </div>
+
+        {/* Overdue Follow-ups */}
+        <div
+          onClick={() => setActiveTab('followups')}
+          className={`bg-zinc-900/60 hover:bg-zinc-900 border ${
+            followUpCounts.overdue > 0 ? 'border-red-900/60 bg-red-950/10' : 'border-zinc-800/70'
+          } hover:border-red-500/50 rounded-xl p-4 cursor-pointer transition flex flex-col justify-between group`}
+        >
+          <div className="flex items-center justify-between text-zinc-400 mb-2">
+            <span className="text-xs font-medium">Overdue</span>
+            <AlertTriangle
+              className={`h-4 w-4 ${
+                followUpCounts.overdue > 0 ? 'text-red-400 animate-pulse' : 'text-zinc-500'
+              } group-hover:scale-110 transition`}
+            />
+          </div>
+          <div
+            className={`text-2xl font-extrabold ${
+              followUpCounts.overdue > 0 ? 'text-red-400' : 'text-zinc-100'
+            }`}
+          >
+            {followUpCounts.overdue}
+          </div>
+          <div className="text-[10px] text-zinc-500 mt-1 flex items-center gap-1">
+            <span>Requires action</span>
           </div>
         </div>
 
@@ -256,7 +319,7 @@ export const DashboardOverview: React.FC = () => {
       {/* Quick Actions Bar */}
       <div className="space-y-3">
         <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-400">Quick Actions</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2.5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2.5">
           <button
             onClick={() => setActiveTab('inbox')}
             className="flex items-center gap-2 p-3 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-emerald-500/50 hover:bg-zinc-800/50 text-xs font-medium text-zinc-200 transition text-left"
@@ -275,6 +338,16 @@ export const DashboardOverview: React.FC = () => {
               <Users className="h-4 w-4" />
             </div>
             <span>Add Contact</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('followups')}
+            className="flex items-center gap-2 p-3 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-emerald-500/50 hover:bg-zinc-800/50 text-xs font-medium text-zinc-200 transition text-left"
+          >
+            <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400">
+              <Bell className="h-4 w-4" />
+            </div>
+            <span>Follow-ups</span>
           </button>
 
           <button
@@ -385,8 +458,51 @@ export const DashboardOverview: React.FC = () => {
           )}
         </div>
 
-        {/* Integration Status & Health */}
+        {/* Right Column: Reminders & Integration Status */}
         <div className="space-y-4">
+          {/* Today's Follow-up Reminders Widget */}
+          <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Bell className="h-4 w-4 text-emerald-400" />
+                <h2 className="text-sm font-semibold text-zinc-200">Today&apos;s Reminders</h2>
+              </div>
+              <button
+                onClick={() => setActiveTab('followups')}
+                className="text-xs text-emerald-400 hover:text-emerald-300 font-medium flex items-center gap-1 transition"
+              >
+                <span>View all</span>
+                <ArrowUpRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
+
+            {todayFollowUps.length === 0 ? (
+              <div className="text-center py-4 text-xs text-zinc-500">
+                <span>No reminders due today.</span>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {todayFollowUps.map((fu: FollowUp) => (
+                  <div
+                    key={fu.id}
+                    onClick={() => setActiveTab('followups')}
+                    className="p-2.5 rounded-lg bg-zinc-900/80 border border-zinc-800/80 hover:border-zinc-700 cursor-pointer transition flex items-center justify-between text-xs"
+                  >
+                    <div className="min-w-0 pr-2">
+                      <p className="font-medium text-zinc-200 truncate">{fu.title}</p>
+                      <p className="text-[10px] text-zinc-500">
+                        Due {new Date(fu.dueAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 font-semibold shrink-0">
+                      {fu.priority}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-5 space-y-4">
             <h2 className="text-sm font-semibold text-zinc-200">Integration Health</h2>
 

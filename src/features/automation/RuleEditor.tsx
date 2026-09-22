@@ -26,6 +26,8 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({
   const [selectedTagId, setSelectedTagId] = useState('');
   const [selectedWorkflowId, setSelectedWorkflowId] = useState('');
   const [webhookUrl, setWebhookUrl] = useState('');
+  const [followUpTitle, setFollowUpTitle] = useState('Follow up with lead');
+  const [followUpDelayHours, setFollowUpDelayHours] = useState(24);
 
   // Live tester
   const [testInput, setTestInput] = useState('');
@@ -53,11 +55,15 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({
         setSelectedTagId((firstAction.config.tagId as string) || '');
         setSelectedWorkflowId((firstAction.config.workflowId as string) || '');
         setWebhookUrl((firstAction.config.url as string) || '');
+        setFollowUpTitle((firstAction.config.title as string) || 'Follow up with lead');
+        setFollowUpDelayHours(Number(firstAction.config.delayHours) || 24);
       }
     } else {
       setName('');
       setTrigger('KEYWORD_MATCH');
       setKeywordPattern('');
+      setFollowUpTitle('Follow up with lead');
+      setFollowUpDelayHours(24);
       setKeywordMatchType('contains');
       setActionType('SEND_MESSAGE');
       setActionMessageText('');
@@ -100,6 +106,10 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({
     else if (actionType === 'ADD_TAG' || actionType === 'REMOVE_TAG') actionConfig.tagId = selectedTagId;
     else if (actionType === 'START_WORKFLOW') actionConfig.workflowId = selectedWorkflowId;
     else if (actionType === 'WEBHOOK') actionConfig.url = webhookUrl;
+    else if (actionType === 'CREATE_FOLLOW_UP') {
+      actionConfig.title = followUpTitle;
+      actionConfig.delayHours = followUpDelayHours;
+    }
 
     const record: AutomationRule = {
       id: rule?.id || `rule_${Date.now()}`,
@@ -220,6 +230,7 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({
               <option value="REMOVE_TAG">Remove CRM Tag</option>
               <option value="START_WORKFLOW">Trigger Visual Workflow</option>
               <option value="WEBHOOK">Send Outbound Webhook</option>
+              <option value="CREATE_FOLLOW_UP">Schedule CRM Follow-up</option>
             </select>
 
             {actionType === 'SEND_MESSAGE' && (
@@ -274,6 +285,30 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({
                 className="w-full bg-zinc-900 border border-zinc-700 rounded px-2.5 py-1.5 text-zinc-100"
                 required
               />
+            )}
+
+            {actionType === 'CREATE_FOLLOW_UP' && (
+              <div className="flex flex-col gap-2">
+                <input
+                  type="text"
+                  value={followUpTitle}
+                  onChange={(e) => setFollowUpTitle(e.target.value)}
+                  placeholder="Follow-up title..."
+                  className="w-full bg-zinc-900 border border-zinc-700 rounded px-2.5 py-1.5 text-zinc-100"
+                  required
+                />
+                <div className="flex items-center gap-2">
+                  <span className="text-zinc-400">Due in</span>
+                  <input
+                    type="number"
+                    min="1"
+                    value={followUpDelayHours}
+                    onChange={(e) => setFollowUpDelayHours(Math.max(1, parseInt(e.target.value) || 1))}
+                    className="w-20 bg-zinc-900 border border-zinc-700 rounded px-2.5 py-1.5 text-zinc-100"
+                  />
+                  <span className="text-zinc-400">hours</span>
+                </div>
+              </div>
             )}
           </div>
 

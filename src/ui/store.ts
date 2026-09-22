@@ -5,6 +5,8 @@ export type ActiveTab =
   | 'dashboard'
   | 'inbox'
   | 'crm'
+  | 'followups'
+  | 'sequences'
   | 'chatbot'
   | 'workflows'
   | 'automation'

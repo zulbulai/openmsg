@@ -176,3 +176,65 @@ export class MoveContactStageNode implements NodeDefinition {
   }
 }
 
+export class EnrollSequenceNode implements NodeDefinition {
+  readonly type = 'ENROLL_SEQUENCE';
+  readonly label = 'Enroll in Sequence';
+  readonly description = 'Starts a drip campaign sequence for the contact';
+  readonly icon = 'PlayCircle';
+  readonly category = 'contact';
+  readonly inputPorts = [{ id: 'input', label: 'In' }];
+  readonly outputPorts = [{ id: 'output', label: 'Next' }];
+
+  validate(data: Record<string, unknown>): NodeValidationResult {
+    if (!data.sequenceId) {
+      return { valid: false, errors: ['Target sequence ID is required'] };
+    }
+    return { valid: true };
+  }
+
+  async execute(
+    node: WorkflowNode,
+    context: WorkflowExecutionContext
+  ): Promise<NodeExecutionResult> {
+    const sequenceId = String(node.data.sequenceId);
+
+    const { SequenceRepository } = await import('@/storage/repositories/sequence.repository');
+    try {
+      await SequenceRepository.enrollContact(sequenceId, context.contactId);
+      context.logs.push(`Enrolled contact ${context.contactId} in sequence ${sequenceId}`);
+      return { status: 'CONTINUE', output: { sequenceId } };
+    } catch (err: any) {
+      return { status: 'FAILED', error: err.message };
+    }
+  }
+}
+
+export class UnenrollSequenceNode implements NodeDefinition {
+  readonly type = 'UNENROLL_SEQUENCE';
+  readonly label = 'Unenroll from Sequence';
+  readonly description = 'Cancels an active drip campaign sequence for the contact';
+  readonly icon = 'StopCircle';
+  readonly category = 'contact';
+  readonly inputPorts = [{ id: 'input', label: 'In' }];
+  readonly outputPorts = [{ id: 'output', label: 'Next' }];
+
+  validate(data: Record<string, unknown>): NodeValidationResult {
+    if (!data.sequenceId) {
+      return { valid: false, errors: ['Target sequence ID is required'] };
+    }
+    return { valid: true };
+  }
+
+  async execute(
+    node: WorkflowNode,
+    context: WorkflowExecutionContext
+  ): Promise<NodeExecutionResult> {
+    const sequenceId = String(node.data.sequenceId);
+
+    const { SequenceRepository } = await import('@/storage/repositories/sequence.repository');
+    await SequenceRepository.unenrollContact(sequenceId, context.contactId);
+
+    context.logs.push(`Unenrolled contact ${context.contactId} from sequence ${sequenceId}`);
+    return { status: 'CONTINUE', output: { sequenceId } };
+  }
+}

@@ -13,6 +13,8 @@ import {
   Sparkles,
   BarChart3,
   Settings,
+  Bell,
+  Route,
 } from 'lucide-react';
 import { useUIStore } from '@/ui/store';
 import { getWhatsAppClient } from '@/content/whatsapp';
@@ -39,6 +41,9 @@ import { AIAssistantModal } from '@/features/ai/AIAssistantModal';
 import { AnalyticsView } from '@/features/analytics/AnalyticsView';
 import { SettingsView } from '@/features/settings/SettingsView';
 import { GlobalSearchModal } from '@/features/search/GlobalSearchModal';
+import { FollowUpManager } from '@/features/crm/followups/FollowUpManager';
+import { SequenceManager } from '@/features/sequences/SequenceManager';
+import { NotificationCenterModal } from '@/features/notifications/NotificationCenterModal';
 
 export const App: React.FC = () => {
   const {
@@ -57,6 +62,25 @@ export const App: React.FC = () => {
   const [showContactSidebar, setShowContactSidebar] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [isLoadingChats, setIsLoadingChats] = useState(true);
+  const [showNotificationCenter, setShowNotificationCenter] = useState(false);
+  const [unreadAlertsCount, setUnreadAlertsCount] = useState(0);
+
+  const checkUnreadAlerts = async () => {
+    try {
+      const all = await db.followUps.toArray();
+      const count = all.filter((fu) => {
+        if (fu.status === 'COMPLETED' || fu.status === 'CANCELLED' || fu.reminderStatus === 'DISMISSED') {
+          return false;
+        }
+        const isTriggered = fu.reminderStatus === 'TRIGGERED';
+        const isOverdue = fu.dueAt < Date.now();
+        return isTriggered || isOverdue;
+      }).length;
+      setUnreadAlertsCount(count);
+    } catch {
+      // Ignore
+    }
+  };
 
   const client = getWhatsAppClient();
 
@@ -161,8 +185,13 @@ export const App: React.FC = () => {
       }
     });
 
+    // 5. Initial check & poll for unread reminders
+    checkUnreadAlerts();
+    const alertInterval = setInterval(checkUnreadAlerts, 20000);
+
     return () => {
       unsubMsg();
+      clearInterval(alertInterval);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -264,8 +293,22 @@ export const App: React.FC = () => {
           </div>
         </div>
 
-        {/* Real WhatsApp Connection Badge */}
+        {/* Real WhatsApp Connection Badge & Notification Bell */}
         <div className="flex items-center gap-2">
+          {/* Notification Bell */}
+          <button
+            onClick={() => setShowNotificationCenter(true)}
+            title="Notification Center"
+            className="relative p-1.5 rounded-lg bg-zinc-800/80 hover:bg-zinc-800 text-zinc-300 hover:text-zinc-100 transition border border-zinc-700/60"
+          >
+            <Bell className="h-4 w-4" />
+            {unreadAlertsCount > 0 && (
+              <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-red-500 text-[10px] font-bold text-white flex items-center justify-center animate-pulse">
+                {unreadAlertsCount}
+              </span>
+            )}
+          </button>
+
           <span
             className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${
               isConnected
@@ -304,6 +347,18 @@ export const App: React.FC = () => {
             onClick={() => setActiveTab('crm')}
             icon={<Users className="h-4 w-4" />}
             label="CRM"
+          />
+          <NavButton
+            active={activeTab === 'followups'}
+            onClick={() => setActiveTab('followups')}
+            icon={<Bell className="h-4 w-4" />}
+            label="Follow-ups"
+          />
+          <NavButton
+            active={activeTab === 'sequences'}
+            onClick={() => setActiveTab('sequences')}
+            icon={<Route className="h-4 w-4" />}
+            label="Sequences"
           />
           <NavButton
             active={activeTab === 'chatbot'}
@@ -424,6 +479,8 @@ export const App: React.FC = () => {
           )}
 
           {activeTab === 'crm' && <ContactManager />}
+          {activeTab === 'followups' && <FollowUpManager />}
+          {activeTab === 'sequences' && <SequenceManager />}
           {activeTab === 'chatbot' && <ChatbotManager />}
           {activeTab === 'workflows' && <WorkflowManager />}
           {activeTab === 'automation' && <AutomationManager />}
@@ -443,6 +500,13 @@ export const App: React.FC = () => {
         </main>
 
         <GlobalSearchModal />
+        <NotificationCenterModal
+          isOpen={showNotificationCenter}
+          onClose={() => {
+            setShowNotificationCenter(false);
+            checkUnreadAlerts();
+          }}
+        />
       </div>
     </div>
   );

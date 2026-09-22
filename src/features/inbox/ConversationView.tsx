@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Check,
   CheckCheck,
@@ -8,8 +8,10 @@ import {
   Info,
   Mic,
   Video,
+  Bell,
 } from 'lucide-react';
 import { WhatsAppChat, WhatsAppMessage } from '@/types/whatsapp';
+import { FollowUpModal } from '@/features/crm/followups/FollowUpModal';
 
 interface ConversationViewProps {
   chat: WhatsAppChat;
@@ -25,6 +27,7 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
   showSidebar,
 }) => {
   const bottomRef = useRef<HTMLDivElement>(null);
+  const [showFollowUpModal, setShowFollowUpModal] = useState(false);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -63,6 +66,14 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
 
         {/* Header Actions */}
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowFollowUpModal(true)}
+            title="Create CRM Follow-up"
+            className="px-2.5 py-1 text-xs rounded-lg border border-zinc-800 bg-zinc-900 text-zinc-300 hover:text-emerald-400 hover:border-emerald-500/30 flex items-center gap-1.5 transition font-medium"
+          >
+            <Bell className="h-3.5 w-3.5 text-blue-400" />
+            <span>Follow-up</span>
+          </button>
           {onToggleSidebar && (
             <button
               onClick={onToggleSidebar}
@@ -148,6 +159,17 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
         )}
         <div ref={bottomRef} />
       </div>
+
+      {showFollowUpModal && (
+        <FollowUpModal
+          isOpen={true}
+          onClose={() => setShowFollowUpModal(false)}
+          onSaved={() => setShowFollowUpModal(false)}
+          preselectedContactId={chat.id}
+          preselectedConversationId={chat.id}
+          source="INBOX"
+        />
+      )}
     </div>
   );
 };

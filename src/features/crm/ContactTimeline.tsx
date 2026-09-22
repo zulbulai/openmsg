@@ -6,12 +6,20 @@ import {
   Play,
   CheckCircle,
   Clock,
+  GitCommit,
 } from 'lucide-react';
 import { db } from '@/storage/db';
 
 interface TimelineEvent {
   id: string;
-  type: 'MESSAGE_SENT' | 'MESSAGE_RECEIVED' | 'TAG_ADDED' | 'NOTE_ADDED' | 'WORKFLOW_STARTED' | 'WORKFLOW_COMPLETED';
+  type:
+    | 'MESSAGE_SENT'
+    | 'MESSAGE_RECEIVED'
+    | 'TAG_ADDED'
+    | 'NOTE_ADDED'
+    | 'WORKFLOW_STARTED'
+    | 'WORKFLOW_COMPLETED'
+    | 'STAGE_CHANGED';
   title: string;
   description?: string;
   timestamp: number;
@@ -29,6 +37,24 @@ export const ContactTimeline: React.FC<ContactTimelineProps> = ({ contactId }) =
     const fetchTimeline = async () => {
       setLoading(true);
       const items: TimelineEvent[] = [];
+
+      // 0. Stage Movement History
+      const stagesHistory = await db.stageHistory.where('contactId').equals(contactId).toArray();
+      const pipelines = await db.pipelines.toArray();
+      const stageNameMap = new Map<string, string>();
+      pipelines.forEach((p) => p.stages.forEach((s) => stageNameMap.set(s.id, s.name)));
+
+      stagesHistory.forEach((sh) => {
+        const fromName = sh.fromStageId ? stageNameMap.get(sh.fromStageId) || sh.fromStageId : 'Initial';
+        const toName = stageNameMap.get(sh.toStageId) || sh.toStageId;
+        items.push({
+          id: `sh_${sh.id}`,
+          type: 'STAGE_CHANGED',
+          title: `Stage Changed: ${fromName} → ${toName}`,
+          description: `Moved via ${sh.source.toLowerCase()}`,
+          timestamp: sh.changedAt,
+        });
+      });
 
       // 1. Messages
       const msgs = await db.messages.where('chatId').equals(contactId).limit(30).toArray();
@@ -87,6 +113,8 @@ export const ContactTimeline: React.FC<ContactTimelineProps> = ({ contactId }) =
 
   const renderIcon = (type: TimelineEvent['type']) => {
     switch (type) {
+      case 'STAGE_CHANGED':
+        return <GitCommit className="h-3.5 w-3.5 text-cyan-400" />;
       case 'MESSAGE_SENT':
         return <MessageSquare className="h-3.5 w-3.5 text-emerald-400" />;
       case 'MESSAGE_RECEIVED':

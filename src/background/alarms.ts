@@ -2,6 +2,8 @@ import { MessageBus } from '@/core/events/message-bus';
 import { db } from '@/storage/db';
 import { WorkflowEngine } from '@/workflow-engine/engine';
 import { getWhatsAppClient } from '@/content/whatsapp';
+import { ReminderService } from '@/core/crm/reminder.service';
+import { SequenceEngine } from '@/core/sequences/sequence-engine';
 
 export class AlarmManager {
   static init(): void {
@@ -61,7 +63,31 @@ export class AlarmManager {
         }
       }
 
-      // If it is an appointment reminder alarm, trigger desktop notification
+      // Handle Follow-up Reminder alarms (fu_reminder_{followUpId})
+      if (alarm.name.startsWith('fu_reminder_')) {
+        const followUpId = ReminderService.extractFollowUpId(alarm.name);
+        if (followUpId) {
+          try {
+            await ReminderService.handleAlarmFired(followUpId);
+          } catch (err) {
+            console.error('[OpenMsg Background] Failed to handle follow-up reminder alarm:', err);
+          }
+        }
+      }
+
+      // Handle Sequence Drip Execution (seq_exec_{enrollmentId})
+      if (alarm.name.startsWith('seq_exec_')) {
+        const enrollmentId = alarm.name.replace('seq_exec_', '');
+        try {
+          const client = getWhatsAppClient();
+          const engine = new SequenceEngine(client);
+          await engine.processEnrollment(enrollmentId);
+        } catch (err) {
+          console.error('[OpenMsg Background] Failed to process sequence step:', err);
+        }
+      }
+
+      // Legacy appointment reminder alarms (openmsg:reminder:)
       if (alarm.name.startsWith('openmsg:reminder:')) {
         const id = alarm.name.replace('openmsg:reminder:', '');
         chrome.notifications?.create({
@@ -101,6 +127,33 @@ export class AlarmManager {
         }
       }
       console.log(`[OpenMsg Background] Reconciled ${pendingExecs.length} pending workflow delay executions.`);
+
+      // Reconcile follow-up reminder alarms
+      try {
+        await ReminderService.rebuildAll();
+      } catch (fuErr) {
+        console.debug('[OpenMsg Background] Follow-up reminder reconciliation deferred:', fuErr);
+      }
+
+      // Reconcile sequence enrollments
+      try {
+        const activeEnrollments = await db.sequenceEnrollments
+          .where('status')
+          .equals('ACTIVE')
+          .toArray();
+
+        for (const enr of activeEnrollments) {
+          if (enr.nextStepAt) {
+            if (enr.nextStepAt <= now) {
+              chrome.alarms?.create(`seq_exec_${enr.id}`, { delayInMinutes: 0.05 });
+            } else {
+              this.schedule(`seq_exec_${enr.id}`, enr.nextStepAt);
+            }
+          }
+        }
+      } catch (seqErr) {
+        console.debug('[OpenMsg Background] Sequence reconciliation deferred:', seqErr);
+      }
     } catch (err) {
       console.debug('[OpenMsg Background] DB not ready during alarm reconciliation, will retry:', err);
     }

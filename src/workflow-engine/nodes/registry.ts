@@ -43,6 +43,8 @@ import {
   UpdateContactNode,
   AddNoteNode,
   MoveContactStageNode,
+  EnrollSequenceNode,
+  UnenrollSequenceNode,
 } from './definitions/contact-nodes';
 
 import {
@@ -53,6 +55,10 @@ import {
 import {
   AiPromptNode,
 } from './definitions/ai-nodes';
+
+import {
+  CreateFollowUpNode,
+} from './definitions/followup-nodes';
 
 export class NodeRegistry {
   private static instance: NodeRegistry;
@@ -102,6 +108,9 @@ export class NodeRegistry {
     this.register(new UpdateContactNode());
     this.register(new AddNoteNode());
     this.register(new MoveContactStageNode());
+    this.register(new CreateFollowUpNode());
+    this.register(new EnrollSequenceNode());
+    this.register(new UnenrollSequenceNode());
 
     // Integration
     this.register(new WebhookNode());

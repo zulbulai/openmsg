@@ -15,9 +15,10 @@ import { DiagnosticsView } from './DiagnosticsView';
 import { AIAssistant } from '@/core/ai/client';
 import { messageQueue } from '@/core/rate-limiter/queue';
 import { CustomFieldManager } from '@/features/crm/CustomFieldManager';
+import { FollowUpSettingsTab } from './FollowUpSettingsTab';
 
 export const SettingsView: React.FC = () => {
-  const [subTab, setSubTab] = useState<'general' | 'fields'>('general');
+  const [subTab, setSubTab] = useState<'general' | 'fields' | 'followups'>('general');
   const [theme, setTheme] = useState<'dark' | 'light' | 'system'>('dark');
 
   // Rate limiting
@@ -122,11 +123,23 @@ export const SettingsView: React.FC = () => {
           >
             Custom Fields
           </button>
+          <button
+            onClick={() => setSubTab('followups')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+              subTab === 'followups'
+                ? 'bg-zinc-800 text-emerald-400 border border-zinc-700'
+                : 'text-zinc-400 hover:text-zinc-200'
+            }`}
+          >
+            Follow-ups
+          </button>
         </div>
       </div>
 
       {subTab === 'fields' ? (
         <CustomFieldManager />
+      ) : subTab === 'followups' ? (
+        <FollowUpSettingsTab />
       ) : (
         <div className="flex flex-col gap-6 max-w-2xl">
           {/* Appearance & Dark Mode Settings */}

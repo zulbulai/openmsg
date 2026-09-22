@@ -5,10 +5,15 @@ import {
   Plus,
   X,
   Play,
+  Route,
+  Bell,
 } from 'lucide-react';
-import { Contact, Tag, Note } from '@/storage/schemas';
+import { Contact, Tag, Note, FollowUp } from '@/storage/schemas';
 import { ContactRepository } from '@/storage/repositories/contact.repository';
+import { FollowUpRepository } from '@/storage/repositories/followup.repository';
 import { db } from '@/storage/db';
+import { SequenceEnrollmentModal } from '@/features/sequences/SequenceEnrollmentModal';
+import { FollowUpModal } from '@/features/crm/followups/FollowUpModal';
 
 interface ContactSidebarProps {
   contactId: string;
@@ -27,19 +32,23 @@ export const ContactSidebar: React.FC<ContactSidebarProps> = ({
   const [notes, setNotes] = useState<Note[]>([]);
   const [newNote, setNewNote] = useState('');
   const [selectedTagId, setSelectedTagId] = useState('');
+  const [showSequenceModal, setShowSequenceModal] = useState(false);
+  const [followUps, setFollowUps] = useState<FollowUp[]>([]);
+  const [showFollowUpModal, setShowFollowUpModal] = useState(false);
 
   const loadData = async () => {
-    const c = await ContactRepository.getById(contactId);
+    const [c, tags, cTags, n, fu] = await Promise.all([
+      ContactRepository.getById(contactId),
+      db.tags.toArray(),
+      ContactRepository.getTags(contactId),
+      ContactRepository.getNotes(contactId),
+      FollowUpRepository.getByContactId(contactId),
+    ]);
     setContact(c || null);
-
-    const tags = await db.tags.toArray();
     setAllTags(tags);
-
-    const cTags = await ContactRepository.getTags(contactId);
     setContactTags(cTags);
-
-    const n = await ContactRepository.getNotes(contactId);
     setNotes(n);
+    setFollowUps(fu);
   };
 
   useEffect(() => {
@@ -100,6 +109,22 @@ export const ContactSidebar: React.FC<ContactSidebarProps> = ({
               Trigger Workflow
             </button>
           )}
+
+          <button
+            onClick={() => setShowSequenceModal(true)}
+            className="mt-2 w-full py-1.5 px-3 rounded-lg bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition"
+          >
+            <Route className="h-3.5 w-3.5 text-zinc-400" />
+            Manage Sequences
+          </button>
+
+          <button
+            onClick={() => setShowFollowUpModal(true)}
+            className="mt-2 w-full py-1.5 px-3 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-400 text-xs font-semibold flex items-center justify-center gap-1.5 transition"
+          >
+            <Bell className="h-3.5 w-3.5" />
+            + Follow-up / Reminder
+          </button>
         </div>
 
         {/* Tags Section */}
@@ -179,6 +204,59 @@ export const ContactSidebar: React.FC<ContactSidebarProps> = ({
           </div>
         )}
 
+        {/* Follow-ups Section */}
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between text-xs font-semibold text-zinc-200">
+            <span className="flex items-center gap-1.5">
+              <Bell className="h-3.5 w-3.5 text-blue-400" />
+              Follow-ups ({followUps.length})
+            </span>
+            <button
+              onClick={() => setShowFollowUpModal(true)}
+              className="text-[10px] text-blue-400 hover:text-blue-300 font-semibold"
+            >
+              + Add
+            </button>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            {followUps.length === 0 ? (
+              <span className="text-[11px] text-zinc-500 italic">No follow-ups scheduled</span>
+            ) : (
+              followUps.map((fu) => {
+                const status = FollowUpRepository.computeStatus(fu);
+                const isOverdue = status === 'OVERDUE';
+                const isCompleted = status === 'COMPLETED';
+
+                return (
+                  <div
+                    key={fu.id}
+                    className={`p-2 rounded-lg border text-xs flex flex-col gap-1 ${
+                      isCompleted
+                        ? 'bg-zinc-900/40 border-zinc-800/40 opacity-70'
+                        : isOverdue
+                        ? 'bg-red-950/20 border-red-900/50'
+                        : 'bg-zinc-900 border-zinc-800'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-1">
+                      <span className={`font-semibold truncate ${isCompleted ? 'line-through text-zinc-500' : 'text-zinc-200'}`}>
+                        {fu.title}
+                      </span>
+                      <span className="text-[10px] text-zinc-400 shrink-0">
+                        {new Date(fu.dueAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                      </span>
+                    </div>
+                    {fu.description && (
+                      <p className="text-[10px] text-zinc-400 line-clamp-1">{fu.description}</p>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+
         {/* Notes Section */}
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between text-xs font-semibold text-zinc-200">
@@ -227,6 +305,26 @@ export const ContactSidebar: React.FC<ContactSidebarProps> = ({
           </div>
         </div>
       </div>
+      
+      {showSequenceModal && (
+        <SequenceEnrollmentModal
+          contactId={contactId}
+          onClose={() => setShowSequenceModal(false)}
+        />
+      )}
+
+      {showFollowUpModal && (
+        <FollowUpModal
+          isOpen={true}
+          onClose={() => setShowFollowUpModal(false)}
+          onSaved={() => {
+            setShowFollowUpModal(false);
+            loadData();
+          }}
+          preselectedContactId={contactId}
+          source="INBOX"
+        />
+      )}
     </div>
   );
 };
