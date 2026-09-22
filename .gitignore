@@ -1,51 +1,5 @@
-# Dependencies
 node_modules/
-.pnpm-store/
-
-# Build outputs
-dist/
-build/
-*.tsbuildinfo
-*.crx
-*.zip
-
-# Environment variables & secrets
-.env
-.env.*
-!.env.example
-.env.local
-.env.production
-.env.development
-*.pem
-*.key
-
-# Session & Runtime data
-sessions/
-auth_info_baileys/
-.wwebjs_auth/
-.wwebjs_cache/
-
-# Cache & Coverage
-.cache/
-coverage/
-.next/
-.expo/
-
-# Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-*.log
-
-# OS & Editor files
 .DS_Store
-Thumbs.db
-.idea/
-.vscode/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
+*.log
+.env
+dist/

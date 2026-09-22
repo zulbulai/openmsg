@@ -1,0 +1,10 @@
+{
+    "app": "WACRM",
+    "version": "0.2.0.2",
+    "build": 2,
+    "base_version": "0.2.0",
+    "base_hash": "19426951b243932bdf459a737c3a90c8e7036b755d524ed2a5fa449ccfe3ab44",
+    "endpoint": null,
+    "accent": null,
+    "built_at": "2026-09-22T00:00:00+00:00"
+}
