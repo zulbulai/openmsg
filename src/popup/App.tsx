@@ -23,9 +23,11 @@ export const PopupApp: React.FC = () => {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-2 border-b border-zinc-800 pb-2">
-        <div className="h-7 w-7 rounded bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold text-xs">
-          OM
-        </div>
+        <img
+          src="/icons/icon-48.png"
+          alt="OpenMsg Logo"
+          className="h-7 w-7 rounded object-contain border border-zinc-800/80 bg-zinc-900"
+        />
         <div>
           <h1 className="text-xs font-bold leading-none">OpenMsg</h1>
           <span className="text-[10px] text-zinc-400">Open-source WhatsApp CRM</span>

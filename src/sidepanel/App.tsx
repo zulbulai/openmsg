@@ -279,9 +279,11 @@ export const App: React.FC = () => {
       {/* Top Header */}
       <header className="h-14 border-b border-zinc-800 bg-zinc-900/80 px-4 flex items-center justify-between backdrop-blur shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="h-8 w-8 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold text-xs tracking-wider">
-            OM
-          </div>
+          <img
+            src="/icons/icon-48.png"
+            alt="OpenMsg Logo"
+            className="h-8 w-8 rounded-lg object-contain shadow-sm border border-zinc-800/80 bg-zinc-900"
+          />
           <div>
             <h1 className="text-xs font-bold leading-tight flex items-center gap-1.5">
               OpenMsg

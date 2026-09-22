@@ -6,10 +6,12 @@ export const OptionsApp: React.FC = () => {
     <div className="max-w-4xl mx-auto p-8 flex flex-col gap-8">
       <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
         <div>
-          <h1 className="text-xl font-bold text-zinc-100 flex items-center gap-2">
-            <span className="h-7 w-7 rounded bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold text-xs">
-              OM
-            </span>
+          <h1 className="text-xl font-bold text-zinc-100 flex items-center gap-2.5">
+            <img
+              src="/icons/icon-48.png"
+              alt="OpenMsg Logo"
+              className="h-7 w-7 rounded object-contain border border-zinc-800/80 bg-zinc-900"
+            />
             OpenMsg Configuration
           </h1>
           <p className="text-xs text-zinc-400 mt-1">Open-source WhatsApp Automation & CRM (v0.1.0)</p>
