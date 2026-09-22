@@ -1,7 +1,7 @@
 {
   "name": "openmsg",
-  "version": "0.2.0",
-  "description": "OpenMsg - 100% Free & Open-Source WhatsApp Web CRM & Automation Workspace",
+  "version": "0.0.1",
+  "description": "OpenMsg - Free and open-source WhatsApp Web CRM and automation workspace",
   "type": "module",
   "author": "OpenMsg Contributors",
   "license": "MIT",

@@ -1,11 +1,23 @@
-OpenMsg 0.2.0.2
+OpenMsg — Quick Installation
+==============================
 
-To install it in Chrome, Edge or Brave:
+1. Clone or download the repository:
+   git clone https://github.com/zulbulai/openmsg.git
 
-1. Unzip this file into a folder, and keep that folder.
-2. Open chrome://extensions (edge://extensions in Edge).
-3. Switch on Developer mode.
-4. Choose Load unpacked and pick the folder that contains manifest.json.
-5. Open WhatsApp Web — OpenMsg is fully unlocked with all features active.
-6. Support / WhatsApp: +91 6306356544 (https://wa.me/916306356544)
+2. Open your browser's extensions page:
+   Chrome  -> chrome://extensions
+   Brave   -> brave://extensions
+   Edge    -> edge://extensions
 
+3. Enable Developer Mode (top-right toggle).
+
+4. Click "Load unpacked" and select the openmsg/ folder
+   (the one containing manifest.json).
+
+5. Open https://web.whatsapp.com and refresh.
+
+The OpenMsg workspace sidebar will appear automatically.
+
+No build step, no registration, no license key required.
+
+For help: https://github.com/zulbulai/openmsg/issues

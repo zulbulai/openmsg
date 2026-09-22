@@ -54,7 +54,7 @@ export function memoryLicenseStorage(initial = null) {
 
 export function chromeLicenseStorage(
   storage = typeof chrome !== 'undefined' ? chrome.storage?.local : null,
-  key = 'wacrm_license',
+  key = 'openmsg_license',
 ) {
   return {
     get: async () => {
@@ -80,20 +80,20 @@ function buildActiveSnapshot(number = '') {
   return {
     status: STATUS.ACTIVE,
     active: true,
-    number: number || '916306356544',
+    number: number || '',
     code: 'ok',
-    message: 'Active Unlimited License',
+    message: 'Open Source — All Features Active',
     license: {
-      key: 'WACRM-UNLIMITED-PRO',
-      product: 'WACRM Unlimited',
-      customer: { name: 'Full Version', phone: number || '916306356544' },
+      key: 'OPENMSG-OPENSOURCE',
+      product: 'OpenMsg Open Source',
+      customer: { name: 'Open Source User', phone: number || '' },
       provider: BUILD_PROVIDER,
       lifetime: true,
       issuedAt: Date.now(),
     },
     verifiedAt: Date.now(),
     offline: false,
-    key: 'OPENMSG-UNLIMITED-PRO',
+    key: 'OPENMSG-OPENSOURCE',
     applied: true,
   };
 }
