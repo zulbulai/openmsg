@@ -6,13 +6,30 @@ node_modules/
 dist/
 build/
 *.tsbuildinfo
+*.crx
+*.zip
 
 # Environment variables & secrets
 .env
+.env.*
+!.env.example
 .env.local
-.env.*.local
+.env.production
+.env.development
 *.pem
 *.key
+
+# Session & Runtime data
+sessions/
+auth_info_baileys/
+.wwebjs_auth/
+.wwebjs_cache/
+
+# Cache & Coverage
+.cache/
+coverage/
+.next/
+.expo/
 
 # Logs
 npm-debug.log*
@@ -31,3 +48,4 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+

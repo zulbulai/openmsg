@@ -64,6 +64,7 @@ export const App: React.FC = () => {
   const [isLoadingChats, setIsLoadingChats] = useState(true);
   const [showNotificationCenter, setShowNotificationCenter] = useState(false);
   const [unreadAlertsCount, setUnreadAlertsCount] = useState(0);
+  const [uiMode, setUiMode] = useState<'FULL' | 'SPLIT'>('SPLIT');
 
   const checkUnreadAlerts = async () => {
     try {
@@ -275,7 +276,7 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen w-full bg-zinc-950 text-zinc-100 flex-col font-sans select-none overflow-hidden">
+    <div className={`openmsg-app text-zinc-100 flex flex-col h-[100dvh] w-full overflow-hidden bg-[#0a0a0a] font-sans antialiased`}>
       {/* Top Header */}
       <header className="h-14 border-b border-zinc-800 bg-zinc-900/80 px-4 flex items-center justify-between backdrop-blur shrink-0">
         <div className="flex items-center gap-2.5">
@@ -295,8 +296,29 @@ export const App: React.FC = () => {
           </div>
         </div>
 
-        {/* Real WhatsApp Connection Badge & Notification Bell */}
+        {/* Real WhatsApp Connection Badge & Mode Toggle */}
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              const newMode = uiMode === 'FULL' ? 'SPLIT' : 'FULL';
+              setUiMode(newMode);
+              window.postMessage({ type: 'OPENMSG_SET_MODE', payload: { mode: newMode } }, '*');
+            }}
+            title="Toggle Full Screen Mode"
+            className="px-2 py-1.5 rounded-lg bg-zinc-800/80 hover:bg-zinc-800 text-zinc-300 hover:text-zinc-100 transition border border-zinc-700/60 text-[10px] font-semibold"
+          >
+            {uiMode === 'FULL' ? 'Back to WhatsApp' : 'Open Full OpenMsg'}
+          </button>
+          <button
+            onClick={() => {
+              window.postMessage({ type: 'OPENMSG_CLOSE_UI' }, '*');
+            }}
+            title="Close Extension"
+            className="px-2 py-1.5 rounded-lg bg-red-950/40 hover:bg-red-900/60 text-red-400 transition border border-red-900/30 text-[10px] font-semibold"
+          >
+            Close
+          </button>
+
           {/* Notification Bell */}
           <button
             onClick={() => setShowNotificationCenter(true)}

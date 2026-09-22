@@ -1,14 +1,23 @@
-@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
   color-scheme: dark;
+  --openmsg-z-base: 10000;
+  --openmsg-z-header: 10100;
+  --openmsg-z-sidebar: 10200;
+  --openmsg-z-modal: 10300;
+  --openmsg-z-toast: 10400;
 }
 
-body {
+#openmsg-root, #openmsg-root * {
+  box-sizing: border-box;
+}
+
+#openmsg-root {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  margin: 0;
+  position: relative;
+  z-index: var(--openmsg-z-base);
 }
 
 /* Custom scrollbars */

@@ -1,14 +1,20 @@
 import { AlarmManager } from './alarms';
 import { setupBackgroundMessaging } from './messaging';
 
+import { launchOrFocusWhatsAppWeb } from './launcher';
+
 console.log('[OpenMsg Background] Service worker initializing...');
 
-// Enable side panel toggle on extension toolbar action click
-if (typeof chrome !== 'undefined' && chrome.sidePanel && chrome.sidePanel.setPanelBehavior) {
-  chrome.sidePanel
-    .setPanelBehavior({ openPanelOnActionClick: true })
-    .catch((err: Error) => console.error('[OpenMsg Background] Error setting side panel behavior:', err));
-}
+// Listen for extension icon click in toolbar
+chrome.action.onClicked.addListener(async () => {
+  console.log('[OpenMsg Background] OpenMsg icon clicked. Launching/focusing WhatsApp Web...');
+  try {
+    const result = await launchOrFocusWhatsAppWeb();
+    console.log('[OpenMsg Background] Launcher result:', result);
+  } catch (err) {
+    console.error('[OpenMsg Background] Failed to launch or focus WhatsApp Web:', err);
+  }
+});
 
 // Initialize core background subsystems
 AlarmManager.init();

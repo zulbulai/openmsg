@@ -6,7 +6,11 @@ export default {
     "./options.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  important: '#openmsg-root',
   darkMode: "class",
+  corePlugins: {
+    preflight: false,
+  },
   theme: {
     extend: {
       colors: {

@@ -2,7 +2,14 @@
  * WhatsApp Core Types & Client Contract
  */
 
-export type ConnectionState = 'DISCONNECTED' | 'CONNECTING' | 'CONNECTED' | 'READY' | 'ERROR';
+export type ConnectionState =
+  | 'LOADING'
+  | 'LOGIN_REQUIRED'
+  | 'CONNECTING'
+  | 'CONNECTED'
+  | 'READY'
+  | 'DISCONNECTED'
+  | 'ERROR';
 
 export type MessageStatus = 'pending' | 'sent' | 'delivered' | 'read' | 'failed';
 

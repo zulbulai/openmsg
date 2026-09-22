@@ -31,11 +31,9 @@ export default defineConfig({
     target: 'es2022',
     rollupOptions: {
       input: {
-        sidepanel: resolve(__dirname, 'sidepanel.html'),
-        popup: resolve(__dirname, 'popup.html'),
         options: resolve(__dirname, 'options.html'),
         background: resolve(__dirname, 'src/background/index.ts'),
-        content: resolve(__dirname, 'src/content/index.ts'),
+        content: resolve(__dirname, 'src/content/index.tsx'),
         injected: resolve(__dirname, 'src/injected/whatsapp-bridge.ts'),
       },
       output: {
@@ -46,7 +44,12 @@ export default defineConfig({
           return 'assets/[name]-[hash].js';
         },
         chunkFileNames: 'assets/[name]-[hash].js',
-        assetFileNames: 'assets/[name]-[hash].[ext]',
+        assetFileNames: (assetInfo) => {
+          if (assetInfo.name === 'index.css' || assetInfo.name === 'content.css') {
+            return 'content.css'; // Output predictable CSS name for manifest
+          }
+          return 'assets/[name]-[hash].[ext]';
+        },
       },
     },
   },

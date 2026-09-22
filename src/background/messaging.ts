@@ -5,8 +5,9 @@ export function setupBackgroundMessaging(): void {
   MessageBus.onMessage((msg, _sender, sendResponse) => {
     switch (msg.type) {
       case 'PING':
+      case 'PING_OPENMSG':
         sendResponse({
-          type: 'PONG',
+          type: 'PONG_OPENMSG',
           payload: { timestamp: Date.now(), context: 'background' },
         });
         return true;
