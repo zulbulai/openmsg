@@ -10,6 +10,8 @@
 .wc-root {
   position: absolute;
   inset: 0;
+  height: 100%;
+  overflow: hidden;
   pointer-events: none;
   font-family: Inter, "Segoe UI", Roboto, system-ui, -apple-system, sans-serif;
   font-size: 14px;
@@ -205,6 +207,7 @@
   pointer-events: auto;
   z-index: 10;
   animation: wc-fade 0.14s ease-out;
+  overflow: hidden;
 }
 
 .wc-panel-head {
@@ -227,7 +230,7 @@
 .wc-panel-title { margin: 0; font-size: 18px; font-weight: 700; line-height: 1.2; }
 .wc-panel-sub { margin: 3px 0 0; color: var(--muted); font-size: 13px; }
 .wc-panel-actions { display: flex; align-items: center; gap: 8px; }
-.wc-panel-body { flex: 1; overflow: auto; padding: 22px 24px 40px; }
+.wc-panel-body { flex: 1; min-height: 0; overflow: auto; padding: 22px 24px 40px; }
 .wc-panel-head .wc-iconbtn { color: var(--muted); }
 
 /* ----------------------------------------------------------------- Drawer */
@@ -780,8 +783,8 @@
 /* ---- panel */
 .wc-panel.is-bleed { left: 0; }
 .wc-panel.is-bleed .wc-panel-head { display: none; }
-.wc-panel-body.is-bleed { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
-.wc-panel-body.is-bleed > .wc-screen { flex: 1; min-height: 0; }
+.wc-panel-body.is-bleed { padding: 0; overflow: hidden; display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.wc-panel-body.is-bleed > .wc-screen { flex: 1; min-height: 0; overflow: hidden; }
 
 /* ---- lists of cards (canned responses, message bots, tabs) */
 .wc-canlist { display: flex; flex-direction: column; gap: 10px; }
@@ -869,7 +872,7 @@
 .wc-kcol-sub { color: var(--muted); font-size: 12px; }
 .wc-kcol-count { background: rgba(0, 0, 0, 0.18); color: inherit; }
 .wc-kcol-inbox .wc-kcol-count { background: var(--surface-3); color: var(--muted); }
-.wc-kcol-body { display: flex; flex-direction: column; gap: 10px; padding: 10px; min-height: 64px; max-height: calc(100vh - 290px); overflow-y: auto; transition: background 0.12s; }
+.wc-kcol-body { display: flex; flex-direction: column; gap: 10px; padding: 10px; min-height: 64px; max-height: 60vh; overflow-y: auto; transition: background 0.12s; }
 .wc-kcol-body.is-over { background: var(--accent-soft); }
 .wc-kcol.is-collapsed .wc-kcol-body { display: none; }
 .wc-kempty { text-align: center; }
@@ -903,7 +906,7 @@
 .wc-tg-day { flex: 1; padding: 8px; text-align: center; font-size: 12px; color: var(--muted); display: flex; flex-direction: column; align-items: center; }
 .wc-tg-day b { font-size: 18px; color: var(--text); }
 .wc-tg-day.is-today b { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 15px; background: var(--accent); color: var(--on-accent); }
-.wc-tg-body { display: flex; max-height: calc(100vh - 300px); overflow: auto; }
+.wc-tg-body { display: flex; max-height: 62vh; overflow: auto; }
 .wc-tg-hour { padding: 2px 8px 0 0; text-align: right; font-size: 11px; color: var(--muted); border-top: 1px solid var(--border); }
 .wc-tg-col { position: relative; flex: 1; border-left: 1px solid var(--border); }
 .wc-tg-slot { border-top: 1px solid var(--border); cursor: pointer; }
@@ -935,18 +938,18 @@
 .wc-slash-empty { padding: 10px 12px; color: var(--muted); }
 
 /* ---- chatbot list */
-.wc-chatbots.is-builder { display: flex; flex-direction: column; height: 100%; }
+.wc-chatbots.is-builder { display: flex; flex-direction: column; height: 100%; min-height: 0; flex: 1; }
 .wc-flowcard { display: flex; flex-direction: column; gap: 10px; }
 .wc-flowcard .wc-card-foot { margin-top: auto; }
 
 /* ---- flow builder */
-.wc-builder { display: flex; flex-direction: column; height: 100%; min-height: 0; background: var(--bg); outline: none; }
+.wc-builder { display: flex; flex-direction: column; height: 100%; width: 100%; min-height: 0; flex: 1; background: var(--bg); outline: none; overflow: hidden; }
 .wc-builder-bar { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-bottom: 1px solid var(--border); background: var(--surface); flex-wrap: wrap; }
 .wc-builder-name { width: 220px; font-weight: 800; }
 .wc-badgeslot { display: inline-flex; gap: 6px; }
 .wc-saving { color: var(--muted); font-size: 12px; }
-.wc-builder-main { flex: 1; min-height: 0; display: flex; }
-.wc-palette { flex: 0 0 214px; display: flex; flex-direction: column; gap: 6px; padding: 12px 10px; border-right: 1px solid var(--border); background: var(--surface); overflow: auto; }
+.wc-builder-main { flex: 1; min-height: 0; display: flex; overflow: hidden; }
+.wc-palette { flex: 0 0 214px; display: flex; flex-direction: column; gap: 6px; padding: 12px 10px; border-right: 1px solid var(--border); background: var(--surface); overflow-y: auto; overflow-x: hidden; }
 .wc-palette-head { display: flex; flex-direction: column; padding: 2px 4px 6px; }
 .wc-palette-head span { font-size: 12px; }
 .wc-palette-group { margin-top: 8px; padding: 0 4px; font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
@@ -955,7 +958,7 @@
 .wc-pmain { display: flex; flex-direction: column; min-width: 0; }
 .wc-pmain small { color: var(--muted); font-size: 11.5px; }
 .wc-nicon { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; background: color-mix(in srgb, var(--nc, var(--accent)) 30%, transparent); color: var(--nc, var(--icon)); flex: none; }
-.wc-canvas { position: relative; flex: 1; min-width: 0; overflow: hidden; cursor: grab; background-color: var(--bg); background-image: radial-gradient(var(--border) 1px, transparent 1px); }
+.wc-canvas { position: relative; flex: 1; min-width: 0; min-height: 0; overflow: hidden; cursor: grab; background-color: var(--bg); background-image: radial-gradient(var(--border) 1px, transparent 1px); }
 .wc-canvas.is-panning { cursor: grabbing; }
 .wc-world { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-origin: 0 0; }
 .wc-edges { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: visible; pointer-events: none; }
@@ -1024,6 +1027,7 @@
 .wc-blur-bubble.is-me { align-self: flex-end; background: var(--accent-soft); }
 
 /* ---- Full-screen workspace page */
+.wc-workspace { display: flex; flex-direction: column; width: 100%; height: 100%; position: relative; }
 .wc-workspace .wc-panel.is-sheet { z-index: 12; }
 .wc-workspace-title { padding-left: 14px; margin-left: 2px; border-left: 1px solid var(--bar-border); font-size: 15px; font-weight: 700; }
 .wc-workspace-bar .wc-spacer { flex: 1; }
