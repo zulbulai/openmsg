@@ -10,7 +10,7 @@ import { openProgress } from '../panels/broadcasts.js';
 import { debounce } from '../core/util.js';
 import { loadStyles } from './styles.js';
 import { brand } from '../core/brand.js';
-import { openLicenseDialog, licenseChip } from './license-dialog.js';
+import { openLicenseDialog, licenseChip } from './about-dialog.js';
 const TOPBAR_HEIGHT = 50;
 const PARENT = {
   notes: 'tools',

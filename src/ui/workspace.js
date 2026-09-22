@@ -9,7 +9,7 @@ import {
   openLicenseDialog,
   licenseChip,
   licenseNotice,
-} from './license-dialog.js';
+} from './about-dialog.js';
 function screenHost(_0x58fa85, _0x52f8b4, { closable: _0x5d826f }) {
   const _0xce4f8f = h('section', {
     class: 'wc-panel',

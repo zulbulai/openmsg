@@ -1,7 +1,7 @@
 import { digits } from './util.js';
 import { createBus } from './events.js';
 import { brand } from './brand.js';
-import { BUILD_PROVIDER } from './license-config.js';
+import { BUILD_PROVIDER } from './app-config.js';
 
 export const LICENSE_DEFAULTS = {
   recheckHours: 24,

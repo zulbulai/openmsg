@@ -14,12 +14,12 @@ import { createAutomation } from './automation.js';
 import { createScheduler } from './scheduler.js';
 import { createReminders } from './reminders.js';
 import { createFilters } from './filters.js';
-import { createLicense, memoryLicenseStorage } from './license.js';
+import { createLicense, memoryLicenseStorage } from './activation.js';
 import {
   LICENSE_SERVER,
   LICENSE_PUBLIC_KEY,
   BUILD_ID,
-} from './license-config.js';
+} from './app-config.js';
 import { debounce } from './util.js';
 export async function createApp({
   backend: _0x14e19c,

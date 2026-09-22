@@ -1,8 +1,8 @@
 import { createApp } from '../core/app.js';
 import { chromeBackend } from '../core/store.js';
 import { relayTransport } from '../core/relay.js';
-import { chromeLicenseStorage, openLicense } from '../core/license.js';
-import { browserDeviceInfo } from '../core/license-browser.js';
+import { chromeLicenseStorage, openLicense } from '../core/activation.js';
+import { browserDeviceInfo } from '../core/browser-info.js';
 import { mountWorkspace } from '../ui/workspace.js';
 import { brand } from '../core/brand.js';
 async function boot() {

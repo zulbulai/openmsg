@@ -1,7 +1,7 @@
 import { h, icon } from './dom.js';
 import * as _0x4dfce1 from './kit.js';
 import { brand } from '../core/brand.js';
-import { openLicenseDialog } from './license-dialog.js';
+import { openLicenseDialog } from './about-dialog.js';
 import { openAboutDialog, appVersion } from './about-dialog.js';
 function themeSwitcher(_0x1a8364, _0x6ce862) {
   const _0x12fe62 = [

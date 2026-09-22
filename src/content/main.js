@@ -3,8 +3,8 @@ import { chromeBackend } from '../core/store.js';
 import { windowTransport } from '../core/wa.js';
 import { serveRelay } from '../core/relay.js';
 import { mountShell } from '../ui/shell.js';
-import { chromeLicenseStorage, openLicense } from '../core/license.js';
-import { browserDeviceInfo } from '../core/license-browser.js';
+import { chromeLicenseStorage, openLicense } from '../core/activation.js';
+import { browserDeviceInfo } from '../core/browser-info.js';
 if (!window.__WACRM_BOOTED__) {
   window.__WACRM_BOOTED__ = true;
   boot().catch((_0x30f068) => console.error('[WACRM] boot failed', _0x30f068));
