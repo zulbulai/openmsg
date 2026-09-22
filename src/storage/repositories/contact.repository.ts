@@ -27,14 +27,15 @@ export class ContactRepository {
       .toArray();
   }
 
-  static async upsert(contactData: Partial<Contact> & { id: string; phone: string; name: string }): Promise<Contact> {
+  static async upsert(contactData: Partial<Contact> & { id: string; phone?: string; name?: string }): Promise<Contact> {
     const now = Date.now();
     const existing = await db.contacts.get(contactData.id);
+    const rawPhone = String(contactData.phone || contactData.id || '').replace(/@.*$/, '').replace(/\D/g, '');
 
     const contact: Contact = {
       id: contactData.id,
-      phone: contactData.phone.replace(/\D/g, ''),
-      name: contactData.name || 'Unknown',
+      phone: rawPhone,
+      name: contactData.name || existing?.name || rawPhone || 'Contact',
       pushName: contactData.pushName ?? existing?.pushName,
       avatarUrl: contactData.avatarUrl ?? existing?.avatarUrl,
       isGroup: contactData.isGroup ?? existing?.isGroup ?? false,
@@ -54,6 +55,7 @@ export class ContactRepository {
     };
 
     await db.contacts.put(contact);
+    crmEvents.emit('CONTACT_UPDATED', contact);
     return contact;
   }
 

@@ -2,7 +2,6 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { App } from '@/sidepanel/App';
 import { MessageBus } from '@/core/events/message-bus';
-import { OpenMsgBridgeEnvelope } from '@/types/messages';
 import { WhatsAppLifecycleManager } from './whatsapp/lifecycle';
 import { ConnectionState } from '@/types/whatsapp';
 import '@/ui/theme/index.css';
@@ -12,24 +11,11 @@ console.log('[OpenMsg Content Script] Initializing in Isolated World...');
 export type UIMode = 'FULL' | 'SPLIT' | 'MINIMIZED';
 
 let rootInstance: ReactDOM.Root | null = null;
-let currentUIMode: UIMode = 'FULL';
+let currentUIMode: UIMode =
+  typeof window !== 'undefined' && window.location.search.includes('openmsg')
+    ? 'FULL'
+    : 'MINIMIZED';
 let isUserDismissed = false;
-
-// Inject Main World Bridge script idempotently
-function injectBridgeScript(): void {
-  if (document.getElementById('openmsg-bridge-script')) return;
-  try {
-    const script = document.createElement('script');
-    script.id = 'openmsg-bridge-script';
-    script.src = chrome.runtime.getURL('injected.js');
-    script.type = 'module';
-    (document.head || document.documentElement).appendChild(script);
-    script.onload = () => script.remove();
-    console.log('[OpenMsg Content Script] Bridge script tag appended.');
-  } catch (err) {
-    console.error('[OpenMsg Content Script] Failed to inject bridge script:', err);
-  }
-}
 
 /**
  * Creates or retrieves the single OpenMsg root container.
@@ -47,32 +33,40 @@ function getOrCreateRootElement(): HTMLElement {
 }
 
 /**
- * Creates or retrieves the floating restore button for when OpenMsg is minimized.
+ * Creates or retrieves the floating restore button for when OpenMsg is minimized or idle.
  */
 function getOrCreateFloatingRestoreButton(): HTMLElement {
   let btn = document.getElementById('openmsg-floating-launcher');
   if (!btn) {
-    btn = document.createElement('button');
+    btn = document.createElement('div');
     btn.id = 'openmsg-floating-launcher';
+    btn.setAttribute('role', 'button');
+    btn.setAttribute('tabindex', '0');
     btn.setAttribute('aria-label', 'Open OpenMsg CRM');
     btn.innerHTML = `
-      <div style="display:flex;align-items:center;gap:8px;padding:8px 14px;background:#09090b;color:#10b981;border:1px solid #10b98144;border-radius:9999px;font-family:sans-serif;font-size:12px;font-weight:600;box-shadow:0 10px 25px -5px rgba(0,0,0,0.5);cursor:pointer;transition:all 0.2s ease;">
-        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 8px #10b981;"></span>
-        <span>OpenMsg</span>
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 18px;background:#09090b;color:#10b981;border:1.5px solid #10b98188;border-radius:9999px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:13px;font-weight:700;box-shadow:0 12px 30px rgba(0,0,0,0.6),0 0 15px rgba(16,185,129,0.25);cursor:pointer;transition:all 0.2s cubic-bezier(0.16,1,0.3,1);user-select:none;">
+        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#10b981;box-shadow:0 0 10px #10b981;"></span>
+        <span style="letter-spacing:0.3px;">OpenMsg CRM</span>
+        <span style="font-size:10px;background:#18181b;padding:2px 6px;border-radius:6px;color:#a1a1aa;font-family:monospace;">v0.1.0</span>
       </div>
     `;
     btn.style.position = 'fixed';
-    btn.style.bottom = '20px';
-    btn.style.right = '20px';
+    btn.style.bottom = '24px';
+    btn.style.right = '24px';
     btn.style.zIndex = '99998';
-    btn.style.background = 'transparent';
-    btn.style.border = 'none';
     btn.style.cursor = 'pointer';
-    btn.style.padding = '0';
-    btn.style.display = 'none';
+    btn.style.display = 'block';
+
+    btn.addEventListener('mouseenter', () => {
+      btn!.style.transform = 'translateY(-2px) scale(1.03)';
+    });
+    btn.addEventListener('mouseleave', () => {
+      btn!.style.transform = 'translateY(0) scale(1)';
+    });
 
     btn.addEventListener('click', () => {
       isUserDismissed = false;
+      mountReactApp();
       applyUIMode('FULL');
     });
 
@@ -128,7 +122,7 @@ export function applyUIMode(mode: UIMode) {
     if (waApp) {
       waApp.style.display = 'block';
       waApp.style.width = '100%';
-      waApp.style.float = 'none';
+      waApp.style.marginTop = '';
     }
     return;
   }
@@ -137,6 +131,10 @@ export function applyUIMode(mode: UIMode) {
   qrBanner.style.display = 'none';
 
   if (mode === 'FULL') {
+    // Overlay mode: OpenMsg shell floats on top of WhatsApp Web.
+    // The .om-root div handles its own fixed positioning (inset:0).
+    // We push WhatsApp Web down by the top bar height (50px) so it
+    // is visible beneath the OpenMsg top bar.
     floatingBtn.style.display = 'none';
     rootEl.style.display = 'block';
     rootEl.style.position = 'fixed';
@@ -144,34 +142,44 @@ export function applyUIMode(mode: UIMode) {
     rootEl.style.left = '0';
     rootEl.style.width = '100vw';
     rootEl.style.height = '100dvh';
+    rootEl.style.pointerEvents = 'none'; // let mouse events pass through to WA
+    rootEl.style.zIndex = '2147483646';
 
     if (waApp) {
-      // Keep WhatsApp app alive in memory but hidden behind OpenMsg
-      waApp.style.display = 'none';
+      // Push WA down by topbar height so it is visible below our bar
+      waApp.style.display = 'block';
+      waApp.style.width = '100%';
+      waApp.style.marginTop = '50px';
+      waApp.style.height = 'calc(100dvh - 50px)';
     }
   } else if (mode === 'SPLIT') {
     floatingBtn.style.display = 'none';
     rootEl.style.display = 'block';
     rootEl.style.position = 'fixed';
     rootEl.style.top = '0';
-    rootEl.style.right = '0';
-    rootEl.style.width = 'min(680px, 50vw)';
+    rootEl.style.left = '0';
+    rootEl.style.width = '100vw';
     rootEl.style.height = '100dvh';
+    rootEl.style.pointerEvents = 'none';
+    rootEl.style.zIndex = '2147483646';
 
     if (waApp) {
       waApp.style.display = 'block';
-      waApp.style.width = 'calc(100% - min(680px, 50vw))';
-      waApp.style.float = 'left';
+      waApp.style.width = '100%';
+      waApp.style.marginTop = '50px';
+      waApp.style.height = 'calc(100dvh - 50px)';
     }
   } else {
     // MINIMIZED
     rootEl.style.display = 'none';
+    rootEl.style.pointerEvents = 'none';
     floatingBtn.style.display = 'block';
 
     if (waApp) {
       waApp.style.display = 'block';
       waApp.style.width = '100%';
-      waApp.style.float = 'none';
+      waApp.style.marginTop = '';
+      waApp.style.height = '';
     }
   }
 }
@@ -220,15 +228,17 @@ function initLifecycleObserver() {
       }
     } else if (state === 'READY') {
       qrBanner.style.display = 'none';
-      // If user had not explicitly minimized OpenMsg, auto-expand to full UI
       if (!isUserDismissed) {
         mountReactApp();
-        applyUIMode(currentUIMode || 'FULL');
+        applyUIMode(currentUIMode);
       }
     } else if (state === 'DISCONNECTED') {
       console.warn('[OpenMsg Content Script] WhatsApp is disconnected.');
     }
   });
+
+  // Always ensure the floating restore button is available on WhatsApp Web
+  getOrCreateFloatingRestoreButton();
 
   // If WhatsApp is already ready on script load, mount immediately
   if (lifecycle.isReady()) {
@@ -239,12 +249,16 @@ function initLifecycleObserver() {
 // ── Event Handlers & Message Listeners ────────────────────────────────────────
 
 // Listen for messages from the Main World Bridge
-MessageBus.onWindowBridge('OPENMSG_BRIDGE_EVENT', (envelope: OpenMsgBridgeEnvelope) => {
-  if (envelope.action === 'BRIDGE_MOUNTED') {
-    MessageBus.send({
-      type: 'WHATSAPP_STATUS_RESPONSE',
-      payload: { ready: true },
-    }).catch(() => {});
+window.addEventListener('message', (event) => {
+  if (event.source !== window) return;
+  if (event.data?.source === 'wacrm-main' && event.data?.event === 'ready') {
+    const isReady = Boolean(event.data?.data?.ready || event.data?.data?.status?.ready || event.data?.data?.status?.fullReady);
+    if (isReady) {
+      MessageBus.send({
+        type: 'WHATSAPP_STATUS_RESPONSE',
+        payload: { ready: true },
+      }).catch(() => {});
+    }
   }
 });
 
@@ -299,6 +313,4 @@ window.addEventListener('message', (event) => {
 });
 
 // ── Startup Sequence ─────────────────────────────────────────────────────────
-
-injectBridgeScript();
 initLifecycleObserver();

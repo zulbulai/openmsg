@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
 import {
   Users,
   Search,
@@ -33,7 +34,10 @@ export const ContactManager: React.FC<ContactManagerProps> = ({ initialViewMode 
       setViewMode(initialViewMode);
     }
   }, [initialViewMode]);
-  const [contacts, setContacts] = useState<Contact[]>([]);
+
+  const liveContacts = useLiveQuery(() => db.contacts.toArray());
+  const contacts = liveContacts || [];
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStage, setSelectedStage] = useState<string>('all');
   const [selectedContactIds, setSelectedContactIds] = useState<Set<string>>(new Set());
@@ -45,13 +49,8 @@ export const ContactManager: React.FC<ContactManagerProps> = ({ initialViewMode 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadData = async () => {
-    const list = await db.contacts.toArray();
-    setContacts(list);
+    // live query handles reactive updates automatically
   };
-
-  useEffect(() => {
-    loadData();
-  }, []);
 
   // Filtered contacts
   const filteredContacts = contacts.filter((c) => {

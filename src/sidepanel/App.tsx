@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
-  LayoutDashboard,
   MessageSquare,
   Users,
   Bot,
@@ -9,7 +8,6 @@ import {
   Send,
   Clock,
   FileText,
-  Globe,
   Sparkles,
   BarChart3,
   Settings,
@@ -17,7 +15,9 @@ import {
   Route,
   KanbanSquare,
   Image as ImageIcon,
-  Activity,
+  RefreshCw,
+  X,
+  Webhook,
 } from 'lucide-react';
 import { useUIStore } from '@/ui/store';
 import { getWhatsAppClient } from '@/content/whatsapp';
@@ -26,7 +26,7 @@ import { ContactRepository } from '@/storage/repositories/contact.repository';
 import { db } from '@/storage/db';
 import { AutomationService } from '@/core/automation/automation-service';
 
-// Subsystem Components
+// Feature components
 import { DashboardOverview } from '@/features/dashboard/DashboardOverview';
 import { ChatList } from '@/features/inbox/ChatList';
 import { ConversationView } from '@/features/inbox/ConversationView';
@@ -50,16 +50,90 @@ import { FollowUpManager } from '@/features/crm/followups/FollowUpManager';
 import { SequenceManager } from '@/features/sequences/SequenceManager';
 import { NotificationCenterModal } from '@/features/notifications/NotificationCenterModal';
 
+import '@/ui/theme/openmsg-shell.css';
+
+// ── Panel definitions ───────────────────────────────────────────────────────
+
+type PanelId =
+  | 'inbox'
+  | 'contacts'
+  | 'crm'
+  | 'chatbot'
+  | 'broadcasts'
+  | 'sequences'
+  | 'workflows'
+  | 'automation'
+  | 'templates'
+  | 'media'
+  | 'scheduler'
+  | 'webhooks'
+  | 'ai'
+  | 'analytics'
+  | 'followups'
+  | 'settings'
+  | 'diagnostics'
+  | 'dashboard';
+
+interface PanelDef {
+  id: PanelId;
+  label: string;
+  icon: React.ReactNode;
+  description: string;
+  emoji: string;
+}
+
+const PANELS: PanelDef[] = [
+  { id: 'inbox',      label: 'Send Message',   icon: <MessageSquare size={18}/>, description: 'Chat inbox & conversations', emoji: '💬' },
+  { id: 'contacts',   label: 'Contacts',       icon: <Users size={18}/>,        description: 'Manage your CRM contacts',    emoji: '👤' },
+  { id: 'templates',  label: 'Templates',      icon: <FileText size={18}/>,     description: 'Message templates library',   emoji: '📝' },
+  { id: 'chatbot',    label: 'Chatbot',        icon: <Bot size={18}/>,          description: 'Automated reply bots',        emoji: '🤖' },
+  { id: 'broadcasts', label: 'Broadcasts',     icon: <Send size={18}/>,         description: 'Send bulk messages',          emoji: '📢' },
+  { id: 'sequences',  label: 'Sequences',      icon: <Route size={18}/>,        description: 'Follow-up sequences',         emoji: '🔁' },
+  { id: 'scheduler',  label: 'Scheduler',      icon: <Clock size={18}/>,        description: 'Schedule messages',           emoji: '⏰' },
+  { id: 'workflows',  label: 'Workflows',      icon: <Workflow size={18}/>,     description: 'Visual automation flows',     emoji: '⚙️' },
+  { id: 'automation', label: 'Auto-Reply',     icon: <Zap size={18}/>,          description: 'Keyword automation rules',    emoji: '⚡' },
+  { id: 'crm',        label: 'Kanban',         icon: <KanbanSquare size={18}/>, description: 'Deal pipeline & CRM board',   emoji: '📋' },
+  { id: 'followups',  label: 'Follow-ups',     icon: <Bell size={18}/>,         description: 'Reminders & follow-up tasks', emoji: '🔔' },
+  { id: 'media',      label: 'Media',          icon: <ImageIcon size={18}/>,    description: 'Media library & files',       emoji: '🖼️' },
+  { id: 'webhooks',   label: 'Webhooks',       icon: <Webhook size={18}/>,      description: 'HTTP integrations & events',  emoji: '🔗' },
+  { id: 'ai',         label: 'AI Assistant',   icon: <Sparkles size={18}/>,     description: 'AI-powered reply drafting',   emoji: '✨' },
+];
+
+// Panels shown as icon buttons in the top bar (first 14)
+const TOPBAR_PANELS: PanelId[] = [
+  'inbox', 'contacts', 'templates', 'chatbot', 'broadcasts',
+  'sequences', 'scheduler', 'workflows', 'automation', 'crm',
+  'followups', 'media', 'ai', 'webhooks',
+];
+
+// ── Filter pills for inbox ──────────────────────────────────────────────────
+
+interface FilterPill {
+  id: string;
+  label: string;
+}
+const INBOX_FILTERS: FilterPill[] = [
+  { id: 'all',      label: 'All Chats' },
+  { id: 'unread',   label: 'Unread' },
+  { id: 'groups',   label: 'Groups' },
+  { id: 'starred',  label: 'Starred' },
+  { id: 'archived', label: 'Archived' },
+];
+
+// ── Main App ────────────────────────────────────────────────────────────────
+
 export const App: React.FC = () => {
   const {
-    activeTab,
-    setActiveTab,
     isConnected,
     currentUser,
     setConnection,
     activeChat,
     setActiveChat,
   } = useUIStore();
+
+  // Active panel state
+  const [activePanel, setActivePanel] = useState<PanelId | null>(null);
+  const [inboxFilter, setInboxFilter] = useState<string>('all');
 
   const [chats, setChats] = useState<WhatsAppChat[]>([]);
   const [messages, setMessages] = useState<WhatsAppMessage[]>([]);
@@ -69,34 +143,52 @@ export const App: React.FC = () => {
   const [isLoadingChats, setIsLoadingChats] = useState(true);
   const [showNotificationCenter, setShowNotificationCenter] = useState(false);
   const [unreadAlertsCount, setUnreadAlertsCount] = useState(0);
-  const [uiMode, setUiMode] = useState<'FULL' | 'SPLIT'>('FULL');
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
-  const checkUnreadAlerts = async () => {
-    try {
-      const all = await db.followUps.toArray();
-      const count = all.filter((fu) => {
-        if (fu.status === 'COMPLETED' || fu.status === 'CANCELLED' || fu.reminderStatus === 'DISMISSED') {
-          return false;
-        }
-        const isTriggered = fu.reminderStatus === 'TRIGGERED';
-        const isOverdue = fu.dueAt < Date.now();
-        return isTriggered || isOverdue;
-      }).length;
-      setUnreadAlertsCount(count);
-    } catch {
-      // Ignore
-    }
-  };
+  // Detect WhatsApp Web color scheme
+  useEffect(() => {
+    const detectTheme = () => {
+      const body = document.body;
+      if (body.classList.contains('dark') || body.getAttribute('data-color-mode') === 'dark') {
+        setTheme('dark');
+      } else {
+        setTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      }
+    };
+    detectTheme();
+    const obs = new MutationObserver(detectTheme);
+    obs.observe(document.body, { attributes: true, attributeFilter: ['class', 'data-color-mode'] });
+    return () => obs.disconnect();
+  }, []);
 
   const client = getWhatsAppClient();
 
-  // Load chat messages from IndexedDB and client
+  // Load chat messages
   const loadChatMessages = async (chatId: string) => {
+    try {
+      const liveMsgs = await client.getMessages(chatId, { count: 50 });
+      if (liveMsgs && liveMsgs.length > 0) {
+        for (const m of liveMsgs) {
+          await db.messages.put({
+            id: m.id,
+            chatId: m.chatId,
+            sender: m.sender,
+            fromMe: m.fromMe,
+            body: m.body,
+            type: m.type || 'chat',
+            timestamp: m.timestamp,
+            status: m.status || (m.ack === 3 ? 'read' : m.ack === 2 ? 'delivered' : m.ack === 1 ? 'sent' : 'pending'),
+          });
+        }
+      }
+    } catch (err) {
+      console.warn('[OpenMsg] Fetching live messages failed:', err);
+    }
     const localMsgs = await db.messages
       .where('chatId')
       .equals(chatId)
       .sortBy('timestamp');
-
     const mapped: WhatsAppMessage[] = localMsgs.map((m) => ({
       id: m.id,
       chatId: m.chatId,
@@ -108,130 +200,127 @@ export const App: React.FC = () => {
       ack: m.status === 'read' ? 3 : m.status === 'delivered' ? 2 : m.status === 'sent' ? 1 : 0,
       status: m.status as any,
     }));
-
     setMessages(mapped);
   };
 
-  useEffect(() => {
-    // 1. Check connection
-    client.isReady().then((ready) => {
-      client.getCurrentUser().then((user) => {
-        setConnection(ready, user);
-      });
-    });
+  const checkUnreadAlerts = async () => {
+    try {
+      const all = await db.followUps.toArray();
+      const count = all.filter((fu) => {
+        if (fu.status === 'COMPLETED' || fu.status === 'CANCELLED' || fu.reminderStatus === 'DISMISSED') return false;
+        return fu.reminderStatus === 'TRIGGERED' || fu.dueAt < Date.now();
+      }).length;
+      setUnreadAlertsCount(count);
+    } catch { /* ignore */ }
+  };
 
-    // 2. Fetch and sync chats & contacts
-    client.getChats().then((c) => {
+  const syncWhatsAppWorkspaceData = useCallback(async () => {
+    setIsSyncing(true);
+    try {
+      const ready = await client.isReady();
+      const user = await client.getCurrentUser();
+      setConnection(ready, user);
+
+      const c = await client.getChats();
       setChats(c);
       setIsLoadingChats(false);
+
       if (c.length > 0 && !activeChat) {
         setActiveChat(c[0]);
         loadChatMessages(c[0].id);
       }
-    });
 
-    client.getContacts().then((cList) => {
-      cList.forEach((c) => {
-        ContactRepository.upsert({
-          id: c.id,
-          phone: c.phone,
-          name: c.name,
-          isGroup: c.isGroup,
+      for (const chat of c) {
+        await db.conversations.put({
+          id: chat.id,
+          contactId: chat.id,
+          unreadCount: chat.unreadCount || 0,
+          pinned: Boolean(chat.pinned),
+          archived: Boolean(chat.archived),
+          lastMessageText: chat.lastMessage?.body || chat.name || '',
+          lastMessageTimestamp: chat.lastMessage?.timestamp || Date.now(),
         });
-      });
-    });
-
-    // 3. Load quick templates
-    db.templates.toArray().then(setTemplates);
-
-    // 4. Listen for live incoming & outgoing messages
-    const unsubMsg = client.onMessage(async (msg) => {
-      // Save to IndexedDB
-      await db.messages.put({
-        id: msg.id,
-        chatId: msg.chatId,
-        sender: msg.sender,
-        fromMe: msg.fromMe,
-        body: msg.body,
-        type: msg.type,
-        timestamp: msg.timestamp,
-        status: msg.status || (msg.ack === 3 ? 'read' : msg.ack === 2 ? 'delivered' : msg.ack === 1 ? 'sent' : 'pending'),
-      });
-
-      // Update conversation
-      await db.conversations.put({
-        id: msg.chatId,
-        contactId: msg.chatId,
-        unreadCount: msg.fromMe ? 0 : 1,
-        pinned: false,
-        archived: false,
-        lastMessageText: msg.body,
-        lastMessageTimestamp: msg.timestamp,
-      });
-
-      // Run automations on incoming messages
-      if (!msg.fromMe) {
-        await AutomationService.handleEvent(
-          {
-            id: msg.id,
-            trigger: 'MESSAGE_RECEIVED',
-            contactId: msg.chatId,
-            messageText: msg.body,
-          },
-          client
-        );
       }
 
-      // Update UI state
+      const cList = await client.getContacts();
+      for (const contact of cList) {
+        await ContactRepository.upsert({
+          id: contact.id,
+          phone: contact.phone,
+          name: contact.name,
+          isGroup: contact.isGroup,
+        });
+      }
+    } catch (err) {
+      console.warn('[OpenMsg] Data sync error:', err);
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [client, activeChat, setConnection, setActiveChat]);
+
+  useEffect(() => {
+    syncWhatsAppWorkspaceData();
+
+    const unsubConn = client.onConnectionChange((state) => {
+      if (state === 'READY') {
+        syncWhatsAppWorkspaceData();
+      } else {
+        client.isReady().then((ready) => {
+          client.getCurrentUser().then((user) => setConnection(ready, user));
+        });
+      }
+    });
+
+    db.templates.toArray().then(setTemplates);
+
+    const unsubMsg = client.onMessage(async (msg) => {
+      await db.messages.put({
+        id: msg.id, chatId: msg.chatId, sender: msg.sender, fromMe: msg.fromMe,
+        body: msg.body, type: msg.type, timestamp: msg.timestamp,
+        status: msg.status || (msg.ack === 3 ? 'read' : msg.ack === 2 ? 'delivered' : msg.ack === 1 ? 'sent' : 'pending'),
+      });
+      await db.conversations.put({
+        id: msg.chatId, contactId: msg.chatId, unreadCount: msg.fromMe ? 0 : 1,
+        pinned: false, archived: false, lastMessageText: msg.body, lastMessageTimestamp: msg.timestamp,
+      });
+      if (!msg.fromMe) {
+        await AutomationService.handleEvent({
+          id: msg.id, trigger: 'MESSAGE_RECEIVED', contactId: msg.chatId, messageText: msg.body,
+        }, client);
+      }
       const updatedChats = await client.getChats();
       setChats(updatedChats);
-
       if (activeChat && activeChat.id === msg.chatId) {
         await loadChatMessages(msg.chatId);
       }
     });
 
-    // 5. Initial check & poll for unread reminders
     checkUnreadAlerts();
     const alertInterval = setInterval(checkUnreadAlerts, 20000);
 
     return () => {
       unsubMsg();
+      unsubConn();
       clearInterval(alertInterval);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [syncWhatsAppWorkspaceData]);
 
-  // Update messages when active chat changes
   useEffect(() => {
-    if (activeChat) {
-      loadChatMessages(activeChat.id);
-    }
+    if (activeChat) loadChatMessages(activeChat.id);
   }, [activeChat]);
 
-  // Handle outgoing text send
   const handleSendText = async (text: string) => {
     if (!activeChat || isSending) return;
     setIsSending(true);
     try {
-      await client.sendText({
-        chatId: activeChat.id,
-        text,
-      });
-
-      // Save to local DB immediately
+      await client.sendText({ chatId: activeChat.id, text });
       const newMsgId = `msg_${Date.now()}`;
       await db.messages.put({
-        id: newMsgId,
-        chatId: activeChat.id,
+        id: newMsgId, chatId: activeChat.id,
         sender: currentUser?.wid || currentUser?.phone || 'me',
-        fromMe: true,
-        body: text,
-        type: 'chat',
-        timestamp: Date.now(),
-        status: 'sent',
+        fromMe: true, body: text, type: 'chat', timestamp: Date.now(), status: 'sent',
       });
-
       await loadChatMessages(activeChat.id);
       const updatedChats = await client.getChats();
       setChats(updatedChats);
@@ -242,12 +331,7 @@ export const App: React.FC = () => {
     }
   };
 
-  // Handle outgoing media send
-  const handleSendMedia = async (
-    file: File,
-    type: 'image' | 'video' | 'audio' | 'document',
-    caption?: string
-  ) => {
+  const handleSendMedia = async (file: File, type: 'image' | 'video' | 'audio' | 'document', caption?: string) => {
     if (!activeChat || isSending) return;
     setIsSending(true);
     try {
@@ -256,22 +340,10 @@ export const App: React.FC = () => {
         reader.onloadend = () => resolve(reader.result as string);
         reader.readAsDataURL(file);
       });
-
-      if (type === 'image') {
-        await client.sendImage({ chatId: activeChat.id, media: dataUrl, caption });
-      } else if (type === 'video') {
-        await client.sendVideo({ chatId: activeChat.id, media: dataUrl, caption });
-      } else if (type === 'audio') {
-        await client.sendAudio({ chatId: activeChat.id, media: dataUrl });
-      } else {
-        await client.sendDocument({
-          chatId: activeChat.id,
-          media: dataUrl,
-          filename: file.name,
-          mimetype: file.type,
-        });
-      }
-
+      if (type === 'image') await client.sendImage({ chatId: activeChat.id, media: dataUrl, caption });
+      else if (type === 'video') await client.sendVideo({ chatId: activeChat.id, media: dataUrl, caption });
+      else if (type === 'audio') await client.sendAudio({ chatId: activeChat.id, media: dataUrl });
+      else await client.sendDocument({ chatId: activeChat.id, media: dataUrl, filename: file.name, mimetype: file.type });
       await loadChatMessages(activeChat.id);
     } catch (err) {
       console.error('Failed to send media:', err);
@@ -280,318 +352,349 @@ export const App: React.FC = () => {
     }
   };
 
+  // Toggle a panel open/close
+  const togglePanel = (id: PanelId) => {
+    setActivePanel((prev) => (prev === id ? null : id));
+  };
+
+  // Get filtered chats
+  const filteredChats = chats.filter((c) => {
+    if (inboxFilter === 'unread') return (c.unreadCount || 0) > 0;
+    if (inboxFilter === 'groups') return c.isGroup;
+    if (inboxFilter === 'archived') return c.archived;
+    return true;
+  });
+
+  const panelDef = PANELS.find((p) => p.id === activePanel);
+
   return (
-    <div className={`openmsg-app text-zinc-100 flex flex-col h-[100dvh] w-full overflow-hidden bg-[#0a0a0a] font-sans antialiased`}>
-      {/* Top Header */}
-      <header className="h-14 border-b border-zinc-800 bg-zinc-900/80 px-4 flex items-center justify-between backdrop-blur shrink-0">
-        <div className="flex items-center gap-2.5">
+    <div
+      className="om-root"
+      data-theme={theme}
+    >
+      {/* ── TOP BAR ─────────────────────────────────────────── */}
+      <header className="om-topbar">
+        {/* Brand */}
+        <div className="om-brand">
           <img
-            src="/icons/icon-48.png"
-            alt="OpenMsg Logo"
-            className="h-8 w-8 rounded-lg object-contain shadow-sm border border-zinc-800/80 bg-zinc-900"
+            src={chrome.runtime.getURL('icons/icon-48.png')}
+            alt="OpenMsg"
+            className="om-brand-logo"
           />
-          <div>
-            <h1 className="text-xs font-bold leading-tight flex items-center gap-1.5">
-              OpenMsg
-              <span className="text-[10px] font-mono px-1.5 py-0.2 bg-zinc-800 rounded text-zinc-400">
-                v0.1.0
-              </span>
-            </h1>
-            <p className="text-[10px] text-zinc-400">WhatsApp Automation &amp; CRM</p>
-          </div>
+          <span className="om-brand-name">OpenMsg</span>
         </div>
 
-        {/* Real WhatsApp Connection Badge & Mode Toggle */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => {
-              const newMode = uiMode === 'FULL' ? 'SPLIT' : 'FULL';
-              setUiMode(newMode);
-              window.postMessage({ type: 'OPENMSG_SET_MODE', payload: { mode: newMode } }, '*');
-            }}
-            title={uiMode === 'FULL' ? 'Switch to Split View' : 'Switch to Full Screen Workspace'}
-            className="px-2.5 py-1.5 rounded-lg bg-zinc-800/80 hover:bg-zinc-800 text-zinc-300 hover:text-zinc-100 transition border border-zinc-700/60 text-xs font-semibold"
-          >
-            {uiMode === 'FULL' ? 'Split View' : 'Full Screen'}
-          </button>
-          <button
-            onClick={() => {
-              window.postMessage({ type: 'OPENMSG_CLOSE_UI' }, '*');
-            }}
-            title="Minimize OpenMsg"
-            className="px-2.5 py-1.5 rounded-lg bg-red-950/40 hover:bg-red-900/60 text-red-400 transition border border-red-900/30 text-xs font-semibold"
-          >
-            Minimize
-          </button>
+        {/* Filter pills — shown when Inbox is active, else show app name tagline */}
+        <div className="om-filter-pills">
+          {activePanel === 'inbox' ? (
+            INBOX_FILTERS.map((f) => (
+              <button
+                key={f.id}
+                className={`om-filter-pill${inboxFilter === f.id ? ' is-active' : ''}`}
+                onClick={() => setInboxFilter(f.id)}
+                type="button"
+              >
+                {f.label}
+                {f.id === 'unread' && chats.filter((c) => (c.unreadCount || 0) > 0).length > 0 && (
+                  <span className="om-filter-pill-count">
+                    {chats.filter((c) => (c.unreadCount || 0) > 0).length}
+                  </span>
+                )}
+              </button>
+            ))
+          ) : (
+            <span style={{ color: 'var(--bar-muted)', fontSize: '12px', paddingLeft: '4px' }}>
+              WhatsApp CRM &amp; Automation
+            </span>
+          )}
+        </div>
 
-          {/* Notification Bell */}
+        {/* Tool Buttons */}
+        <div className="om-actions">
+          {TOPBAR_PANELS.map((pid) => {
+            const p = PANELS.find((x) => x.id === pid)!;
+            return (
+              <button
+                key={pid}
+                className={`om-topbtn${activePanel === pid ? ' is-active' : ''}`}
+                data-tip={p.label}
+                onClick={() => togglePanel(pid)}
+                type="button"
+                title={p.label}
+              >
+                {p.icon}
+              </button>
+            );
+          })}
+
+          <span className="om-vsep" />
+
+          {/* Notifications */}
           <button
+            className={`om-topbtn${showNotificationCenter ? ' is-active' : ''}`}
+            data-tip="Notifications"
             onClick={() => setShowNotificationCenter(true)}
-            title="Notification Center"
-            className="relative p-1.5 rounded-lg bg-zinc-800/80 hover:bg-zinc-800 text-zinc-300 hover:text-zinc-100 transition border border-zinc-700/60"
+            type="button"
+            title="Notifications"
+            style={{ position: 'relative' }}
           >
-            <Bell className="h-4 w-4" />
+            <Bell size={18} />
             {unreadAlertsCount > 0 && (
-              <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-red-500 text-[10px] font-bold text-white flex items-center justify-center animate-pulse">
-                {unreadAlertsCount}
-              </span>
+              <span style={{
+                position: 'absolute', top: 4, right: 4,
+                width: 8, height: 8, borderRadius: '50%',
+                background: 'var(--danger)', border: '1.5px solid var(--bar-bg)',
+              }} />
             )}
           </button>
 
-          <span
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${
-              isConnected
-                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-            }`}
+          {/* Analytics */}
+          <button
+            className={`om-topbtn${activePanel === 'analytics' ? ' is-active' : ''}`}
+            data-tip="Analytics"
+            onClick={() => togglePanel('analytics')}
+            type="button"
           >
-            <span
-              className={`h-1.5 w-1.5 rounded-full ${
-                isConnected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'
-              }`}
-            />
-            {isConnected ? currentUser?.name || currentUser?.phone || 'Connected' : 'Connecting...'}
+            <BarChart3 size={18} />
+          </button>
+
+          {/* Settings */}
+          <button
+            className={`om-topbtn${activePanel === 'settings' ? ' is-active' : ''}`}
+            data-tip="Settings"
+            onClick={() => togglePanel('settings')}
+            type="button"
+          >
+            <Settings size={18} />
+          </button>
+
+          <span className="om-vsep" />
+
+          {/* Sync */}
+          <button
+            className="om-topbtn"
+            data-tip={isSyncing ? 'Syncing...' : 'Sync WhatsApp'}
+            onClick={() => syncWhatsAppWorkspaceData()}
+            disabled={isSyncing}
+            type="button"
+            title="Sync WhatsApp"
+          >
+            <RefreshCw size={17} className={isSyncing ? 'animate-spin' : ''} style={isSyncing ? { animation: 'om-spin 1s linear infinite' } : {}} />
+          </button>
+
+          {/* Connection status */}
+          <span className={`om-status-badge ${isConnected ? 'connected' : 'disconnected'}`}>
+            <span className="om-status-dot" />
+            {isConnected
+              ? (currentUser?.name || currentUser?.phone || 'Connected')
+              : 'Connecting...'}
           </span>
+
+          {/* Minimize */}
+          <button
+            className="om-topbtn"
+            data-tip="Minimize OpenMsg"
+            onClick={() => window.postMessage({ type: 'OPENMSG_CLOSE_UI' }, '*')}
+            type="button"
+            title="Minimize"
+            style={{ color: 'var(--bar-muted)' }}
+          >
+            <X size={18} />
+          </button>
         </div>
       </header>
 
-      {/* Main Container */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Navigation Sidebar */}
-        {/* Navigation Sidebar */}
-        <nav className="w-16 border-r border-zinc-800 bg-zinc-900/40 flex flex-col items-center py-3 gap-1.5 shrink-0 overflow-y-auto">
-          <NavButton
-            active={activeTab === 'dashboard'}
-            onClick={() => setActiveTab('dashboard')}
-            icon={<LayoutDashboard className="h-4 w-4" />}
-            label="Overview"
-          />
-          <NavButton
-            active={activeTab === 'inbox'}
-            onClick={() => setActiveTab('inbox')}
-            icon={<MessageSquare className="h-4 w-4" />}
-            label="Inbox"
-          />
-          <NavButton
-            active={activeTab === 'contacts'}
-            onClick={() => setActiveTab('contacts')}
-            icon={<Users className="h-4 w-4" />}
-            label="Contacts"
-          />
-          <NavButton
-            active={activeTab === 'crm'}
-            onClick={() => setActiveTab('crm')}
-            icon={<KanbanSquare className="h-4 w-4" />}
-            label="CRM"
-          />
-          <NavButton
-            active={activeTab === 'kanban'}
-            onClick={() => setActiveTab('kanban')}
-            icon={<KanbanSquare className="h-4 w-4" />}
-            label="Kanban"
-          />
-          <NavButton
-            active={activeTab === 'followups'}
-            onClick={() => setActiveTab('followups')}
-            icon={<Bell className="h-4 w-4" />}
-            label="Follow-ups"
-          />
-          <NavButton
-            active={activeTab === 'sequences'}
-            onClick={() => setActiveTab('sequences')}
-            icon={<Route className="h-4 w-4" />}
-            label="Sequences"
-          />
-          <NavButton
-            active={activeTab === 'workflows'}
-            onClick={() => setActiveTab('workflows')}
-            icon={<Workflow className="h-4 w-4" />}
-            label="Flows"
-          />
-          <NavButton
-            active={activeTab === 'automation'}
-            onClick={() => setActiveTab('automation')}
-            icon={<Zap className="h-4 w-4" />}
-            label="Rules"
-          />
-          <NavButton
-            active={activeTab === 'broadcasts'}
-            onClick={() => setActiveTab('broadcasts')}
-            icon={<Send className="h-4 w-4" />}
-            label="Broadcast"
-          />
-          <NavButton
-            active={activeTab === 'templates'}
-            onClick={() => setActiveTab('templates')}
-            icon={<FileText className="h-4 w-4" />}
-            label="Templates"
-          />
-          <NavButton
-            active={activeTab === 'media'}
-            onClick={() => setActiveTab('media')}
-            icon={<ImageIcon className="h-4 w-4" />}
-            label="Media"
-          />
-          <NavButton
-            active={activeTab === 'scheduler'}
-            onClick={() => setActiveTab('scheduler')}
-            icon={<Clock className="h-4 w-4" />}
-            label="Scheduler"
-          />
-          <NavButton
-            active={activeTab === 'chatbot'}
-            onClick={() => setActiveTab('chatbot')}
-            icon={<Bot className="h-4 w-4" />}
-            label="Chatbot"
-          />
-          <NavButton
-            active={activeTab === 'webhooks'}
-            onClick={() => setActiveTab('webhooks')}
-            icon={<Globe className="h-4 w-4" />}
-            label="Webhooks"
-          />
-          <NavButton
-            active={activeTab === 'ai'}
-            onClick={() => setActiveTab('ai')}
-            icon={<Sparkles className="h-4 w-4" />}
-            label="AI"
-          />
-          <NavButton
-            active={activeTab === 'analytics'}
-            onClick={() => setActiveTab('analytics')}
-            icon={<BarChart3 className="h-4 w-4" />}
-            label="Analytics"
-          />
-          <NavButton
-            active={activeTab === 'diagnostics'}
-            onClick={() => setActiveTab('diagnostics')}
-            icon={<Activity className="h-4 w-4" />}
-            label="Diagnostics"
-          />
+      {/* ── PANEL ───────────────────────────────────────────── */}
+      {activePanel && panelDef && activePanel !== 'inbox' && (
+        <div className="om-panel" key={activePanel}>
+          {/* Panel Header */}
+          <div className="om-panel-head">
+            <div className="om-panel-icon" aria-hidden="true">
+              {panelDef.icon}
+            </div>
+            <div className="om-panel-heading">
+              <h2 className="om-panel-title">{panelDef.label}</h2>
+              <p className="om-panel-sub">{panelDef.description}</p>
+            </div>
+            <div className="om-panel-actions">
+              <button
+                className="om-close-btn"
+                onClick={() => setActivePanel(null)}
+                title="Close panel"
+                type="button"
+              >
+                <X size={18} />
+              </button>
+            </div>
+          </div>
 
-          <div className="mt-auto pt-2 border-t border-zinc-800/80 w-full flex justify-center">
-            <NavButton
-              active={activeTab === 'settings'}
-              onClick={() => setActiveTab('settings')}
-              icon={<Settings className="h-4 w-4" />}
-              label="Settings"
+          {/* Panel Body */}
+          <div className="om-panel-body">
+            <PanelContent
+              panelId={activePanel}
+              onSendText={handleSendText}
+              onOpenPanel={(id) => setActivePanel(id as PanelId)}
             />
           </div>
-        </nav>
+        </div>
+      )}
 
-        {/* Dynamic Main Workspace Tab */}
-        <main className="flex-1 flex overflow-hidden">
-          {activeTab === 'dashboard' && <DashboardOverview />}
+      {/* ── INBOX PANEL (special full-height layout) ─────────── */}
+      {activePanel === 'inbox' && (
+        <div className="om-inbox-panel" key="inbox">
+          <div className="om-panel-head">
+            <div className="om-panel-icon" aria-hidden="true">
+              <MessageSquare size={18} />
+            </div>
+            <div className="om-panel-heading">
+              <h2 className="om-panel-title">Messages</h2>
+              <p className="om-panel-sub">
+                {isLoadingChats ? 'Loading chats...' : `${filteredChats.length} conversations`}
+              </p>
+            </div>
+            <div className="om-panel-actions">
+              <button
+                className="om-close-btn"
+                onClick={() => setActivePanel(null)}
+                title="Close"
+                type="button"
+              >
+                <X size={18} />
+              </button>
+            </div>
+          </div>
 
-          {activeTab === 'inbox' && (
-            <div className="flex-1 flex h-full overflow-hidden">
-              {/* Chat Thread List */}
+          {/* Inbox Body: split chat list + conversation */}
+          <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+            {/* Chat List */}
+            <div style={{ width: 220, borderRight: '1px solid var(--border)', overflowY: 'auto', flexShrink: 0 }}>
               <ChatList
-                chats={chats}
+                chats={filteredChats}
                 activeChat={activeChat}
                 onSelectChat={(c) => setActiveChat(c)}
                 isLoading={isLoadingChats}
               />
+            </div>
 
-              {/* Chat Conversation View & Composer */}
-              <div className="flex-1 flex flex-col h-full overflow-hidden">
-                {activeChat ? (
-                  <>
-                    <ConversationView
-                      chat={activeChat}
-                      messages={messages}
-                      showSidebar={showContactSidebar}
-                      onToggleSidebar={() => setShowContactSidebar(!showContactSidebar)}
-                    />
-                    <MessageComposer
-                      onSendText={handleSendText}
-                      onSendMedia={handleSendMedia}
-                      templates={templates}
-                      recentMessages={messages.map((m) => m.body)}
-                      isSending={isSending}
-                    />
-                  </>
-                ) : (
-                  <div className="flex-1 flex flex-col items-center justify-center text-xs text-zinc-500 gap-2">
-                    <MessageSquare className="h-8 w-8 text-zinc-700" />
-                    Select a conversation to start chatting.
-                  </div>
-                )}
-              </div>
+            {/* Conversation */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+              {activeChat ? (
+                <>
+                  <ConversationView
+                    chat={activeChat}
+                    messages={messages}
+                    showSidebar={showContactSidebar}
+                    onToggleSidebar={() => setShowContactSidebar(!showContactSidebar)}
+                  />
+                  <MessageComposer
+                    onSendText={handleSendText}
+                    onSendMedia={handleSendMedia}
+                    templates={templates}
+                    recentMessages={messages.map((m) => m.body)}
+                    isSending={isSending}
+                  />
+                </>
+              ) : (
+                <div style={{
+                  flex: 1, display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', justifyContent: 'center',
+                  color: 'var(--muted)', gap: 8, fontSize: 13,
+                }}>
+                  <MessageSquare size={32} style={{ opacity: 0.35 }} />
+                  <span>Select a conversation</span>
+                </div>
+              )}
+            </div>
 
-              {/* Contact Sidebar Details Drawer */}
-              {showContactSidebar && activeChat && (
+            {/* Contact sidebar */}
+            {showContactSidebar && activeChat && (
+              <div style={{ width: 260, borderLeft: '1px solid var(--border)', overflow: 'hidden' }}>
                 <ContactSidebar
                   contactId={activeChat.id}
                   onClose={() => setShowContactSidebar(false)}
-                  onStartWorkflow={() => {
-                    setActiveTab('workflows');
-                  }}
+                  onStartWorkflow={() => setActivePanel('workflows')}
                 />
-              )}
-            </div>
-          )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
-          {activeTab === 'contacts' && <ContactManager initialViewMode="table" />}
-          {activeTab === 'crm' && <ContactManager initialViewMode="kanban" />}
-          {activeTab === 'kanban' && <ContactManager initialViewMode="kanban" />}
-          {activeTab === 'followups' && <FollowUpManager />}
-          {activeTab === 'sequences' && <SequenceManager />}
-          {activeTab === 'chatbot' && <ChatbotManager />}
-          {activeTab === 'workflows' && <WorkflowManager />}
-          {activeTab === 'automation' && <AutomationManager />}
-          {activeTab === 'broadcasts' && <BroadcastManager />}
-          {activeTab === 'scheduler' && <SchedulerManager />}
-          {activeTab === 'templates' && <TemplateManager />}
-          {activeTab === 'media' && <MediaManager />}
-          {activeTab === 'webhooks' && <WebhookManager />}
-          {activeTab === 'ai' && (
-            <AIAssistantModal
-              isOpen={true}
-              onClose={() => setActiveTab('dashboard')}
-              onInsertText={(text) => handleSendText(text)}
-            />
-          )}
-          {activeTab === 'analytics' && <AnalyticsView />}
-          {activeTab === 'settings' && <SettingsView />}
-          {activeTab === 'diagnostics' && (
-            <div className="flex-1 overflow-y-auto p-6 bg-zinc-950">
-              <DiagnosticsView />
-            </div>
-          )}
-        </main>
-
-        <GlobalSearchModal />
-        <NotificationCenterModal
-          isOpen={showNotificationCenter}
-          onClose={() => {
-            setShowNotificationCenter(false);
-            checkUnreadAlerts();
-          }}
-        />
-      </div>
+      {/* ── MODALS ──────────────────────────────────────────── */}
+      <GlobalSearchModal />
+      <NotificationCenterModal
+        isOpen={showNotificationCenter}
+        onClose={() => {
+          setShowNotificationCenter(false);
+          checkUnreadAlerts();
+        }}
+      />
     </div>
   );
+
 };
 
-interface NavButtonProps {
-  active: boolean;
-  onClick: () => void;
-  icon: React.ReactNode;
-  label: string;
+// ── Panel Content Router ────────────────────────────────────────────────────
+
+interface PanelContentProps {
+  panelId: PanelId;
+  onSendText: (text: string) => void;
+  onOpenPanel: (id: string) => void;
 }
 
-const NavButton: React.FC<NavButtonProps> = ({ active, onClick, icon, label }) => (
-  <button
-    onClick={onClick}
-    title={label}
-    className={`h-11 w-11 rounded-xl flex flex-col items-center justify-center gap-1 transition ${
-      active
-        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-lg shadow-emerald-950/40'
-        : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/60'
-    }`}
-  >
-    {icon}
-    <span className="text-[9px] font-medium leading-none">{label}</span>
-  </button>
-);
+const PanelContent: React.FC<PanelContentProps> = ({
+  panelId,
+  onSendText,
+  onOpenPanel,
+}) => {
+  switch (panelId) {
+    case 'dashboard':
+      return <DashboardOverview />;
+    case 'contacts':
+      return <ContactManager initialViewMode="table" />;
+    case 'crm':
+      return <ContactManager initialViewMode="kanban" />;
+    case 'followups':
+      return <FollowUpManager />;
+    case 'sequences':
+      return <SequenceManager />;
+    case 'chatbot':
+      return <ChatbotManager />;
+    case 'workflows':
+      return <WorkflowManager />;
+    case 'automation':
+      return <AutomationManager />;
+    case 'broadcasts':
+      return <BroadcastManager />;
+    case 'scheduler':
+      return <SchedulerManager />;
+    case 'templates':
+      return <TemplateManager />;
+    case 'media':
+      return <MediaManager />;
+    case 'webhooks':
+      return <WebhookManager />;
+    case 'ai':
+      return (
+        <AIAssistantModal
+          isOpen={true}
+          onClose={() => onOpenPanel('inbox')}
+          onInsertText={(text) => onSendText(text)}
+        />
+      );
+    case 'analytics':
+      return <AnalyticsView />;
+    case 'settings':
+      return <SettingsView />;
+    case 'diagnostics':
+      return <DiagnosticsView />;
+    default:
+      return (
+        <div className="om-empty">
+          <div className="om-empty-icon">🚀</div>
+          <div className="om-empty-title">Coming Soon</div>
+          <div className="om-muted">This panel is under development.</div>
+        </div>
+      );
+  }
+};
