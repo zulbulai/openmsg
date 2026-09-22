@@ -1,4 +1,4 @@
-WACRM 0.2.0.2
+OpenMsg 0.2.0.2
 
 To install it in Chrome, Edge or Brave:
 
@@ -6,6 +6,6 @@ To install it in Chrome, Edge or Brave:
 2. Open chrome://extensions (edge://extensions in Edge).
 3. Switch on Developer mode.
 4. Choose Load unpacked and pick the folder that contains manifest.json.
-5. Open WhatsApp Web — WACRM is fully unlocked with all features active.
+5. Open WhatsApp Web — OpenMsg is fully unlocked with all features active.
 6. Support / WhatsApp: +91 6306356544 (https://wa.me/916306356544)
 

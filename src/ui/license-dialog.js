@@ -53,18 +53,16 @@ export function openLicenseDialog(app, shell) {
       h('span', null, 'WhatsApp Account'),
       h('strong', null, currentNum ? displayNumber(currentNum) : 'Connected'),
     ),
-    h(
-      'div',
-      { class: 'wc-license-item is-wide' },
-      h('span', null, 'Admin / Support Contact'),
-      h('strong', null, `+${WHATSAPP_PHONE} (WACRM Support)`),
-    ),
-  );
+      h('div', { class: 'wc-license-item is-wide' },
+        h('span', null, 'Admin / Support Contact'),
+        h('strong', null, `+${WHATSAPP_PHONE} (OpenMsg Support)`),
+      ),
+    );
 
-  const whatsappBtn = h(
-    'a',
-    {
-      href: `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent('Hello! I am using WACRM. My WhatsApp number is: +' + (currentNum || WHATSAPP_PHONE))}`,
+    const whatsappBtn = h(
+      'a',
+      {
+        href: `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent('Hello! I am using OpenMsg. My WhatsApp number is: +' + (currentNum || WHATSAPP_PHONE))}`,
       target: '_blank',
       rel: 'noopener noreferrer',
       class: 'wc-btn',

@@ -1,9 +1,10 @@
-export const FALLBACK_BRAND = 'WACRM';
+export const FALLBACK_BRAND = 'OpenMsg';
 export function brand() {
   try {
-    const _0x3e4f79 = chrome.runtime.getManifest().name;
-    if (_0x3e4f79) {
-      return String(_0x3e4f79);
+    const manifest = chrome.runtime.getManifest();
+    const brandName = manifest.short_name || manifest.name;
+    if (brandName) {
+      return String(brandName);
     }
   } catch (_0x30253f) {}
   return FALLBACK_BRAND;
