@@ -21,8 +21,18 @@ import { TagManager } from './TagManager';
 import { CRMDataTransfer } from '@/core/crm/import-export';
 import { KanbanBoard } from './kanban/KanbanBoard';
 
-export const ContactManager: React.FC = () => {
-  const [viewMode, setViewMode] = useState<'kanban' | 'table'>('kanban');
+interface ContactManagerProps {
+  initialViewMode?: 'kanban' | 'table';
+}
+
+export const ContactManager: React.FC<ContactManagerProps> = ({ initialViewMode = 'kanban' }) => {
+  const [viewMode, setViewMode] = useState<'kanban' | 'table'>(initialViewMode);
+
+  useEffect(() => {
+    if (initialViewMode) {
+      setViewMode(initialViewMode);
+    }
+  }, [initialViewMode]);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStage, setSelectedStage] = useState<string>('all');

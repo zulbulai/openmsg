@@ -64,6 +64,9 @@ export interface MessageRecord {
   type: string;
   timestamp: number;
   status: 'pending' | 'sent' | 'delivered' | 'read' | 'failed';
+  mediaUrl?: string;
+  caption?: string;
+  filename?: string;
 }
 
 export interface WorkflowNode {

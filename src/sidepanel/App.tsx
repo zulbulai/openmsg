@@ -15,6 +15,9 @@ import {
   Settings,
   Bell,
   Route,
+  KanbanSquare,
+  Image as ImageIcon,
+  Activity,
 } from 'lucide-react';
 import { useUIStore } from '@/ui/store';
 import { getWhatsAppClient } from '@/content/whatsapp';
@@ -36,10 +39,12 @@ import { AutomationManager } from '@/features/automation/AutomationManager';
 import { BroadcastManager } from '@/features/broadcasts/BroadcastManager';
 import { SchedulerManager } from '@/features/scheduler/SchedulerManager';
 import { TemplateManager } from '@/features/templates/TemplateManager';
+import { MediaManager } from '@/features/media/MediaManager';
 import { WebhookManager } from '@/features/webhooks/WebhookManager';
 import { AIAssistantModal } from '@/features/ai/AIAssistantModal';
 import { AnalyticsView } from '@/features/analytics/AnalyticsView';
 import { SettingsView } from '@/features/settings/SettingsView';
+import { DiagnosticsView } from '@/features/settings/DiagnosticsView';
 import { GlobalSearchModal } from '@/features/search/GlobalSearchModal';
 import { FollowUpManager } from '@/features/crm/followups/FollowUpManager';
 import { SequenceManager } from '@/features/sequences/SequenceManager';
@@ -64,7 +69,7 @@ export const App: React.FC = () => {
   const [isLoadingChats, setIsLoadingChats] = useState(true);
   const [showNotificationCenter, setShowNotificationCenter] = useState(false);
   const [unreadAlertsCount, setUnreadAlertsCount] = useState(0);
-  const [uiMode, setUiMode] = useState<'FULL' | 'SPLIT'>('SPLIT');
+  const [uiMode, setUiMode] = useState<'FULL' | 'SPLIT'>('FULL');
 
   const checkUnreadAlerts = async () => {
     try {
@@ -304,19 +309,19 @@ export const App: React.FC = () => {
               setUiMode(newMode);
               window.postMessage({ type: 'OPENMSG_SET_MODE', payload: { mode: newMode } }, '*');
             }}
-            title="Toggle Full Screen Mode"
-            className="px-2 py-1.5 rounded-lg bg-zinc-800/80 hover:bg-zinc-800 text-zinc-300 hover:text-zinc-100 transition border border-zinc-700/60 text-[10px] font-semibold"
+            title={uiMode === 'FULL' ? 'Switch to Split View' : 'Switch to Full Screen Workspace'}
+            className="px-2.5 py-1.5 rounded-lg bg-zinc-800/80 hover:bg-zinc-800 text-zinc-300 hover:text-zinc-100 transition border border-zinc-700/60 text-xs font-semibold"
           >
-            {uiMode === 'FULL' ? 'Back to WhatsApp' : 'Open Full OpenMsg'}
+            {uiMode === 'FULL' ? 'Split View' : 'Full Screen'}
           </button>
           <button
             onClick={() => {
               window.postMessage({ type: 'OPENMSG_CLOSE_UI' }, '*');
             }}
-            title="Close Extension"
-            className="px-2 py-1.5 rounded-lg bg-red-950/40 hover:bg-red-900/60 text-red-400 transition border border-red-900/30 text-[10px] font-semibold"
+            title="Minimize OpenMsg"
+            className="px-2.5 py-1.5 rounded-lg bg-red-950/40 hover:bg-red-900/60 text-red-400 transition border border-red-900/30 text-xs font-semibold"
           >
-            Close
+            Minimize
           </button>
 
           {/* Notification Bell */}
@@ -353,6 +358,7 @@ export const App: React.FC = () => {
       {/* Main Container */}
       <div className="flex flex-1 overflow-hidden">
         {/* Navigation Sidebar */}
+        {/* Navigation Sidebar */}
         <nav className="w-16 border-r border-zinc-800 bg-zinc-900/40 flex flex-col items-center py-3 gap-1.5 shrink-0 overflow-y-auto">
           <NavButton
             active={activeTab === 'dashboard'}
@@ -367,10 +373,22 @@ export const App: React.FC = () => {
             label="Inbox"
           />
           <NavButton
+            active={activeTab === 'contacts'}
+            onClick={() => setActiveTab('contacts')}
+            icon={<Users className="h-4 w-4" />}
+            label="Contacts"
+          />
+          <NavButton
             active={activeTab === 'crm'}
             onClick={() => setActiveTab('crm')}
-            icon={<Users className="h-4 w-4" />}
+            icon={<KanbanSquare className="h-4 w-4" />}
             label="CRM"
+          />
+          <NavButton
+            active={activeTab === 'kanban'}
+            onClick={() => setActiveTab('kanban')}
+            icon={<KanbanSquare className="h-4 w-4" />}
+            label="Kanban"
           />
           <NavButton
             active={activeTab === 'followups'}
@@ -383,12 +401,6 @@ export const App: React.FC = () => {
             onClick={() => setActiveTab('sequences')}
             icon={<Route className="h-4 w-4" />}
             label="Sequences"
-          />
-          <NavButton
-            active={activeTab === 'chatbot'}
-            onClick={() => setActiveTab('chatbot')}
-            icon={<Bot className="h-4 w-4" />}
-            label="Chatbot"
           />
           <NavButton
             active={activeTab === 'workflows'}
@@ -409,16 +421,28 @@ export const App: React.FC = () => {
             label="Broadcast"
           />
           <NavButton
+            active={activeTab === 'templates'}
+            onClick={() => setActiveTab('templates')}
+            icon={<FileText className="h-4 w-4" />}
+            label="Templates"
+          />
+          <NavButton
+            active={activeTab === 'media'}
+            onClick={() => setActiveTab('media')}
+            icon={<ImageIcon className="h-4 w-4" />}
+            label="Media"
+          />
+          <NavButton
             active={activeTab === 'scheduler'}
             onClick={() => setActiveTab('scheduler')}
             icon={<Clock className="h-4 w-4" />}
             label="Scheduler"
           />
           <NavButton
-            active={activeTab === 'templates'}
-            onClick={() => setActiveTab('templates')}
-            icon={<FileText className="h-4 w-4" />}
-            label="Templates"
+            active={activeTab === 'chatbot'}
+            onClick={() => setActiveTab('chatbot')}
+            icon={<Bot className="h-4 w-4" />}
+            label="Chatbot"
           />
           <NavButton
             active={activeTab === 'webhooks'}
@@ -437,6 +461,12 @@ export const App: React.FC = () => {
             onClick={() => setActiveTab('analytics')}
             icon={<BarChart3 className="h-4 w-4" />}
             label="Analytics"
+          />
+          <NavButton
+            active={activeTab === 'diagnostics'}
+            onClick={() => setActiveTab('diagnostics')}
+            icon={<Activity className="h-4 w-4" />}
+            label="Diagnostics"
           />
 
           <div className="mt-auto pt-2 border-t border-zinc-800/80 w-full flex justify-center">
@@ -502,7 +532,9 @@ export const App: React.FC = () => {
             </div>
           )}
 
-          {activeTab === 'crm' && <ContactManager />}
+          {activeTab === 'contacts' && <ContactManager initialViewMode="table" />}
+          {activeTab === 'crm' && <ContactManager initialViewMode="kanban" />}
+          {activeTab === 'kanban' && <ContactManager initialViewMode="kanban" />}
           {activeTab === 'followups' && <FollowUpManager />}
           {activeTab === 'sequences' && <SequenceManager />}
           {activeTab === 'chatbot' && <ChatbotManager />}
@@ -511,6 +543,7 @@ export const App: React.FC = () => {
           {activeTab === 'broadcasts' && <BroadcastManager />}
           {activeTab === 'scheduler' && <SchedulerManager />}
           {activeTab === 'templates' && <TemplateManager />}
+          {activeTab === 'media' && <MediaManager />}
           {activeTab === 'webhooks' && <WebhookManager />}
           {activeTab === 'ai' && (
             <AIAssistantModal
@@ -521,6 +554,11 @@ export const App: React.FC = () => {
           )}
           {activeTab === 'analytics' && <AnalyticsView />}
           {activeTab === 'settings' && <SettingsView />}
+          {activeTab === 'diagnostics' && (
+            <div className="flex-1 overflow-y-auto p-6 bg-zinc-950">
+              <DiagnosticsView />
+            </div>
+          )}
         </main>
 
         <GlobalSearchModal />

@@ -14,8 +14,24 @@ export type OpenMsgMessage =
       payload?: { timestamp: number };
     }
   | {
+      type: 'PING_OPENMSG';
+      payload?: { timestamp?: number };
+    }
+  | {
       type: 'PONG';
       payload: { timestamp: number; context: string };
+    }
+  | {
+      type: 'PONG_OPENMSG';
+      payload: { timestamp: number; context: string; state?: string; uiMode?: string };
+    }
+  | {
+      type: 'OPENMSG_LAUNCH';
+      payload?: { timestamp?: number };
+    }
+  | {
+      type: 'OPENMSG_INIT';
+      payload?: { timestamp?: number };
     }
   | {
       type: 'WHATSAPP_READY';

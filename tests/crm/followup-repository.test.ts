@@ -142,7 +142,7 @@ describe('FollowUpRepository', () => {
 
     // 2. Today's task
     const today = new Date();
-    today.setHours(14, 0, 0, 0);
+    today.setHours(23, 50, 0, 0);
     await FollowUpRepository.create({
       contactId: 'c2@c.us',
       title: 'Today task',

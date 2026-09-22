@@ -4,7 +4,9 @@ import { WhatsAppUser, WhatsAppChat } from '@/types/whatsapp';
 export type ActiveTab =
   | 'dashboard'
   | 'inbox'
+  | 'contacts'
   | 'crm'
+  | 'kanban'
   | 'followups'
   | 'sequences'
   | 'chatbot'
@@ -13,10 +15,12 @@ export type ActiveTab =
   | 'broadcasts'
   | 'scheduler'
   | 'templates'
+  | 'media'
   | 'webhooks'
   | 'ai'
   | 'analytics'
-  | 'settings';
+  | 'settings'
+  | 'diagnostics';
 
 interface UIState {
   activeTab: ActiveTab;

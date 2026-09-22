@@ -52,6 +52,11 @@ let isLaunching = false;
 let lastLaunchTime = 0;
 const LAUNCH_DEBOUNCE_MS = 600;
 
+export function _resetLauncherState(): void {
+  isLaunching = false;
+  lastLaunchTime = 0;
+}
+
 /**
  * Main launcher entry point invoked when extension action is clicked.
  */
