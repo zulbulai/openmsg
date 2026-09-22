@@ -152,8 +152,8 @@ export function contactBlock(_0x59957e) {
         class: 'wc-contact-title',
       },
       _0x59957e.name
-        ? 'Need a license? Contact ' + _0x59957e.name
-        : 'Need a license? Get in touch.',
+        ? 'Support / Contact: ' + _0x59957e.name
+        : 'Support & Inquiries',
     ),
     h(
       'div',

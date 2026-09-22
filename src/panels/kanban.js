@@ -7,7 +7,7 @@ import { truncate, betterName } from '../core/util.js';
 import { brand } from '../core/brand.js';
 const STAGE_COLORS = [
   '#7dd3fc',
-  '#ffc72c',
+  '#ff4d4f',
   '#c4b5fd',
   '#86efac',
   '#f9a8d4',

@@ -23,7 +23,7 @@ const STATUS_TONE = {
   'no-show': 'danger',
 };
 const STATUS_COLOR = {
-  scheduled: '#ffc72c',
+  scheduled: '#ff4d4f',
   completed: '#86efac',
   cancelled: '#94a3b8',
   'no-show': '#fca5a5',
@@ -300,7 +300,7 @@ function eventChip(_0xf25753, _0x520b2c, _0x434423) {
       type: 'button',
       class: 'wc-cal-event' + (_0x434423 ? ' is-compact' : ''),
       style: {
-        '--ev': STATUS_COLOR[_0xf25753.status] || '#ffc72c',
+        '--ev': STATUS_COLOR[_0xf25753.status] || '#ff4d4f',
       },
       title:
         _0xf25753.title +
@@ -525,7 +525,7 @@ export const calendarPanel = {
                 style: {
                   top: Math.max(0, _0x124ae8) + 'px',
                   height: _0x354e46 + 'px',
-                  '--ev': STATUS_COLOR[_0x787a88.status] || '#ffc72c',
+                  '--ev': STATUS_COLOR[_0x787a88.status] || '#ff4d4f',
                 },
                 onClick: (_0x4207e4) => {
                   _0x4207e4.stopPropagation();

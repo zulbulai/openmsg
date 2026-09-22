@@ -322,7 +322,6 @@ export async function mountWorkspace(
       class: 'wc-spacer',
     }),
     _0x52a985,
-    licenseChip(_0x209e91, () => openLicenseDialog(_0x209e91, _0x1b4246)),
     _0x3f9fb9.button('Open WhatsApp', {
       icon: 'message-circle',
       onClick: _0x43595c,

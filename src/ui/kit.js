@@ -67,7 +67,7 @@ export function chip(_0x363694, _0x57b5d3 = 'neutral', _0x276fbf) {
   );
 }
 const AVATAR_TONES = [
-  '#ffc72c',
+  '#ff4d4f',
   '#7dd3fc',
   '#f9a8d4',
   '#86efac',
@@ -592,7 +592,7 @@ export function colorSwatches(_0x4efc3d, _0x5b4aa7, _0x59da59) {
         icon('palette', 12),
         h('input', {
           type: 'color',
-          value: /^#[0-9a-f]{6}$/i.test(_0x270721) ? _0x270721 : '#ffc72c',
+          value: /^#[0-9a-f]{6}$/i.test(_0x270721) ? _0x270721 : '#ff4d4f',
           onInput: (_0x2553d4) => {
             _0x4db603(_0x2553d4.target.value);
             _0x59da59(_0x2553d4.target.value);

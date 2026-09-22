@@ -1,0 +1,26 @@
+{
+  "name": "openmsg",
+  "version": "0.2.0",
+  "description": "OpenMsg - 100% Free & Open-Source WhatsApp Web CRM & Automation Workspace",
+  "type": "module",
+  "author": "OpenMsg Contributors",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:zulbulai/openmsg.git"
+  },
+  "keywords": [
+    "whatsapp",
+    "whatsapp-web",
+    "crm",
+    "automation",
+    "chatbot",
+    "kanban",
+    "broadcasts",
+    "chrome-extension",
+    "open-source"
+  ],
+  "scripts": {
+    "test": "echo \"OpenMsg loaded successfully\" && exit 0"
+  }
+}

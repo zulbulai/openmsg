@@ -162,7 +162,6 @@ export function openSettingsMenu(_0x290721, _0xe1c6d8, _0x73b031) {
           _0x4dfce1.toast(_0x55962c ? 'Blur is on.' : 'Blur is off.', 'info');
         },
       },
-      _0x1d5c75,
       {
         label: 'Module settings',
         icon: 'settings',

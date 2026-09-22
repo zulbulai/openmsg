@@ -582,7 +582,6 @@ export async function mountShell(_0x3ba2c4) {
       ),
     ),
     _0x95e2ea,
-    _0x2db14b,
     _0x396b83,
     h(
       'div',
