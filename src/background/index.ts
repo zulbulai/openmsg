@@ -1,19 +1,45 @@
 import { AlarmManager } from './alarms';
 import { setupBackgroundMessaging } from './messaging';
-
 import { launchOrFocusWhatsAppWeb } from './launcher';
 
 console.log('[OpenMsg Background] Service worker initializing...');
 
-// Listen for extension icon click in toolbar
-chrome.action.onClicked.addListener(async () => {
-  console.log('[OpenMsg Background] OpenMsg icon clicked. Launching/focusing WhatsApp Web...');
+// Enable Side Panel to open when clicking the extension icon
+if (typeof chrome !== 'undefined' && chrome.sidePanel && chrome.sidePanel.setPanelBehavior) {
+  chrome.sidePanel
+    .setPanelBehavior({ openPanelOnActionClick: true })
+    .catch((err) => {
+      console.warn('[OpenMsg Background] setPanelBehavior not supported or failed:', err);
+    });
+}
+
+// Fallback action click handler
+chrome.action.onClicked.addListener(async (tab) => {
+  console.log('[OpenMsg Background] OpenMsg icon clicked. Opening sidepanel or focusing WhatsApp...');
   try {
-    const result = await launchOrFocusWhatsAppWeb();
-    console.log('[OpenMsg Background] Launcher result:', result);
+    if (tab.id && chrome.sidePanel && chrome.sidePanel.open) {
+      await chrome.sidePanel.open({ tabId: tab.id });
+    } else {
+      await launchOrFocusWhatsAppWeb();
+    }
   } catch (err) {
-    console.error('[OpenMsg Background] Failed to launch or focus WhatsApp Web:', err);
+    console.warn('[OpenMsg Background] Failed to open side panel directly, focusing WhatsApp:', err);
+    await launchOrFocusWhatsAppWeb();
   }
+});
+
+// Handle requests from content script (e.g. floating button click)
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg && msg.type === 'OPEN_SIDEPANEL') {
+    if (sender.tab?.id && chrome.sidePanel && chrome.sidePanel.open) {
+      chrome.sidePanel.open({ tabId: sender.tab.id }).catch((err) => {
+        console.warn('[OpenMsg Background] Failed to open side panel:', err);
+      });
+      sendResponse({ success: true });
+      return true;
+    }
+  }
+  return false;
 });
 
 // Initialize core background subsystems

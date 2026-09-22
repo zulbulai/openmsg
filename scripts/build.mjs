@@ -9,7 +9,7 @@ const __dirname = dirname(__filename);
 const rootDir = resolve(__dirname, '..');
 
 async function buildAll() {
-  console.log('[OpenMsg Build] Starting Chrome Extension build...');
+  console.log('[OpenMsg Build] Starting Chrome Extension build with Sidepanel Architecture...');
 
   // 1. Clean dist directory
   const distDir = resolve(rootDir, 'dist');
@@ -18,8 +18,8 @@ async function buildAll() {
   }
   fs.mkdirSync(distDir, { recursive: true });
 
-  // 2. Build Background Service Worker (ES module) & Options page
-  console.log('[OpenMsg Build] 1/3: Building background and options...');
+  // 2. Build Background Service Worker, Options page, and Sidepanel UI
+  console.log('[OpenMsg Build] 1/3: Building background, options, and Sidepanel React App...');
   await build({
     configFile: false,
     plugins: [react()],
@@ -36,6 +36,7 @@ async function buildAll() {
       rollupOptions: {
         input: {
           options: resolve(rootDir, 'options.html'),
+          sidepanel: resolve(rootDir, 'sidepanel.html'),
           background: resolve(rootDir, 'src/background/index.ts'),
         },
         output: {
@@ -50,11 +51,10 @@ async function buildAll() {
     },
   });
 
-  // 3. Build Content Script as self-contained IIFE (NO ES imports, Chrome MV3 compliant)
-  console.log('[OpenMsg Build] 2/3: Building content script (IIFE standalone)...');
+  // 3. Build Ultra-Lightweight Content Script as self-contained IIFE (<15KB, NO React)
+  console.log('[OpenMsg Build] 2/3: Building ultra-light content script bridge (IIFE standalone)...');
   await build({
     configFile: false,
-    plugins: [react()],
     resolve: {
       alias: { '@': resolve(rootDir, 'src') },
     },
@@ -72,12 +72,6 @@ async function buildAll() {
           name: 'OpenMsgContentScript',
           entryFileNames: 'content.js',
           inlineDynamicImports: true,
-          assetFileNames: (assetInfo) => {
-            if (assetInfo.name?.endsWith('.css')) {
-              return 'content.css';
-            }
-            return 'assets/[name]-[hash].[ext]';
-          },
         },
       },
     },
@@ -127,16 +121,6 @@ async function buildAll() {
   console.log('[OpenMsg Build] Copying manifest.json and public assets...');
   fs.copyFileSync(resolve(rootDir, 'manifest.json'), resolve(distDir, 'manifest.json'));
 
-  // Ensure dist/content.css exists for manifest.json content_scripts
-  const assetsDir = resolve(distDir, 'assets');
-  if (fs.existsSync(assetsDir)) {
-    const cssFile = fs.readdirSync(assetsDir).find((f) => f.endsWith('.css'));
-    if (cssFile) {
-      fs.copyFileSync(resolve(assetsDir, cssFile), resolve(distDir, 'content.css'));
-      console.log(`[OpenMsg Build] Copied ${cssFile} to dist/content.css`);
-    }
-  }
-
   // Copy all public assets recursively (vendor, src/bridge, icons, logo, etc.)
   function copyRecursive(src, dest) {
     if (!fs.existsSync(src)) return;
@@ -157,7 +141,7 @@ async function buildAll() {
     console.log('[OpenMsg Build] Copied public assets recursively.');
   }
 
-  console.log('[OpenMsg Build] ✓ Build successfully completed! All bundles are valid for Chrome MV3.');
+  console.log('[OpenMsg Build] ✓ Build successfully completed! Sidepanel and ultra-light bridge ready.');
 }
 
 buildAll().catch((err) => {

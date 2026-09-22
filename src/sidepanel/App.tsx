@@ -97,13 +97,14 @@ const PANELS: PanelDef[] = [
   { id: 'media',      label: 'Media',          icon: <ImageIcon size={18}/>,    description: 'Media library & files',       emoji: '🖼️' },
   { id: 'webhooks',   label: 'Webhooks',       icon: <Webhook size={18}/>,      description: 'HTTP integrations & events',  emoji: '🔗' },
   { id: 'ai',         label: 'AI Assistant',   icon: <Sparkles size={18}/>,     description: 'AI-powered reply drafting',   emoji: '✨' },
+  { id: 'dashboard',  label: 'Dashboard',      icon: <BarChart3 size={18}/>,    description: 'CRM Overview & Metrics',      emoji: '📊' },
 ];
 
 // Panels shown as icon buttons in the top bar (first 14)
 const TOPBAR_PANELS: PanelId[] = [
   'inbox', 'contacts', 'templates', 'chatbot', 'broadcasts',
   'sequences', 'scheduler', 'workflows', 'automation', 'crm',
-  'followups', 'media', 'ai', 'webhooks',
+  'followups', 'media', 'webhooks', 'ai',
 ];
 
 // ── Filter pills for inbox ──────────────────────────────────────────────────
@@ -131,8 +132,8 @@ export const App: React.FC = () => {
     setActiveChat,
   } = useUIStore();
 
-  // Active panel state
-  const [activePanel, setActivePanel] = useState<PanelId | null>(null);
+  // Active panel state - default to Dashboard for Sidepanel
+  const [activePanel, setActivePanel] = useState<PanelId>('dashboard');
   const [inboxFilter, setInboxFilter] = useState<string>('all');
 
   const [chats, setChats] = useState<WhatsAppChat[]>([]);
@@ -352,9 +353,9 @@ export const App: React.FC = () => {
     }
   };
 
-  // Toggle a panel open/close
+  // Toggle a panel open/close (returns to dashboard if toggled off)
   const togglePanel = (id: PanelId) => {
-    setActivePanel((prev) => (prev === id ? null : id));
+    setActivePanel((prev) => (prev === id ? 'dashboard' : id));
   };
 
   // Get filtered chats
@@ -519,8 +520,8 @@ export const App: React.FC = () => {
             <div className="om-panel-actions">
               <button
                 className="om-close-btn"
-                onClick={() => setActivePanel(null)}
-                title="Close panel"
+                onClick={() => setActivePanel('dashboard')}
+                title="Back to Dashboard"
                 type="button"
               >
                 <X size={18} />
@@ -555,8 +556,8 @@ export const App: React.FC = () => {
             <div className="om-panel-actions">
               <button
                 className="om-close-btn"
-                onClick={() => setActivePanel(null)}
-                title="Close"
+                onClick={() => setActivePanel('dashboard')}
+                title="Back to Dashboard"
                 type="button"
               >
                 <X size={18} />

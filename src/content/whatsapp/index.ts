@@ -1,11 +1,14 @@
 import { WhatsAppClient } from '@/types/whatsapp';
 import { MockWhatsAppClient } from './mock-client';
 import { BridgeWhatsAppClient } from './bridge-client';
+import { ExtensionWhatsAppClient } from './extension-client';
 
 /**
  * OpenMsg WhatsApp Client Provider
- * Automatically selects BridgeWhatsAppClient on web.whatsapp.com,
- * or MockWhatsAppClient in testing / standalone mode.
+ * Automatically selects:
+ * - BridgeWhatsAppClient on web.whatsapp.com (content script)
+ * - ExtensionWhatsAppClient in Chrome Extension pages (Sidepanel, Options, etc.)
+ * - MockWhatsAppClient in testing / standalone mode.
  */
 function createClient(): WhatsAppClient {
   const isWhatsAppWeb =
@@ -16,6 +19,12 @@ function createClient(): WhatsAppClient {
   if (isWhatsAppWeb) {
     return new BridgeWhatsAppClient();
   }
+
+  // Extension pages (Sidepanel, Popup, Options)
+  if (typeof chrome !== 'undefined' && chrome.tabs && chrome.runtime) {
+    return new ExtensionWhatsAppClient();
+  }
+
   return new MockWhatsAppClient();
 }
 
@@ -28,3 +37,4 @@ export function getWhatsAppClient(): WhatsAppClient {
 export function setWhatsAppClient(client: WhatsAppClient): void {
   activeClient = client;
 }
+
