@@ -28,16 +28,41 @@ class SenderQueue extends EventEmitter {
     this.currentTimer = null;
   }
 
-  setItems(items, template, attachments = []) {
-    this.queue = items.map((item, idx) => ({
-      id: item.id || `item_${idx}_${Date.now()}`,
-      phone: item.phone,
-      data: item,
-      template: template,
-      attachments: attachments,
-      status: 'pending', // pending, sending, sent, failed
-      error: null
-    }));
+  setItems(items, template, attachments = [], extraOptions = {}) {
+    const messages = Array.isArray(extraOptions.messages) && extraOptions.messages.length > 0
+      ? extraOptions.messages
+      : [template].filter(Boolean);
+    const rotationMode = extraOptions.rotationMode || 'random';
+    const buttons = extraOptions.buttons || null;
+
+    this.queue = items.map((item, idx) => {
+      // Pick message variation based on rotation mode
+      let assignedTemplate = template;
+      if (messages.length > 1) {
+        if (rotationMode === 'sequential') {
+          assignedTemplate = messages[idx % messages.length];
+        } else if (rotationMode === 'split') {
+          const slot = Math.min(messages.length - 1, Math.floor((idx / items.length) * messages.length));
+          assignedTemplate = messages[slot];
+        } else {
+          // random
+          assignedTemplate = messages[Math.floor(Math.random() * messages.length)];
+        }
+      } else if (messages.length === 1) {
+        assignedTemplate = messages[0];
+      }
+
+      return {
+        id: item.id || `item_${idx}_${Date.now()}`,
+        phone: item.phone,
+        data: item,
+        template: assignedTemplate,
+        attachments: attachments,
+        buttons: buttons,
+        status: 'pending', // pending, sending, sent, failed
+        error: null
+      };
+    });
     this.currentIndex = 0;
     this.totalSent = 0;
     this.totalFailed = 0;
@@ -122,6 +147,7 @@ class SenderQueue extends EventEmitter {
           phone: currentItem.phone,
           message: personalizedBody,
           attachments: currentItem.attachments,
+          buttons: currentItem.buttons,
           simulateTyping: this.options.simulateTyping,
           typingDurationMs: this.options.typingDurationMs
         });

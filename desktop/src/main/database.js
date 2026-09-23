@@ -67,6 +67,19 @@ class LocalDatabase {
         autoStartOnBoot: false,
         validationDelayMs: 200
       },
+      mapLeads: [],          // [{ id, name, phone, address, rating, website, keyword, city, scrapedAt }]
+      warmerStats: {},       // { [accountId]: { sentToday, lastSentAt, totalAllTime, lastResetDate, history7Days } }
+      warmerConfig: {        // Config for automated account warmer (Phase 7D)
+        dailyTarget: 30,
+        minDelay: 45,
+        maxDelay: 180,
+        enabledCategories: ['casual', 'greetings', 'followups', 'emoji'],
+        customTemplates: [],
+        selectedAccounts: [],
+        simulateTyping: true
+      },
+      warmerLogs: [],        // [{ id, timestamp, fromAccountId, toAccountId, fromPhone, toPhone, message, status }]
+      warmerHistory7Days: {},// { [YYYY-MM-DD]: count }
       license: {
         key: '',
         activatedAt: null,
@@ -331,6 +344,245 @@ class LocalDatabase {
   clearValidationState() {
     this.data.validationState = null;
     this.saveSync();
+  }
+
+  // Dashboard Aggregated Metrics
+  getDashboardStats() {
+    const today = new Date().toISOString().slice(0, 10);
+    const accounts = this.data.accounts || [];
+    const connectedAccounts = accounts.filter(a => a.status === 'CONNECTED').length;
+    const campaigns = this.data.campaigns || [];
+    
+    // Calculate messages sent today across all campaigns
+    let messagesSentToday = 0;
+    campaigns.forEach(c => {
+      const cDate = c.createdAt ? new Date(c.createdAt).toISOString().slice(0, 10) : '';
+      if (cDate === today) {
+        messagesSentToday += (c.sent || 0);
+      }
+    });
+
+    // Also include warmer messages sent today
+    const warmerStats = this.data.warmerStats || {};
+    Object.values(warmerStats).forEach(s => {
+      if (s.lastResetDate === today) {
+        messagesSentToday += (s.sentToday || 0);
+      }
+    });
+
+    const activeRules = (this.data.chatbotRules || []).filter(r => r.isActive).length;
+    const totalContacts = (this.data.contacts || []).length;
+    const totalMapLeads = (this.data.mapLeads || []).length;
+
+    return {
+      totalAccounts: accounts.length,
+      connectedAccounts,
+      messagesSentToday,
+      totalCampaigns: campaigns.length,
+      totalContacts,
+      totalMapLeads,
+      activeRules,
+      aiEnabled: !!(this.data.aiConfig && this.data.aiConfig.enabled)
+    };
+  }
+
+  // Google Maps Leads
+  getMapLeads() {
+    return this.data.mapLeads || [];
+  }
+
+  addMapLeads(leads) {
+    if (!Array.isArray(leads)) leads = [leads];
+    this.data.mapLeads = this.data.mapLeads || [];
+    let added = 0;
+    leads.forEach(l => {
+      if (!l.phone) return;
+      const cleanPhone = String(l.phone).replace(/\D+/g, '');
+      const exists = this.data.mapLeads.find(m => String(m.phone).replace(/\D+/g, '') === cleanPhone);
+      if (!exists) {
+        this.data.mapLeads.unshift({
+          id: 'lead_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+          name: l.name || 'Unknown Business',
+          phone: cleanPhone,
+          address: l.address || '',
+          rating: l.rating || '',
+          website: l.website || '',
+          city: l.city || '',
+          keyword: l.keyword || '',
+          scrapedAt: Date.now()
+        });
+        added++;
+      }
+    });
+    this.saveSync();
+    return { added, total: this.data.mapLeads.length };
+  }
+
+  clearMapLeads() {
+    this.data.mapLeads = [];
+    this.saveSync();
+    return true;
+  }
+
+  // ─── WhatsApp Account Warmer (Phase 7D) ───────────────────────────
+  getWarmerConfig() {
+    return {
+      dailyTarget: 30,
+      minDelay: 45,
+      maxDelay: 180,
+      enabledCategories: ['casual', 'greetings', 'followups', 'emoji'],
+      customTemplates: [],
+      selectedAccounts: [],
+      simulateTyping: true,
+      ...(this.data.warmerConfig || {})
+    };
+  }
+
+  saveWarmerConfig(config) {
+    this.data.warmerConfig = { ...this.getWarmerConfig(), ...config };
+    this.saveSync();
+    return this.data.warmerConfig;
+  }
+
+  getWarmerStats() {
+    const today = new Date().toISOString().slice(0, 10);
+    this.data.warmerStats = this.data.warmerStats || {};
+    this.data.warmerHistory7Days = this.data.warmerHistory7Days || {};
+    this.data.warmerLogs = this.data.warmerLogs || [];
+
+    // Reset daily counters if day has changed
+    let totalSentToday = 0;
+    let totalAllTime = 0;
+    let activeAccountsCount = 0;
+
+    Object.keys(this.data.warmerStats).forEach(accId => {
+      const stat = this.data.warmerStats[accId];
+      if (stat) {
+        if (stat.lastResetDate !== today) {
+          stat.sentToday = 0;
+          stat.lastResetDate = today;
+        }
+        totalSentToday += (stat.sentToday || 0);
+        totalAllTime += (stat.totalAllTime || 0);
+        if ((stat.sentToday || 0) > 0 || (stat.totalAllTime || 0) > 0) {
+          activeAccountsCount++;
+        }
+      }
+    });
+
+    // Compute last 7 days activity breakdown
+    const sevenDaysActivity = [];
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const now = new Date();
+
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const isoDate = d.toISOString().slice(0, 10);
+      const label = `${dayNames[d.getDay()]} ${d.getDate()}`;
+      
+      // Aggregate counts from warmerHistory7Days or account historical records
+      let count = this.data.warmerHistory7Days[isoDate] || 0;
+      if (!count) {
+        Object.values(this.data.warmerStats).forEach(s => {
+          if (s && s.history7Days && s.history7Days[isoDate]) {
+            count += s.history7Days[isoDate];
+          }
+        });
+      }
+
+      sevenDaysActivity.push({
+        date: isoDate,
+        label,
+        count: count || 0,
+        isToday: isoDate === today
+      });
+    }
+
+    return {
+      accounts: this.data.warmerStats,
+      totalSentToday,
+      totalAllTime,
+      activeAccountsCount,
+      sevenDaysActivity,
+      recentLogs: this.data.warmerLogs.slice(0, 50)
+    };
+  }
+
+  recordWarmerMessage(payload) {
+    const today = new Date().toISOString().slice(0, 10);
+    this.data.warmerStats = this.data.warmerStats || {};
+    this.data.warmerHistory7Days = this.data.warmerHistory7Days || {};
+    this.data.warmerLogs = this.data.warmerLogs || [];
+
+    const fromAccountId = typeof payload === 'string' ? payload : (payload.fromAccountId || payload.accountId);
+    const toAccountId = typeof payload === 'object' ? payload.toAccountId : null;
+    const fromPhone = typeof payload === 'object' ? payload.fromPhone : '';
+    const toPhone = typeof payload === 'object' ? payload.toPhone : '';
+    const message = typeof payload === 'object' ? payload.message : '';
+    const status = (typeof payload === 'object' && payload.status) || 'sent';
+    const error = (typeof payload === 'object' && payload.error) || null;
+
+    if (fromAccountId) {
+      if (!this.data.warmerStats[fromAccountId]) {
+        this.data.warmerStats[fromAccountId] = {
+          sentToday: 0,
+          totalAllTime: 0,
+          lastSentAt: null,
+          lastResetDate: today,
+          history7Days: {}
+        };
+      }
+      const stat = this.data.warmerStats[fromAccountId];
+      stat.history7Days = stat.history7Days || {};
+
+      if (stat.lastResetDate !== today) {
+        stat.sentToday = 0;
+        stat.lastResetDate = today;
+      }
+
+      if (status === 'sent') {
+        stat.sentToday = (stat.sentToday || 0) + 1;
+        stat.totalAllTime = (stat.totalAllTime || 0) + 1;
+        stat.history7Days[today] = (stat.history7Days[today] || 0) + 1;
+        this.data.warmerHistory7Days[today] = (this.data.warmerHistory7Days[today] || 0) + 1;
+      }
+      stat.lastSentAt = Date.now();
+    }
+
+    // Append to persistent warming logs ring buffer
+    const logEntry = {
+      id: 'wlog_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+      timestamp: Date.now(),
+      fromAccountId,
+      toAccountId,
+      fromPhone,
+      toPhone,
+      message: message ? message.slice(0, 200) : '',
+      status,
+      error
+    };
+    this.data.warmerLogs.unshift(logEntry);
+    if (this.data.warmerLogs.length > 150) {
+      this.data.warmerLogs.length = 150;
+    }
+
+    this.saveSync();
+    return logEntry;
+  }
+
+  resetWarmerStats() {
+    this.data.warmerStats = {};
+    this.data.warmerHistory7Days = {};
+    this.data.warmerLogs = [];
+    this.saveSync();
+    return this.getWarmerStats();
+  }
+
+  clearWarmerLogs() {
+    this.data.warmerLogs = [];
+    this.saveSync();
+    return true;
   }
 }
 

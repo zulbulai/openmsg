@@ -214,16 +214,45 @@ Your feedback helps us serve you better. Thank you!`
     });
   }
 
-  // Variable chip insertion
+  // 5 Message Rotation Tabs Switcher (Phase 7E)
+  const rotationTabs = document.querySelectorAll('.rotation-tab');
+  const rotationBoxes = document.querySelectorAll('.rotation-msg-box');
+
+  rotationTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const slot = parseInt(tab.getAttribute('data-msg-slot'), 10);
+      rotationTabs.forEach(t => t.classList.remove('active'));
+      rotationBoxes.forEach(b => {
+        b.style.display = 'none';
+        b.classList.remove('active');
+      });
+
+      tab.classList.add('active');
+      const targetBox = document.querySelector(`.rotation-msg-box[data-slot="${slot}"]`);
+      if (targetBox) {
+        targetBox.style.display = 'block';
+        targetBox.classList.add('active');
+        targetBox.focus();
+      }
+
+      if (window.setPhonePreviewActiveSlot) {
+        window.setPhonePreviewActiveSlot(slot);
+      }
+    });
+  });
+
+  // Variable chip insertion into currently active variant textarea
   document.querySelectorAll('.chip-var').forEach(chip => {
     chip.addEventListener('click', () => {
       const variable = chip.getAttribute('data-var');
-      const start = campMessageText.selectionStart;
-      const end = campMessageText.selectionEnd;
-      const text = campMessageText.value;
-      campMessageText.value = text.substring(0, start) + variable + text.substring(end);
-      campMessageText.focus();
-      campMessageText.selectionStart = campMessageText.selectionEnd = start + variable.length;
+      const activeTextarea = document.querySelector('.rotation-msg-box.active') || campMessageText;
+      const start = activeTextarea.selectionStart;
+      const end = activeTextarea.selectionEnd;
+      const text = activeTextarea.value;
+      activeTextarea.value = text.substring(0, start) + variable + text.substring(end);
+      activeTextarea.focus();
+      activeTextarea.selectionStart = activeTextarea.selectionEnd = start + variable.length;
+      activeTextarea.dispatchEvent(new Event('input'));
     });
   });
 
@@ -240,7 +269,8 @@ Your feedback helps us serve you better. Thank you!`
   }
 
   btnPreviewSpintax.addEventListener('click', () => {
-    const template = campMessageText.value;
+    const activeTextarea = document.querySelector('.rotation-msg-box.active') || campMessageText;
+    const template = activeTextarea.value;
     spintaxSamplesContainer.innerHTML = '';
 
     for (let i = 1; i <= 3; i++) {
@@ -292,11 +322,58 @@ Your feedback helps us serve you better. Thank you!`
       return;
     }
 
-    const template = campMessageText.value.trim();
-    if (!template) {
-      window.showToast('Please enter a message template.', 'error');
+    // Collect all message variants (Phase 7E)
+    const allMessages = [];
+    for (let s = 1; s <= 5; s++) {
+      const id = s === 1 ? 'campMessageText' : `campMessageText${s}`;
+      const val = document.getElementById(id)?.value.trim();
+      if (val) allMessages.push(val);
+    }
+
+    if (allMessages.length === 0) {
+      window.showToast('Please enter at least one message template.', 'error');
       return;
     }
+
+    // Interactive buttons & poll payload
+    const interactiveType = document.getElementById('campInteractiveType')?.value || 'none';
+    let buttons = null;
+    if (interactiveType === 'link') {
+      buttons = {
+        type: 'link',
+        text: document.getElementById('btnLinkText')?.value.trim() || 'Visit Website',
+        url: document.getElementById('btnLinkUrl')?.value.trim() || ''
+      };
+    } else if (interactiveType === 'call') {
+      buttons = {
+        type: 'call',
+        text: document.getElementById('btnCallText')?.value.trim() || 'Call Support',
+        phone: document.getElementById('btnCallPhone')?.value.trim() || ''
+      };
+    } else if (interactiveType === 'quickreply') {
+      buttons = {
+        type: 'quickreply',
+        options: [
+          document.getElementById('btnQuickReply1')?.value.trim(),
+          document.getElementById('btnQuickReply2')?.value.trim(),
+          document.getElementById('btnQuickReply3')?.value.trim()
+        ].filter(Boolean)
+      };
+    } else if (interactiveType === 'poll') {
+      buttons = {
+        type: 'poll',
+        question: document.getElementById('pollQuestion')?.value.trim() || 'Quick Poll',
+        options: [
+          document.getElementById('pollOpt1')?.value.trim(),
+          document.getElementById('pollOpt2')?.value.trim(),
+          document.getElementById('pollOpt3')?.value.trim(),
+          document.getElementById('pollOpt4')?.value.trim()
+        ].filter(Boolean),
+        multiSelect: !!document.getElementById('pollMultiSelect')?.checked
+      };
+    }
+
+    const rotationMode = document.getElementById('campRotationMode')?.value || 'random';
 
     // Verify an active account is connected
     const accounts = await window.api.getAccounts();
@@ -311,16 +388,22 @@ Your feedback helps us serve you better. Thank you!`
     btnPauseCampaign.style.display = 'inline-block';
     btnResumeCampaign.style.display = 'none';
 
+    // Switch right view to Dispatch Monitor so user sees progress
+    if (window.switchToDispatchMonitor) window.switchToDispatchMonitor();
+
     campaignBannerText.textContent = `Dispatching campaign to ${contacts.length} recipients...`;
     campaignStatusBanner.style.background = 'rgba(16, 185, 129, 0.15)';
     campaignStatusBanner.style.color = '#34d399';
 
-    appendLog(`Starting campaign "${campTitle.value}" (${contacts.length} recipients)...`, 'info');
+    appendLog(`Starting campaign "${campTitle.value}" (${contacts.length} recipients, ${allMessages.length} message variants)...`, 'info');
 
     try {
       await window.api.startCampaign({
         title: campTitle.value,
-        template: template,
+        template: allMessages[0],
+        messages: allMessages,
+        buttons: buttons,
+        rotationMode: rotationMode,
         contacts: contacts,
         attachments: currentAttachment ? [currentAttachment] : [],
         options: {

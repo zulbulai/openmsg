@@ -222,3 +222,127 @@ test('LocalDatabase & AI Engine Rule Matching', () => {
   // Clean up
   if (fs.existsSync(tmpDbPath)) fs.unlinkSync(tmpDbPath);
 });
+
+test('SenderQueue - Multi-Message Rotation & Interactive Buttons (Phase 7E)', async () => {
+  const queue = new SenderQueue({
+    minDelayMs: 5,
+    maxDelayMs: 15,
+    batchSize: 10,
+    batchPauseMs: 50,
+    simulateTyping: false
+  });
+
+  const mockContacts = [
+    { phone: '1001', Name: 'User 1' },
+    { phone: '1002', Name: 'User 2' },
+    { phone: '1003', Name: 'User 3' },
+    { phone: '1004', Name: 'User 4' }
+  ];
+
+  const variants = [
+    'Variant A for {{Name}}',
+    'Variant B for {{Name}}'
+  ];
+
+  const buttons = {
+    type: 'link',
+    text: 'Visit Site',
+    url: 'https://openmsg.org'
+  };
+
+  // 1. Sequential Round-Robin Rotation
+  queue.setItems(mockContacts, 'Default', [], {
+    messages: variants,
+    rotationMode: 'sequential',
+    buttons: buttons
+  });
+
+  const sentPayloads = [];
+  const completedPromise = new Promise(resolve => {
+    queue.on('completed', resolve);
+  });
+
+  queue.start(async (item) => {
+    sentPayloads.push(item);
+  });
+
+  await completedPromise;
+
+  assert.equal(sentPayloads.length, 4);
+  assert.equal(sentPayloads[0].message, 'Variant A for User 1');
+  assert.equal(sentPayloads[1].message, 'Variant B for User 2');
+  assert.equal(sentPayloads[2].message, 'Variant A for User 3');
+  assert.equal(sentPayloads[3].message, 'Variant B for User 4');
+  assert.deepEqual(sentPayloads[0].buttons, buttons);
+});
+
+test('Database - Phase 7 Leads, Warmer & Dashboard Stats', () => {
+  const tmpDbPath = path.join(__dirname, 'tmp_phase7_db.json');
+  if (fs.existsSync(tmpDbPath)) fs.unlinkSync(tmpDbPath);
+
+  const db = new LocalDatabase(tmpDbPath);
+
+  // 1. Initial dashboard stats
+  const initialStats = db.getDashboardStats();
+  assert.equal(initialStats.totalAccounts, 0);
+  assert.equal(initialStats.totalMapLeads, 0);
+  assert.equal(initialStats.messagesSentToday, 0);
+
+  // 2. Google Maps Leads
+  const leads = [
+    { name: 'Dr. Smile Dental', phone: '12125550199', address: '123 5th Ave', rating: '4.8', website: 'https://drsmile.com', city: 'NYC', keyword: 'Dentist' },
+    { name: 'Apex Orthodontics', phone: '12125550200', address: '456 Madison Ave', rating: '4.9', website: '', city: 'NYC', keyword: 'Dentist' }
+  ];
+  const addRes = db.addMapLeads(leads);
+  assert.equal(addRes.added, 2);
+  assert.equal(db.getMapLeads().length, 2);
+
+  // Deduplication check
+  const dupRes = db.addMapLeads([leads[0]]);
+  assert.equal(dupRes.added, 0);
+  assert.equal(db.getMapLeads().length, 2);
+
+  // 3. Warmer Stats & Config
+  const cfg = db.getWarmerConfig();
+  assert.equal(cfg.dailyTarget, 30);
+
+  db.saveWarmerConfig({ dailyTarget: 50, minDelay: 30, maxDelay: 90 });
+  assert.equal(db.getWarmerConfig().dailyTarget, 50);
+
+  db.recordWarmerMessage('acc_1');
+  db.recordWarmerMessage('acc_1');
+  const wStats = db.getWarmerStats();
+  assert.equal(wStats.accounts['acc_1'].sentToday, 2);
+  assert.equal(wStats.accounts['acc_1'].totalAllTime, 2);
+  assert.equal(wStats.totalSentToday, 2);
+
+  // 4. Aggregated Dashboard Stats check
+  const updatedStats = db.getDashboardStats();
+  assert.equal(updatedStats.totalMapLeads, 2);
+  assert.equal(updatedStats.messagesSentToday, 2);
+
+  // Clear leads
+  db.clearMapLeads();
+  assert.equal(db.getMapLeads().length, 0);
+
+  if (fs.existsSync(tmpDbPath)) fs.unlinkSync(tmpDbPath);
+});
+
+test('Group Link Extraction Pattern', () => {
+  const sampleHtml = `
+    <div>Check out our crypto group at https://chat.whatsapp.com/J9F7b2X9K1mL5p8Q0wR3tZ for signals!</div>
+    <p>Another real estate group https://chat.whatsapp.com/A1B2C3D4E5F6G7H8I9J0kL and duplicate https://chat.whatsapp.com/J9F7b2X9K1mL5p8Q0wR3tZ</p>
+  `;
+
+  const regex = /https:\/\/chat\.whatsapp\.com\/([A-Za-z0-9_-]{20,24})/gi;
+  const found = new Set();
+  let match;
+  while ((match = regex.exec(sampleHtml)) !== null) {
+    found.add(match[1]);
+  }
+
+  assert.equal(found.size, 2);
+  assert.ok(found.has('J9F7b2X9K1mL5p8Q0wR3tZ'));
+  assert.ok(found.has('A1B2C3D4E5F6G7H8I9J0kL'));
+});
+

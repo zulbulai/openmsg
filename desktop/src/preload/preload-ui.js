@@ -69,6 +69,34 @@ contextBridge.exposeInMainWorld('api', {
   getSettings:   () => ipcRenderer.invoke('settings:get'),
   saveSettings:  (settings) => ipcRenderer.invoke('settings:save', { settings }),
 
+  // ─── Dashboard Stats (Phase 7A) ─────────────────────────
+  getDashboardStats: () => ipcRenderer.invoke('dashboard:get-stats'),
+
+  // ─── Google Maps Scraper (Phase 7B) ──────────────────────
+  startMapsScraper: (keyword, city, maxResults) => ipcRenderer.invoke('maps:start', { keyword, city, maxResults }),
+  stopMapsScraper:  () => ipcRenderer.invoke('maps:stop'),
+  getMapLeads:      () => ipcRenderer.invoke('maps:get-leads'),
+  clearMapLeads:    () => ipcRenderer.invoke('maps:clear-leads'),
+
+  // ─── Group Link Finder & Auto Joiner (Phase 7C) ──────────
+  findGroupLinks: (keyword, maxPages) => ipcRenderer.invoke('groups:find-links', { keyword, maxPages }),
+  stopGroupFinder: () => ipcRenderer.invoke('groups:stop-find'),
+  startGroupJoin: (accountId, links, delaySeconds) => ipcRenderer.invoke('groups:start-join', { accountId, links, delaySeconds }),
+  stopGroupJoin:  () => ipcRenderer.invoke('groups:stop-join'),
+
+  // ─── Account Warmer (Phase 7D) ───────────────────────────
+  startWarmer:       (config) => ipcRenderer.invoke('warmer:start', { config }),
+  stopWarmer:        () => ipcRenderer.invoke('warmer:stop'),
+  pauseWarmer:       () => ipcRenderer.invoke('warmer:pause'),
+  resumeWarmer:      () => ipcRenderer.invoke('warmer:resume'),
+  getWarmerStatus:   () => ipcRenderer.invoke('warmer:status'),
+  getWarmerConfig:   () => ipcRenderer.invoke('warmer:get-config'),
+  saveWarmerConfig:  (config) => ipcRenderer.invoke('warmer:save-config', { config }),
+  getWarmerStats:    () => ipcRenderer.invoke('warmer:get-stats'),
+  resetWarmerStats:  () => ipcRenderer.invoke('warmer:reset-stats'),
+  clearWarmerLogs:   () => ipcRenderer.invoke('warmer:clear-logs'),
+  getWarmerTemplates: () => ipcRenderer.invoke('warmer:get-templates'),
+
   // ─── Licensing (Community Edition — always unlocked) ───
   getHwid:          () => ipcRenderer.invoke('licensing:get-hwid'),
   getLicenseStatus: () => ipcRenderer.invoke('licensing:status'),
@@ -104,5 +132,30 @@ contextBridge.exposeInMainWorld('api', {
     const h = (e, d) => cb(d);
     ipcRenderer.on('event:autoresponder-log', h);
     return () => ipcRenderer.removeListener('event:autoresponder-log', h);
+  },
+  onMapsResult: (cb) => {
+    const h = (e, d) => cb(d);
+    ipcRenderer.on('event:maps-result', h);
+    return () => ipcRenderer.removeListener('event:maps-result', h);
+  },
+  onMapsDone: (cb) => {
+    const h = (e, d) => cb(d);
+    ipcRenderer.on('event:maps-done', h);
+    return () => ipcRenderer.removeListener('event:maps-done', h);
+  },
+  onGroupLinkFound: (cb) => {
+    const h = (e, d) => cb(d);
+    ipcRenderer.on('event:groups-link-found', h);
+    return () => ipcRenderer.removeListener('event:groups-link-found', h);
+  },
+  onGroupJoinProgress: (cb) => {
+    const h = (e, d) => cb(d);
+    ipcRenderer.on('event:groups-join-progress', h);
+    return () => ipcRenderer.removeListener('event:groups-join-progress', h);
+  },
+  onWarmerProgress: (cb) => {
+    const h = (e, d) => cb(d);
+    ipcRenderer.on('event:warmer-progress', h);
+    return () => ipcRenderer.removeListener('event:warmer-progress', h);
   }
 });

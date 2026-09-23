@@ -16,10 +16,28 @@ const {
   exportCampaignReportToXlsx
 } = require('../shared/utils/excel');
 const { CampaignScheduler } = require('./campaign-scheduler');
+const { MapsScraper } = require('./maps-scraper');
+const { GroupFinder } = require('./group-finder');
+const { GroupJoiner } = require('./group-joiner');
+const { AccountWarmer } = require('./account-warmer');
+const { getAllCuratedDialogues } = require('../shared/data/warmer-templates');
 
 function registerIpcHandlers({ sessionManager, db, aiEngine, getMainWindow }) {
   let activeCampaignQueue = null;
+  let activeMapsScraper = null;
+  let activeGroupFinder = null;
+  let activeGroupJoiner = null;
   const scheduler = new CampaignScheduler(db);
+  const accountWarmer = new AccountWarmer({
+    sessionManager,
+    database: db,
+    broadcastProgress: (payload) => {
+      const win = getMainWindow();
+      if (win && !win.isDestroyed()) {
+        win.webContents.send('event:warmer-progress', payload);
+      }
+    }
+  });
 
   // ─── Forward session manager events to Main Window ─────────────────────
   sessionManager.on('account-status', (data) => {
@@ -185,7 +203,7 @@ function registerIpcHandlers({ sessionManager, db, aiEngine, getMainWindow }) {
 
   // ─── Internal campaign start helper ────────────────────────────────────
   async function _startCampaignInternal(campaignData) {
-    const { title, template, contacts, attachments, options } = campaignData;
+    const { title, template, messages, buttons, rotationMode, contacts, attachments, options } = campaignData;
     const settings = db.getSettings();
 
     const queueOptions = {
@@ -198,7 +216,11 @@ function registerIpcHandlers({ sessionManager, db, aiEngine, getMainWindow }) {
     };
 
     activeCampaignQueue = new SenderQueue(queueOptions);
-    activeCampaignQueue.setItems(contacts, template, attachments);
+    activeCampaignQueue.setItems(contacts, template, attachments, {
+      messages: Array.isArray(messages) && messages.length > 0 ? messages : [template].filter(Boolean),
+      buttons: buttons || null,
+      rotationMode: rotationMode || 'random'
+    });
 
     const win = getMainWindow();
     const emitProgress = (eventLabel, payload) => {
@@ -229,7 +251,9 @@ function registerIpcHandlers({ sessionManager, db, aiEngine, getMainWindow }) {
       db.saveCampaign({
         id: campaignId,
         title: title || 'Bulk Campaign',
-        template,
+        template: template || (messages && messages[0]) || '',
+        messages: messages || [template],
+        buttons: buttons || null,
         total: stats.total,
         sent: stats.sent,
         failed: stats.failed,
@@ -244,6 +268,7 @@ function registerIpcHandlers({ sessionManager, db, aiEngine, getMainWindow }) {
         phone: item.phone,
         message: item.message,
         attachments: item.attachments || [],
+        buttons: item.buttons || null,
         simulateTyping: item.simulateTyping,
         typingDurationMs: item.typingDurationMs
       });
@@ -641,6 +666,153 @@ function registerIpcHandlers({ sessionManager, db, aiEngine, getMainWindow }) {
     customer: 'Open Source Community Edition',
     isLifetime: true
   }));
+
+  // ═══════════════════════════════════════════════════════
+  //  PHASE 7: DASHBOARD, STORAGE & ACCOUNT WARMER
+  // ═══════════════════════════════════════════════════════
+  ipcMain.handle('dashboard:get-stats', () => db.getDashboardStats());
+  ipcMain.handle('maps:get-leads', () => db.getMapLeads());
+  ipcMain.handle('maps:clear-leads', () => db.clearMapLeads());
+  ipcMain.handle('maps:start', async (event, { keyword, city, maxResults }) => {
+    if (activeMapsScraper) {
+      activeMapsScraper.stop();
+      activeMapsScraper = null;
+    }
+
+    activeMapsScraper = new MapsScraper();
+    const win = getMainWindow();
+
+    activeMapsScraper.on('result', (lead) => {
+      db.addMapLeads(lead);
+      if (win && !win.isDestroyed()) {
+        win.webContents.send('event:maps-result', lead);
+      }
+    });
+
+    activeMapsScraper.on('done', (info) => {
+      if (win && !win.isDestroyed()) {
+        win.webContents.send('event:maps-done', info);
+      }
+      activeMapsScraper = null;
+    });
+
+    activeMapsScraper.start({ keyword, city, maxResults: parseInt(maxResults, 10) || 50 }).catch(err => {
+      console.error('[IPC] Maps scraper failed:', err);
+    });
+
+    return { success: true };
+  });
+
+  ipcMain.handle('maps:stop', () => {
+    if (activeMapsScraper) {
+      activeMapsScraper.stop();
+      activeMapsScraper = null;
+      return { success: true };
+    }
+    return { success: false };
+  });
+
+  // Account Warmer IPC Handlers (Phase 7D)
+  ipcMain.handle('warmer:start', (e, { config } = {}) => accountWarmer.start(config));
+  ipcMain.handle('warmer:stop', () => accountWarmer.stop());
+  ipcMain.handle('warmer:pause', () => accountWarmer.pause());
+  ipcMain.handle('warmer:resume', () => accountWarmer.resume());
+  ipcMain.handle('warmer:status', () => accountWarmer.getStatus());
+  ipcMain.handle('warmer:get-config', () => db.getWarmerConfig());
+  ipcMain.handle('warmer:save-config', (e, { config }) => db.saveWarmerConfig(config));
+  ipcMain.handle('warmer:get-stats', () => db.getWarmerStats());
+  ipcMain.handle('warmer:reset-stats', () => db.resetWarmerStats());
+  ipcMain.handle('warmer:clear-logs', () => db.clearWarmerLogs());
+  ipcMain.handle('warmer:get-templates', () => getAllCuratedDialogues());
+
+  // ═══════════════════════════════════════════════════════
+  //  GROUP TOOLS (Phase 7C)
+  // ═══════════════════════════════════════════════════════
+  ipcMain.handle('groups:find-links', (event, { keyword, maxPages }) => {
+    if (activeGroupFinder) {
+      activeGroupFinder.stop();
+      activeGroupFinder = null;
+    }
+
+    activeGroupFinder = new GroupFinder();
+    const win = getMainWindow();
+
+    activeGroupFinder.on('link-found', (data) => {
+      if (win && !win.isDestroyed()) {
+        win.webContents.send('event:groups-link-found', data);
+      }
+    });
+
+    activeGroupFinder.on('done', (info) => {
+      if (win && !win.isDestroyed()) {
+        win.webContents.send('event:groups-find-done', info);
+      }
+      activeGroupFinder = null;
+    });
+
+    activeGroupFinder.searchGroupLinks(keyword, parseInt(maxPages, 10) || 5).catch(err => {
+      console.error('[IPC] Group finder error:', err);
+    });
+
+    return { success: true };
+  });
+
+  ipcMain.handle('groups:stop-find', () => {
+    if (activeGroupFinder) {
+      activeGroupFinder.stop();
+      activeGroupFinder = null;
+      return { success: true };
+    }
+    return { success: false };
+  });
+
+  ipcMain.handle('groups:start-join', (event, { accountId, links, delaySeconds }) => {
+    if (activeGroupJoiner) {
+      activeGroupJoiner.stop();
+      activeGroupJoiner = null;
+    }
+
+    activeGroupJoiner = new GroupJoiner(sessionManager);
+    const win = getMainWindow();
+
+    activeGroupJoiner.on('started', (stats) => {
+      if (win && !win.isDestroyed()) {
+        win.webContents.send('event:groups-join-started', stats);
+      }
+    });
+
+    activeGroupJoiner.on('progress', (data) => {
+      if (win && !win.isDestroyed()) {
+        win.webContents.send('event:groups-join-progress', data);
+      }
+    });
+
+    activeGroupJoiner.on('completed', (stats) => {
+      if (win && !win.isDestroyed()) {
+        win.webContents.send('event:groups-join-completed', stats);
+      }
+      activeGroupJoiner = null;
+    });
+
+    activeGroupJoiner.startJoin({
+      accountId,
+      links,
+      delaySeconds: parseInt(delaySeconds, 10) || 45
+    }).catch(err => {
+      console.error('[IPC] Group joiner error:', err);
+    });
+
+    return { success: true };
+  });
+
+  ipcMain.handle('groups:stop-join', () => {
+    if (activeGroupJoiner) {
+      activeGroupJoiner.stop();
+      activeGroupJoiner = null;
+      return { success: true };
+    }
+    return { success: false };
+  });
 }
 
 module.exports = { registerIpcHandlers };

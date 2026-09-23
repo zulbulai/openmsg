@@ -51,7 +51,13 @@
       <nav class="sidebar">
         <ul class="nav-links">
           <li class="nav-item">
-            <button class="nav-btn active" data-tab="accounts">
+            <button class="nav-btn active" data-tab="dashboard">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect></svg>
+              <span>Dashboard</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-btn" data-tab="accounts">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
               <span>Accounts</span>
             </button>
@@ -60,6 +66,27 @@
             <button class="nav-btn" data-tab="campaigns">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"></path><path d="M22 2l-7 20-4-9-9-4 20-7z"></path></svg>
               <span>Bulk Campaign</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-btn" data-tab="maps">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
+              <span>Maps Scraper</span>
+              <span class="nav-badge-new">NEW</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-btn" data-tab="grouptools">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+              <span>Group Tools</span>
+              <span class="nav-badge-new">NEW</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-btn" data-tab="warmer">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>
+              <span>Account Warmer</span>
+              <span class="nav-badge-new">NEW</span>
             </button>
           </li>
           <li class="nav-item">
@@ -107,8 +134,292 @@
 
       <!-- Main Content Area -->
       <main class="main-content">
+        <!-- 0. TOOLS HUB DASHBOARD (Phase 7A Default Home) -->
+        <section class="tab-pane active" id="pane-dashboard">
+          <!-- Top Welcome Banner -->
+          <div class="dashboard-banner">
+            <div class="banner-content">
+              <div class="banner-badge">🚀 OPENMSG V1.1 ENTERPRISE &bull; 100% UNLOCKED PRO</div>
+              <h1 class="banner-title">Marketing & Automation Tools Hub</h1>
+              <p class="banner-desc">Next-generation WhatsApp CRM engine: extract targeted B2B leads, auto-join niche groups, warm new numbers, and dispatch multi-variant bulk campaigns with zero ban risk.</p>
+            </div>
+            <div class="banner-actions">
+              <button class="btn btn-primary" id="dashBtnLaunchCampaign">
+                <span>⚡ Quick Campaign</span>
+              </button>
+              <button class="btn btn-outline" id="dashBtnScrapeLeads">
+                <span>🗺️ Scrape Leads</span>
+              </button>
+              <button class="btn btn-outline" id="dashBtnWarmNumbers">
+                <span>🔥 Warm Accounts</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Top Metrics Stats Strip -->
+          <div class="stats-strip">
+            <div class="stat-card" data-goto="accounts">
+              <div class="stat-icon" style="background:rgba(16,185,129,0.15); color:#10b981;">📱</div>
+              <div class="stat-info">
+                <span class="stat-label">Active WhatsApp Lines</span>
+                <div class="stat-value"><span id="dashStatAccountsOnline">0</span> <small style="font-size:13px; color:var(--text-dim); font-weight:400;">/ <span id="dashStatAccountsTotal">0</span> linked</small></div>
+              </div>
+              <div class="stat-trend positive">● Partition Isolated</div>
+            </div>
+            
+            <div class="stat-card" data-goto="campaigns">
+              <div class="stat-icon" style="background:rgba(6,182,212,0.15); color:#06b6d4;">📤</div>
+              <div class="stat-info">
+                <span class="stat-label">Dispatched Today</span>
+                <div class="stat-value" id="dashStatSentToday">0</div>
+              </div>
+              <div class="stat-trend neutral">Across all sessions</div>
+            </div>
+
+            <div class="stat-card" data-goto="contacts">
+              <div class="stat-icon" style="background:rgba(139,92,246,0.15); color:#8b5cf6;">📁</div>
+              <div class="stat-info">
+                <span class="stat-label">Stored Contacts</span>
+                <div class="stat-value" id="dashStatContacts">0</div>
+              </div>
+              <div class="stat-trend positive">Ready to broadcast</div>
+            </div>
+
+            <div class="stat-card" data-goto="chatbot">
+              <div class="stat-icon" style="background:rgba(245,158,11,0.15); color:#f59e0b;">🤖</div>
+              <div class="stat-info">
+                <span class="stat-label">AI & Rule Autoresponders</span>
+                <div class="stat-value"><span id="dashStatActiveRules">0</span> <small style="font-size:13px; color:var(--text-dim); font-weight:400;">rules live</small></div>
+              </div>
+              <div class="stat-trend positive" id="dashStatAiBadge">⚡ Multi-Turn Active</div>
+            </div>
+          </div>
+
+          <!-- Tools Hub Grid Header -->
+          <div class="hub-header">
+            <div>
+              <h3 style="font-size:18px; font-weight:700; color:var(--text-main);">All Marketing & Automation Engines</h3>
+              <p style="font-size:12px; color:var(--text-muted);">Select any tool below to launch or configure</p>
+            </div>
+            <div class="hub-search">
+              <input type="text" id="toolSearchInput" placeholder="🔍 Filter tools..." class="form-control" style="width:220px; height:34px; font-size:12px; background:var(--bg-input);">
+            </div>
+          </div>
+
+          <!-- 16-Tool Cards Grid -->
+          <div class="tools-grid" id="toolsGrid">
+            <!-- 1. Bulk Campaign Sender -->
+            <div class="tool-card" data-tab="campaigns">
+              <div class="tool-card-top">
+                <div class="tool-icon-wrap" style="background:rgba(16,185,129,0.12); color:#10b981; border-color:rgba(16,185,129,0.25);">📤</div>
+                <span class="tool-badge badge-popular">CORE ENGINE</span>
+              </div>
+              <h4 class="tool-title">Bulk Campaign Sender</h4>
+              <p class="tool-desc">Send personalized messages with 5x Spintax rotation, media attachments, and anti-ban delay safety.</p>
+              <div class="tool-footer">
+                <span class="tool-action-link">Open Sender &rarr;</span>
+              </div>
+            </div>
+
+            <!-- 2. Google Maps Scraper (NEW) -->
+            <div class="tool-card" data-tab="maps">
+              <div class="tool-card-top">
+                <div class="tool-icon-wrap" style="background:rgba(239,68,68,0.12); color:#ef4444; border-color:rgba(239,68,68,0.25);">🗺️</div>
+                <span class="tool-badge badge-new">HOT &bull; NEW</span>
+              </div>
+              <h4 class="tool-title">Google Maps B2B Scraper</h4>
+              <p class="tool-desc">Extract targeted business names, phone numbers, ratings & addresses with zero API fees.</p>
+              <div class="tool-footer">
+                <span class="tool-action-link">Start Scraping &rarr;</span>
+              </div>
+            </div>
+
+            <!-- 3. Group Link Finder (NEW) -->
+            <div class="tool-card" data-tab="grouptools" data-subtab="finder">
+              <div class="tool-card-top">
+                <div class="tool-icon-wrap" style="background:rgba(6,182,212,0.12); color:#06b6d4; border-color:rgba(6,182,212,0.25);">🔗</div>
+                <span class="tool-badge badge-new">NEW</span>
+              </div>
+              <h4 class="tool-title">Group Link Finder</h4>
+              <p class="tool-desc">Search DuckDuckGo & the web for public WhatsApp group invite links based on your niche keywords.</p>
+              <div class="tool-footer">
+                <span class="tool-action-link">Find Groups &rarr;</span>
+              </div>
+            </div>
+
+            <!-- 4. Auto Group Joiner (NEW) -->
+            <div class="tool-card" data-tab="grouptools" data-subtab="joiner">
+              <div class="tool-card-top">
+                <div class="tool-icon-wrap" style="background:rgba(139,92,246,0.12); color:#8b5cf6; border-color:rgba(139,92,246,0.25);">🚀</div>
+                <span class="tool-badge badge-new">NEW</span>
+              </div>
+              <h4 class="tool-title">Auto Group Joiner</h4>
+              <p class="tool-desc">Paste group links and join dozens of groups sequentially with anti-ban delay and progress tracking.</p>
+              <div class="tool-footer">
+                <span class="tool-action-link">Auto Join &rarr;</span>
+              </div>
+            </div>
+
+            <!-- 5. Account Warmer (NEW) -->
+            <div class="tool-card" data-tab="warmer">
+              <div class="tool-card-top">
+                <div class="tool-icon-wrap" style="background:rgba(245,158,11,0.12); color:#f59e0b; border-color:rgba(245,158,11,0.25);">🔥</div>
+                <span class="tool-badge badge-new">ANTI-BAN</span>
+              </div>
+              <h4 class="tool-title">WhatsApp Account Warmer</h4>
+              <p class="tool-desc">Simulate realistic peer-to-peer conversations between your linked numbers to build trust and ban resistance.</p>
+              <div class="tool-footer">
+                <span class="tool-action-link">Warm Numbers &rarr;</span>
+              </div>
+            </div>
+
+            <!-- 6. Group Member Grabber -->
+            <div class="tool-card" data-tab="extractor">
+              <div class="tool-card-top">
+                <div class="tool-icon-wrap" style="background:rgba(59,130,246,0.12); color:#3b82f6; border-color:rgba(59,130,246,0.25);">👥</div>
+                <span class="tool-badge badge-pro">PRO</span>
+              </div>
+              <h4 class="tool-title">Group Member Grabber</h4>
+              <p class="tool-desc">Export verified contact phone numbers & names from any WhatsApp group you are a member of into Excel/CSV.</p>
+              <div class="tool-footer">
+                <span class="tool-action-link">Extract Members &rarr;</span>
+              </div>
+            </div>
+
+            <!-- 7. Number Filter & Validator -->
+            <div class="tool-card" data-tab="validator">
+              <div class="tool-card-top">
+                <div class="tool-icon-wrap" style="background:rgba(16,185,129,0.12); color:#10b981; border-color:rgba(16,185,129,0.25);">📋</div>
+                <span class="tool-badge badge-pro">PRO</span>
+              </div>
+              <h4 class="tool-title">Number Filter & Validator</h4>
+              <p class="tool-desc">Check up to 2,000 numbers/min with real-time status detection, resumable validation, and clean XLSX export.</p>
+              <div class="tool-footer">
+                <span class="tool-action-link">Filter Numbers &rarr;</span>
+              </div>
+            </div>
+
+            <!-- 8. AI Chatbot Studio -->
+            <div class="tool-card" data-tab="chatbot">
+              <div class="tool-card-top">
+                <div class="tool-icon-wrap" style="background:rgba(236,72,153,0.12); color:#ec4899; border-color:rgba(236,72,153,0.25);">🤖</div>
+                <span class="tool-badge badge-ai">AI INSIDE</span>
+              </div>
+              <h4 class="tool-title">AI Chatbot & Autoresponder</h4>
+              <p class="tool-desc">Deploy Gemini 2.0 & GPT-4o multi-turn automated customer support with keyword rules & sandbox simulator.</p>
+              <div class="tool-footer">
+                <span class="tool-action-link">Open Studio &rarr;</span>
+              </div>
+            </div>
+
+            <!-- 9. Contact Manager -->
+            <div class="tool-card" data-tab="contacts">
+              <div class="tool-card-top">
+                <div class="tool-icon-wrap" style="background:rgba(168,85,247,0.12); color:#a855f7; border-color:rgba(168,85,247,0.25);">📁</div>
+                <span class="tool-badge badge-pro">PRO</span>
+              </div>
+              <h4 class="tool-title">Contact Address Book</h4>
+              <p class="tool-desc">Organize leads with custom tags, instant search, and seamless import/export to Excel (.xlsx) and CSV.</p>
+              <div class="tool-footer">
+                <span class="tool-action-link">Manage Contacts &rarr;</span>
+              </div>
+            </div>
+
+            <!-- 10. Campaign Scheduler -->
+            <div class="tool-card" data-tab="campaigns" data-action="scheduler">
+              <div class="tool-card-top">
+                <div class="tool-icon-wrap" style="background:rgba(234,179,8,0.12); color:#eab308; border-color:rgba(234,179,8,0.25);">🗓️</div>
+                <span class="tool-badge badge-pro">AUTOMATED</span>
+              </div>
+              <h4 class="tool-title">Campaign Scheduler</h4>
+              <p class="tool-desc">Schedule campaigns for future dates and times with persistent background execution even while minimized.</p>
+              <div class="tool-footer">
+                <span class="tool-action-link">View Schedules &rarr;</span>
+              </div>
+            </div>
+
+            <!-- 11. Delivery Analytics & History -->
+            <div class="tool-card" data-tab="campaigns" data-action="history">
+              <div class="tool-card-top">
+                <div class="tool-icon-wrap" style="background:rgba(20,184,166,0.12); color:#14b8a6; border-color:rgba(20,184,166,0.25);">📊</div>
+                <span class="tool-badge badge-pro">ANALYTICS</span>
+              </div>
+              <h4 class="tool-title">Campaign History & Reports</h4>
+              <p class="tool-desc">Inspect per-number delivery status, success rates, failure reasons, and export detailed audit spreadsheets.</p>
+              <div class="tool-footer">
+                <span class="tool-action-link">View Analytics &rarr;</span>
+              </div>
+            </div>
+
+            <!-- 12. Message Rotation (5x) -->
+            <div class="tool-card" data-tab="campaigns" data-action="rotation">
+              <div class="tool-card-top">
+                <div class="tool-icon-wrap" style="background:rgba(99,102,241,0.12); color:#6366f1; border-color:rgba(99,102,241,0.25);">💬</div>
+                <span class="tool-badge badge-new">ANTI-BAN</span>
+              </div>
+              <h4 class="tool-title">5x Message Rotation</h4>
+              <p class="tool-desc">Rotate up to 5 message variations dynamically per recipient to avoid WhatsApp repetitive content flags.</p>
+              <div class="tool-footer">
+                <span class="tool-action-link">Compose Variants &rarr;</span>
+              </div>
+            </div>
+
+            <!-- 13. Interactive Buttons & Polls -->
+            <div class="tool-card" data-tab="campaigns" data-action="buttons">
+              <div class="tool-card-top">
+                <div class="tool-icon-wrap" style="background:rgba(244,63,94,0.12); color:#f43f5e; border-color:rgba(244,63,94,0.25);">🔘</div>
+                <span class="tool-badge badge-new">INTERACTIVE</span>
+              </div>
+              <h4 class="tool-title">Interactive Buttons & Polls</h4>
+              <p class="tool-desc">Send call-to-action buttons (Website Link, Call Now, Quick Reply) and native WhatsApp polls.</p>
+              <div class="tool-footer">
+                <span class="tool-action-link">Add Buttons &rarr;</span>
+              </div>
+            </div>
+
+            <!-- 14. Multi-Account Manager -->
+            <div class="tool-card" data-tab="accounts">
+              <div class="tool-card-top">
+                <div class="tool-icon-wrap" style="background:rgba(34,197,94,0.12); color:#22c55e; border-color:rgba(34,197,94,0.25);">📱</div>
+                <span class="tool-badge badge-pro">MULTI-LINE</span>
+              </div>
+              <h4 class="tool-title">Multi-Account Manager</h4>
+              <p class="tool-desc">Scan and manage unlimited WhatsApp accounts simultaneously with isolated browser partitions.</p>
+              <div class="tool-footer">
+                <span class="tool-action-link">Manage Lines &rarr;</span>
+              </div>
+            </div>
+
+            <!-- 15. Live Smartphone Mockup -->
+            <div class="tool-card" data-tab="campaigns" data-action="preview">
+              <div class="tool-card-top">
+                <div class="tool-icon-wrap" style="background:rgba(56,189,248,0.12); color:#38bdf8; border-color:rgba(56,189,248,0.25);">📲</div>
+                <span class="tool-badge badge-new">PREVIEW</span>
+              </div>
+              <h4 class="tool-title">Live Smartphone Preview</h4>
+              <p class="tool-desc">Real-time mobile screen simulation showing how your text, media, Spintax, and buttons look to recipients.</p>
+              <div class="tool-footer">
+                <span class="tool-action-link">Preview Mockup &rarr;</span>
+              </div>
+            </div>
+
+            <!-- 16. Security & Settings -->
+            <div class="tool-card" data-tab="settings">
+              <div class="tool-card-top">
+                <div class="tool-icon-wrap" style="background:rgba(148,163,184,0.12); color:#94a3b8; border-color:rgba(148,163,184,0.25);">⚙️</div>
+                <span class="tool-badge badge-pro">COMMUNITY PRO</span>
+              </div>
+              <h4 class="tool-title">Settings & Anti-Ban Config</h4>
+              <p class="tool-desc">Fine-tune dispatch speed, typing simulation delay, batch pauses, and hardware-accelerated rendering.</p>
+              <div class="tool-footer">
+                <span class="tool-action-link">Configure &rarr;</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <!-- 1. ACCOUNTS VIEW -->
-        <section class="tab-pane active" id="pane-accounts">
+        <section class="tab-pane" id="pane-accounts">
           <div class="pane-header">
             <div>
               <h2>Multi-Account Manager</h2>
@@ -216,11 +527,116 @@
                     <option value="feedback">⭐ Customer Satisfaction Review</option>
                   </select>
                 </div>
-                <textarea id="campMessageText" class="form-control" rows="6" placeholder="{Hello|Hi|Greetings} {{Name}},&#10;&#10;We are delighted to share our exclusive discount with you! {Check out the details below|Don't miss out on this deal}.&#10;&#10;Reply YES to get started.">{Hello|Hi|Greetings} {{Name}},
+
+                <!-- 5 Message Rotation Tabs (Phase 7E) -->
+                <div class="message-rotation-header">
+                  <div class="rotation-tabs" id="rotationTabStrip">
+                    <button type="button" class="rotation-tab active" data-msg-slot="1">Variant 1 <span class="tab-indicator filled" id="dotMsg1">●</span></button>
+                    <button type="button" class="rotation-tab" data-msg-slot="2">Variant 2 <span class="tab-indicator" id="dotMsg2">○</span></button>
+                    <button type="button" class="rotation-tab" data-msg-slot="3">Variant 3 <span class="tab-indicator" id="dotMsg3">○</span></button>
+                    <button type="button" class="rotation-tab" data-msg-slot="4">Variant 4 <span class="tab-indicator" id="dotMsg4">○</span></button>
+                    <button type="button" class="rotation-tab" data-msg-slot="5">Variant 5 <span class="tab-indicator" id="dotMsg5">○</span></button>
+                  </div>
+                  <div class="rotation-strategy-box">
+                    <select id="campRotationMode" class="form-control form-control-sm" title="Anti-ban variant rotation method">
+                      <option value="random">🎲 Random</option>
+                      <option value="sequential">🔄 Round-Robin</option>
+                      <option value="split">⚖️ A/B Split</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- 5 Slot Textareas (slot 1 is default campMessageText) -->
+                <div class="rotation-textareas">
+                  <textarea id="campMessageText" class="form-control rotation-msg-box active" data-slot="1" rows="6" placeholder="{Hello|Hi|Greetings} {{Name}},&#10;&#10;We are delighted to share our exclusive discount with you! {Check out the details below|Don't miss out on this deal}.&#10;&#10;Reply YES to get started.">{Hello|Hi|Greetings} {{Name}},
 
 Hope you are having a wonderful week! We have an exciting special offer for {{Company}}.
 
 Reply INFO to learn more, or STOP to unsubscribe.</textarea>
+                  <textarea id="campMessageText2" class="form-control rotation-msg-box" data-slot="2" rows="6" style="display:none;" placeholder="Variant 2: Hey {{Name}}, quick message regarding {{Company}}! {Check our updated offer|Take a look at what's new}..."></textarea>
+                  <textarea id="campMessageText3" class="form-control rotation-msg-box" data-slot="3" rows="6" style="display:none;" placeholder="Variant 3: Hi {{Name}}! Hope all is well at {{Company}}. Just following up with a special discount..."></textarea>
+                  <textarea id="campMessageText4" class="form-control rotation-msg-box" data-slot="4" rows="6" style="display:none;" placeholder="Variant 4: Good day {{Name}}! We noticed your interest in our solutions..."></textarea>
+                  <textarea id="campMessageText5" class="form-control rotation-msg-box" data-slot="5" rows="6" style="display:none;" placeholder="Variant 5: Exclusive update for {{Name}} at {{Company}}..."></textarea>
+                </div>
+                <div style="font-size:11px; color:var(--text-muted); margin-top:4px; display:flex; justify-content:space-between;">
+                  <span>💡 Filled variants auto-rotate randomly per recipient to avoid ban flags.</span>
+                  <span id="activeVariantsBadge" style="color:var(--accent-wa); font-weight:600;">1 Variant Active</span>
+                </div>
+              </div>
+
+              <!-- Interactive Buttons & Polls Composer (Phase 7E) -->
+              <div class="interactive-composer-card">
+                <div class="interactive-header flex-between">
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="font-size:16px;">🔘</span>
+                    <span style="font-size:13px; font-weight:700; color:var(--text-main);">Interactive Buttons & Polls</span>
+                    <span class="tool-badge badge-new" style="font-size:9px; padding:2px 6px;">NEW</span>
+                  </div>
+                  <select id="campInteractiveType" class="form-control form-control-sm" style="width:170px; font-size:11px; height:30px;">
+                    <option value="none">None (Standard Text)</option>
+                    <option value="link">🔗 Website Link Button</option>
+                    <option value="call">📞 Phone Call Button</option>
+                    <option value="quickreply">⚡ Quick Reply Buttons</option>
+                    <option value="poll">📊 WhatsApp Native Poll</option>
+                  </select>
+                </div>
+
+                <!-- Link Button panel -->
+                <div id="interactiveLinkPanel" style="display:none; margin-top:10px;" class="interactive-subpanel">
+                  <div class="form-row">
+                    <div class="form-group flex-1">
+                      <label style="font-size:11px;">Button Display Text</label>
+                      <input type="text" id="btnLinkText" class="form-control form-control-sm" placeholder="e.g. Visit Our Store" value="Visit Website">
+                    </div>
+                    <div class="form-group flex-2">
+                      <label style="font-size:11px;">Destination URL</label>
+                      <input type="url" id="btnLinkUrl" class="form-control form-control-sm" placeholder="https://example.com/promo" value="https://example.com">
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Call Button panel -->
+                <div id="interactiveCallPanel" style="display:none; margin-top:10px;" class="interactive-subpanel">
+                  <div class="form-row">
+                    <div class="form-group flex-1">
+                      <label style="font-size:11px;">Button Display Text</label>
+                      <input type="text" id="btnCallText" class="form-control form-control-sm" placeholder="e.g. Call Sales Now" value="Call Support">
+                    </div>
+                    <div class="form-group flex-1">
+                      <label style="font-size:11px;">Phone Number (with Country Code)</label>
+                      <input type="text" id="btnCallPhone" class="form-control form-control-sm" placeholder="+1234567890">
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Quick Replies panel -->
+                <div id="interactiveQuickReplyPanel" style="display:none; margin-top:10px;" class="interactive-subpanel">
+                  <label style="font-size:11px;">Quick Reply Chips (Up to 3 reply options)</label>
+                  <div class="flex-gap" style="gap:6px;">
+                    <input type="text" id="btnQuickReply1" class="form-control form-control-sm" placeholder="Reply 1: Interested" value="Interested">
+                    <input type="text" id="btnQuickReply2" class="form-control form-control-sm" placeholder="Reply 2: Send Brochure" value="More Info">
+                    <input type="text" id="btnQuickReply3" class="form-control form-control-sm" placeholder="Reply 3: Stop" value="Stop">
+                  </div>
+                </div>
+
+                <!-- Native Poll panel -->
+                <div id="interactivePollPanel" style="display:none; margin-top:10px;" class="interactive-subpanel">
+                  <div class="form-group" style="margin-bottom:8px;">
+                    <label style="font-size:11px;">Poll Question</label>
+                    <input type="text" id="pollQuestion" class="form-control form-control-sm" placeholder="e.g. Which service are you interested in?" value="How did you hear about us?">
+                  </div>
+                  <label style="font-size:11px;">Poll Options (2 to 4)</label>
+                  <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px;">
+                    <input type="text" id="pollOpt1" class="form-control form-control-sm" placeholder="Option 1" value="Google Search">
+                    <input type="text" id="pollOpt2" class="form-control form-control-sm" placeholder="Option 2" value="Social Media">
+                    <input type="text" id="pollOpt3" class="form-control form-control-sm" placeholder="Option 3 (optional)" value="Friend Referral">
+                    <input type="text" id="pollOpt4" class="form-control form-control-sm" placeholder="Option 4 (optional)">
+                  </div>
+                  <label style="display:flex; align-items:center; gap:6px; font-size:11px; cursor:pointer; color:var(--text-muted);">
+                    <input type="checkbox" id="pollMultiSelect">
+                    <span>Allow multiple answers in poll</span>
+                  </label>
+                </div>
               </div>
 
               <!-- Media Attachment Uploader -->
@@ -261,53 +677,687 @@ Reply INFO to learn more, or STOP to unsubscribe.</textarea>
               </div>
             </div>
 
-            <!-- Right Live Execution Monitor -->
-            <div class="campaign-monitor-card">
-              <h3>Live Dispatch Monitor</h3>
-              <div class="progress-stats-grid">
-                <div class="stat-card">
-                  <span class="stat-val" id="statTotal">0</span>
-                  <span class="stat-lbl">Total</span>
+            <!-- Right Column: Dual View (Live Smartphone Preview + Dispatch Monitor) -->
+            <div class="campaign-right-column">
+              <!-- Right Side Switcher Tabs -->
+              <div class="campaign-view-switcher">
+                <button type="button" class="view-switch-btn active" id="tabBtnPhonePreview">
+                  <span>📲 Live Phone Mockup</span>
+                </button>
+                <button type="button" class="view-switch-btn" id="tabBtnLiveMonitor">
+                  <span>📊 Dispatch Monitor</span>
+                </button>
+              </div>
+
+              <!-- VIEW A: LIVE SMARTPHONE MOCKUP (Phase 7E) -->
+              <div class="phone-mockup-wrapper" id="panelPhonePreview">
+                <div class="phone-bezel">
+                  <div class="phone-notch">
+                    <span class="phone-speaker"></span>
+                    <span class="phone-camera"></span>
+                  </div>
+                  <div class="phone-screen">
+                    <div class="phone-wa-header">
+                      <div class="phone-wa-avatar" id="phoneAvatar">OM</div>
+                      <div class="phone-wa-contact">
+                        <span class="phone-wa-name" id="phoneSenderName">Your Business</span>
+                        <span class="phone-wa-status">online &bull; verified business</span>
+                      </div>
+                      <div class="phone-wa-actions">
+                        <button type="button" class="btn-reroll-spintax" id="btnRerollPreview" title="Reroll Spintax Variant">🎲 Test Variant</button>
+                      </div>
+                    </div>
+                    
+                    <div class="phone-wa-chat" id="phoneChatBody">
+                      <div class="wa-chat-date"><span>TODAY</span></div>
+                      
+                      <!-- Rendered WhatsApp Bubble -->
+                      <div class="wa-bubble-wrapper">
+                        <div class="wa-bubble outgoing" id="phoneBubble">
+                          <!-- Media Preview Attachment if present -->
+                          <div class="wa-media-preview" id="phoneMediaPreview" style="display:none;">
+                            <div class="wa-media-placeholder">
+                              <span>📎 Attached Document / Image</span>
+                            </div>
+                          </div>
+                          <!-- Message Body -->
+                          <div class="wa-message-text" id="phoneMsgText">Type your message on the left to see live preview...</div>
+                          <div class="wa-meta">
+                            <span class="wa-time" id="phoneTimestamp">12:00 PM</span>
+                            <span class="wa-ticks">✓✓</span>
+                          </div>
+                        </div>
+
+                        <!-- Interactive Buttons Rendered Below Bubble -->
+                        <div class="wa-interactive-buttons" id="phoneInteractiveButtons">
+                          <!-- Dynamic button chips rendered by phone-preview.js -->
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="phone-wa-footer">
+                      <div class="phone-wa-input-mock">Message...</div>
+                      <div class="phone-wa-mic">🎤</div>
+                    </div>
+                  </div>
                 </div>
-                <div class="stat-card success">
-                  <span class="stat-val" id="statSent">0</span>
-                  <span class="stat-lbl">Sent</span>
-                </div>
-                <div class="stat-card danger">
-                  <span class="stat-val" id="statFailed">0</span>
-                  <span class="stat-lbl">Failed</span>
-                </div>
-                <div class="stat-card">
-                  <span class="stat-val" id="statPending">0</span>
-                  <span class="stat-lbl">Pending</span>
+                <div style="text-align:center; font-size:11px; color:var(--text-muted); margin-top:8px;">
+                  📱 Real-time smartphone rendering showing exact recipient view.
                 </div>
               </div>
 
-              <div class="campaign-progress-bar">
-                <div class="progress-fill" id="campaignProgressFill" style="width: 0%;"></div>
-              </div>
-
-              <div class="live-status-alert" id="campaignStatusBanner">
-                <span id="campaignBannerText">Ready to start campaign.</span>
-              </div>
-
-              <div class="control-btn-group" id="campaignControls" style="display:none;">
-                <button class="btn btn-warning btn-sm" id="btnPauseCampaign">Pause</button>
-                <button class="btn btn-primary btn-sm" id="btnResumeCampaign" style="display:none;">Resume</button>
-                <button class="btn btn-danger btn-sm" id="btnStopCampaign">Stop</button>
-              </div>
-
-              <div class="console-log-box">
-                <div class="console-header">
-                  <span>Live Activity Stream</span>
-                  <button class="btn-text-sm" id="btnClearLog">Clear</button>
+              <!-- VIEW B: DISPATCH MONITOR -->
+              <div class="campaign-monitor-card" id="panelLiveMonitor" style="display:none;">
+                <h3>Live Dispatch Monitor</h3>
+                <div class="progress-stats-grid">
+                  <div class="stat-card">
+                    <span class="stat-val" id="statTotal">0</span>
+                    <span class="stat-lbl">Total</span>
+                  </div>
+                  <div class="stat-card success">
+                    <span class="stat-val" id="statSent">0</span>
+                    <span class="stat-lbl">Sent</span>
+                  </div>
+                  <div class="stat-card danger">
+                    <span class="stat-val" id="statFailed">0</span>
+                    <span class="stat-lbl">Failed</span>
+                  </div>
+                  <div class="stat-card">
+                    <span class="stat-val" id="statPending">0</span>
+                    <span class="stat-lbl">Pending</span>
+                  </div>
                 </div>
-                <div class="console-stream" id="campaignLogStream">
-                  <div class="log-entry info">[System] Sender engine initialized and ready.</div>
+
+                <div class="campaign-progress-bar">
+                  <div class="progress-fill" id="campaignProgressFill" style="width: 0%;"></div>
+                </div>
+
+                <div class="live-status-alert" id="campaignStatusBanner">
+                  <span id="campaignBannerText">Ready to start campaign.</span>
+                </div>
+
+                <div class="control-btn-group" id="campaignControls" style="display:none;">
+                  <button class="btn btn-warning btn-sm" id="btnPauseCampaign">Pause</button>
+                  <button class="btn btn-primary btn-sm" id="btnResumeCampaign" style="display:none;">Resume</button>
+                  <button class="btn btn-danger btn-sm" id="btnStopCampaign">Stop</button>
+                </div>
+
+                <div class="console-log-box">
+                  <div class="console-header">
+                    <span>Live Activity Stream</span>
+                    <button class="btn-text-sm" id="btnClearLog">Clear</button>
+                  </div>
+                  <div class="console-stream" id="campaignLogStream">
+                    <div class="log-entry info">[System] Sender engine initialized and ready.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+        </section>
+
+        <!-- 2B. GOOGLE MAPS B2B LEAD EXTRACTOR (Phase 7B) -->
+        <section class="tab-pane" id="pane-maps">
+          <div class="pane-header">
+            <div>
+              <h2>Google Maps B2B Lead Extractor</h2>
+              <p>Extract targeted business names, phone numbers, ratings, addresses and websites directly from Google Maps without API keys.</p>
+            </div>
+            <div class="flex-gap">
+              <button class="btn btn-outline" id="btnMapsExportXlsx">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Export Excel (.xlsx)
+              </button>
+              <button class="btn btn-primary" id="btnStartMapsScraper">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                Start Scraping
+              </button>
+              <button class="btn btn-danger" id="btnStopMapsScraper" style="display:none;">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="6" width="12" height="12"></rect></svg>
+                Stop Scraping
+              </button>
+            </div>
+          </div>
+
+          <!-- Maps Scraper Filter Controls -->
+          <div class="card" style="padding:16px 20px; margin-bottom:20px;">
+            <div class="form-row">
+              <div class="form-group flex-2">
+                <label>Business Niche / Keyword</label>
+                <input type="text" id="mapsKeyword" class="form-control" placeholder="e.g. Dentists, Real Estate, Restaurants, Digital Marketing, Gyms" value="Real Estate">
+              </div>
+              <div class="form-group flex-2">
+                <label>Target City / Region</label>
+                <input type="text" id="mapsCity" class="form-control" placeholder="e.g. New York, London, Dubai, Mumbai, Sydney" value="New York">
+              </div>
+              <div class="form-group flex-1">
+                <label>Max Results</label>
+                <select id="mapsMaxResults" class="form-control">
+                  <option value="20">20 Leads</option>
+                  <option value="50" selected>50 Leads</option>
+                  <option value="100">100 Leads</option>
+                  <option value="200">200 Leads</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Maps Stats Metrics Bar -->
+          <div class="stats-strip" style="margin-bottom:16px;">
+            <div class="stat-card">
+              <div class="stat-icon" style="background:rgba(239,68,68,0.12); color:#ef4444;">🗺️</div>
+              <div class="stat-info">
+                <span class="stat-label">Total Leads Extracted</span>
+                <div class="stat-value" id="mapsStatTotal">0</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon" style="background:rgba(16,185,129,0.12); color:#10b981;">📞</div>
+              <div class="stat-info">
+                <span class="stat-label">With Phone Number</span>
+                <div class="stat-value" id="mapsStatWithPhone">0</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon" style="background:rgba(6,182,212,0.12); color:#06b6d4;">🌐</div>
+              <div class="stat-info">
+                <span class="stat-label">With Website URL</span>
+                <div class="stat-value" id="mapsStatWithWebsite">0</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon" style="background:rgba(245,158,11,0.12); color:#f59e0b;">⚡</div>
+              <div class="stat-info">
+                <span class="stat-label">Status</span>
+                <div class="stat-value" id="mapsStatusText" style="font-size:15px; color:#10b981;">Ready</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Bar for Results Table -->
+          <div class="card" style="padding:12px 18px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; font-weight:600;">
+                <input type="checkbox" id="mapsSelectAll" checked style="width:16px; height:16px;">
+                <span>Select All (<span id="mapsSelectedCount">0</span> selected)</span>
+              </label>
+            </div>
+            <div class="flex-gap">
+              <button class="btn btn-outline btn-sm" id="btnMapsImportContacts">
+                📥 Import to Contacts
+              </button>
+              <button class="btn btn-primary btn-sm" id="btnMapsSendCampaign">
+                ⚡ Send Bulk Campaign
+              </button>
+              <button class="btn btn-outline btn-sm" id="btnClearMapsLeads" style="color:#f87171;">
+                🗑️ Clear Leads
+              </button>
+            </div>
+          </div>
+
+          <!-- Extracted Leads Table -->
+          <div class="card" style="padding:0; overflow:hidden;">
+            <div style="max-height:480px; overflow-y:auto;">
+              <table class="data-table" id="mapsTable">
+                <thead>
+                  <tr>
+                    <th style="width:40px;"></th>
+                    <th>Business Name</th>
+                    <th>Phone</th>
+                    <th>Rating</th>
+                    <th>Address</th>
+                    <th>Website</th>
+                    <th>Niche / City</th>
+                    <th style="text-align:right;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="mapsResultsBody">
+                  <tr>
+                    <td colspan="8" style="text-align:center; padding:48px 16px; color:var(--text-muted);">
+                      <div style="font-size:32px; margin-bottom:12px;">🗺️</div>
+                      <div style="font-size:15px; font-weight:600; color:var(--text-main);">No leads extracted yet</div>
+                      <div style="font-size:12px; margin-top:4px;">Enter a keyword and city above, then click <strong>Start Scraping</strong>.</div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2C. GROUP LINK FINDER & AUTO GROUP JOINER (Phase 7C) -->
+        <section class="tab-pane" id="pane-grouptools">
+          <div class="pane-header">
+            <div>
+              <h2>WhatsApp Group Discovery & Auto-Joiner</h2>
+              <p>Find public WhatsApp group invite links from search engines and auto-join niche groups with anti-ban safety delays.</p>
+            </div>
+          </div>
+
+          <!-- Group Tools Sub-tabs -->
+          <div class="sub-tab-bar" style="margin-bottom:18px;">
+            <button class="sub-tab-btn active" id="tabBtnGroupFinder" data-subtab="finder">
+              <span>🔍 Group Link Finder</span>
+            </button>
+            <button class="sub-tab-btn" id="tabBtnGroupJoiner" data-subtab="joiner">
+              <span>🚀 Auto Group Joiner</span>
+            </button>
+          </div>
+
+          <!-- SUBTAB 1: GROUP LINK FINDER -->
+          <div class="group-subpanel" id="panelGroupFinder">
+            <div class="card" style="padding:16px 20px; margin-bottom:16px;">
+              <div class="form-row">
+                <div class="form-group flex-2">
+                  <label>Group Topic / Niche Keyword</label>
+                  <input type="text" id="groupFinderKeyword" class="form-control" placeholder="e.g. Crypto Traders, Real Estate Deals, Affiliate Marketing, Fitness" value="Marketing">
+                </div>
+                <div class="form-group flex-1">
+                  <label>Search Engine</label>
+                  <select id="groupFinderEngine" class="form-control">
+                    <option value="duckduckgo">DuckDuckGo Web</option>
+                    <option value="bing">Bing Search</option>
+                  </select>
+                </div>
+                <div class="form-group flex-1">
+                  <label>Search Pages</label>
+                  <select id="groupFinderPages" class="form-control">
+                    <option value="3">3 Pages (~30 links)</option>
+                    <option value="5" selected>5 Pages (~50 links)</option>
+                    <option value="10">10 Pages (~100 links)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="flex-between" style="margin-top:10px;">
+                <div style="font-size:12px; color:var(--text-muted);">
+                  💡 Automatically extracts and validates <code>chat.whatsapp.com/*</code> invite links.
+                </div>
+                <div class="flex-gap">
+                  <button class="btn btn-outline" id="btnGroupFinderExportCsv">Export CSV</button>
+                  <button class="btn btn-primary" id="btnStartGroupFinder">
+                    🔍 Find Group Links
+                  </button>
+                  <button class="btn btn-danger" id="btnStopGroupFinder" style="display:none;">
+                    🛑 Stop Search
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Found Links Action Bar -->
+            <div class="card" style="padding:12px 18px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <span style="font-size:13px; font-weight:700;">Discovered Groups:</span>
+                <span class="tool-badge badge-popular" id="groupFoundCountBadge" style="margin-left:8px;">0 Found</span>
+              </div>
+              <div class="flex-gap">
+                <button class="btn btn-success btn-sm" id="btnSendAllToJoiner">
+                  🚀 Send All to Auto Joiner &rarr;
+                </button>
+                <button class="btn btn-outline btn-sm" id="btnClearGroupLinks">
+                  Clear
+                </button>
+              </div>
+            </div>
+
+            <!-- Found Links Table -->
+            <div class="card" style="padding:0; overflow:hidden;">
+              <div style="max-height:420px; overflow-y:auto;">
+                <table class="data-table" id="groupLinksTable">
+                  <thead>
+                    <tr>
+                      <th style="width:40px;">#</th>
+                      <th>Group Title / Snippet</th>
+                      <th>WhatsApp Invite URL</th>
+                      <th>Search Source</th>
+                      <th style="text-align:right;">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="groupLinksTableBody">
+                    <tr>
+                      <td colspan="5" style="text-align:center; padding:40px 16px; color:var(--text-muted);">
+                        <div style="font-size:28px; margin-bottom:8px;">🔗</div>
+                        <div style="font-size:14px; font-weight:600; color:var(--text-main);">No group links discovered yet</div>
+                        <div style="font-size:12px; margin-top:4px;">Enter a topic keyword above and click <strong>Find Group Links</strong>.</div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUBTAB 2: AUTO GROUP JOINER -->
+          <div class="group-subpanel" id="panelGroupJoiner" style="display:none;">
+            <div class="grid-2-col" style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+              <!-- Left: Join Settings Card -->
+              <div class="card" style="padding:20px;">
+                <h4 style="font-size:15px; font-weight:700; margin-bottom:14px;">Group Join Parameters</h4>
+                
+                <div class="form-group">
+                  <label>WhatsApp Account to Join With</label>
+                  <select id="joinerAccountSelect" class="form-control">
+                    <!-- Populated dynamically -->
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <div class="flex-between">
+                    <label>Anti-Ban Delay Between Joins (Seconds)</label>
+                    <span id="joinerDelayVal" style="color:var(--accent-wa); font-weight:700;">45s</span>
+                  </div>
+                  <input type="range" id="joinerDelaySlider" min="15" max="180" value="45" class="form-range" style="width:100%; accent-color:var(--accent-wa);">
+                  <div class="flex-between" style="font-size:11px; color:var(--text-dim); margin-top:2px;">
+                    <span>Fast (15s)</span>
+                    <span>Recommended (45-60s)</span>
+                    <span>Ultra Safe (180s)</span>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>Group Invite Links (One link per line)</label>
+                  <textarea id="joinerLinksText" class="form-control code-font" rows="8" placeholder="https://chat.whatsapp.com/ABCxyz123&#10;https://chat.whatsapp.com/DEFuvw456"></textarea>
+                  <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">
+                    💡 Supports full URLs (e.g. <code>https://chat.whatsapp.com/...</code>).
+                  </div>
+                </div>
+
+                <div class="flex-gap" style="margin-top:16px;">
+                  <button class="btn btn-success" id="btnStartGroupJoin" style="flex:1;">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                    Start Auto-Joining
+                  </button>
+                  <button class="btn btn-danger" id="btnStopGroupJoin" style="display:none; flex:1;">
+                    🛑 Stop Joining
+                  </button>
+                </div>
+              </div>
+
+              <!-- Right: Join Execution Monitor Card -->
+              <div class="card" style="padding:20px;">
+                <h4 style="font-size:15px; font-weight:700; margin-bottom:14px;">Live Join Progress</h4>
+                
+                <div class="progress-stats-grid" style="margin-bottom:16px;">
+                  <div class="stat-card success">
+                    <span class="stat-val" id="joinerStatJoined">0</span>
+                    <span class="stat-lbl">Joined</span>
+                  </div>
+                  <div class="stat-card danger">
+                    <span class="stat-val" id="joinerStatFailed">0</span>
+                    <span class="stat-lbl">Failed/Revoked</span>
+                  </div>
+                  <div class="stat-card">
+                    <span class="stat-val" id="joinerStatRemaining">0</span>
+                    <span class="stat-lbl">Remaining</span>
+                  </div>
+                </div>
+
+                <div class="campaign-progress-bar" style="margin-bottom:16px;">
+                  <div class="progress-fill" id="joinerProgressFill" style="width: 0%;"></div>
+                </div>
+
+                <div class="console-log-box" style="height:260px;">
+                  <div class="console-header">
+                    <span>Auto-Join Activity Stream</span>
+                    <button class="btn-text-sm" id="btnClearJoinerLog">Clear</button>
+                  </div>
+                  <div class="console-stream" id="joinerLogStream">
+                    <div class="log-entry info">[System] Group joiner engine ready.</div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
+        </section>
+
+        <!-- 2D. WHATSAPP ACCOUNT WARMER (Phase 7D) -->
+        <!-- 2D. WHATSAPP ACCOUNT WARMER (Phase 7D) -->
+        <section class="tab-pane" id="pane-warmer">
+          <div class="pane-header">
+            <div>
+              <h2>WhatsApp Account Warmer & Reputation Engine</h2>
+              <p>Simulate natural peer conversations between your accounts with random delays to increase number age and ban immunity.</p>
+            </div>
+            <div class="flex-gap" style="align-items:center;">
+              <span id="warmerStatusBadge" class="tool-badge badge-pro" style="font-size:12px; padding:6px 12px;">IDLE</span>
+              <span id="warmerCountdownBadge" class="tool-badge" style="display:none; font-size:12px; padding:6px 12px; background:rgba(6,182,212,0.15); color:var(--accent-cyan); border:1px solid rgba(6,182,212,0.3);">
+                <span class="warmer-pulse" style="background:var(--accent-cyan); box-shadow:0 0 10px var(--accent-cyan); margin-right:6px;"></span>
+                <span id="warmerCountdownText">Next exchange in 45s</span>
+              </span>
+              <button class="btn btn-outline" id="btnPauseWarmer" style="display:none;">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+                Pause
+              </button>
+              <button class="btn btn-danger" id="btnStopWarmer" style="display:none;">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="6" width="12" height="12"></rect></svg>
+                Stop Warmer
+              </button>
+              <button class="btn btn-success" id="btnStartWarmer">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                Start Account Warmer
+              </button>
+              <button class="btn btn-outline" id="btnResetWarmerStats" title="Reset Warming Counters">
+                🔄 Reset Stats
+              </button>
+            </div>
+          </div>
+
+          <!-- Overview Stats Strip (Phase 7D.3 & 7D.4) -->
+          <div class="stats-strip" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:16px; margin-bottom:20px;">
+            <div class="stat-card success">
+              <div class="stat-val" id="statWarmerTodaySent">0</div>
+              <div class="stat-lbl">Messages Sent Today</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-val" id="statWarmer7DaysTotal">0</div>
+              <div class="stat-lbl">7-Day Total Exchanges</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-val" id="statWarmerActiveAccounts">0</div>
+              <div class="stat-lbl">Active Warming Lines</div>
+            </div>
+            <div class="stat-card success">
+              <div class="stat-val" id="statWarmerHealthScore" style="color:var(--accent-wa);">100%</div>
+              <div class="stat-lbl">Reputation & Warmth Score</div>
+            </div>
+          </div>
+
+          <!-- 7-Day Activity View Card (Phase 7D.4) -->
+          <div class="card" style="padding:18px 22px; margin-bottom:20px;">
+            <div class="flex-between" style="margin-bottom:10px;">
+              <div>
+                <h4 style="font-size:15px; font-weight:700; margin:0 0 4px 0;">📈 7-Day Warming Activity Distribution</h4>
+                <p style="font-size:12px; color:var(--text-muted); margin:0;">Visual day-by-day conversational traffic across all linked accounts</p>
+              </div>
+              <span class="tool-badge badge-new" id="warmerChartTotalBadge">7 Days View</span>
+            </div>
+            <div id="warmer7DayChartContainer" style="min-height:120px;">
+              <!-- Dynamic bar chart rendered by warmer.js -->
+              <div style="font-size:12px; color:var(--text-muted); padding:24px; text-align:center;">Loading 7-day activity metrics...</div>
+            </div>
+          </div>
+
+          <!-- Live Conversation Preview Box (WhatsApp Style) -->
+          <div class="card" style="padding:18px 22px; margin-bottom:20px;">
+            <div class="flex-between" style="margin-bottom:12px;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="warmer-pulse" id="warmerLivePulse" style="display:none;"></span>
+                <h4 style="font-size:15px; font-weight:700; margin:0;">💬 Live Simulated Conversation Feed</h4>
+              </div>
+              <span id="warmerPairBadge" class="tool-badge" style="font-size:11px; display:none; background:rgba(139,92,246,0.15); color:var(--accent-violet); border:1px solid rgba(139,92,246,0.3);"></span>
+            </div>
+            <div class="warmer-chat-box" id="warmerChatBox">
+              <div style="text-align:center; color:var(--text-dim); font-size:13px; margin:auto;">
+                ⚡ Simulation preview will display live peer exchanges here once the engine starts.
+              </div>
+            </div>
+          </div>
+
+          <!-- Warmer Config Grid (Accounts & Sliders) -->
+          <div class="grid-2-col" style="display:grid; grid-template-columns: 1.15fr 1fr; gap:20px; margin-bottom:20px;">
+            
+            <!-- Left: Multi-Account Selector (Phase 7D.4) -->
+            <div class="card" style="padding:20px;">
+              <div class="flex-between" style="margin-bottom:10px;">
+                <h4 style="font-size:15px; font-weight:700; margin:0;">1. Select Accounts to Warm</h4>
+                <div class="flex-gap" style="font-size:11px;">
+                  <button type="button" class="btn-xs btn-outline" id="btnSelectAllWarmerAccounts">Select All</button>
+                  <button type="button" class="btn-xs btn-outline" id="btnDeselectAllWarmerAccounts">Clear</button>
+                </div>
+              </div>
+              <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">
+                Requires at least 2 connected WhatsApp lines for peer-to-peer ping-pong chatter.
+              </p>
+
+              <!-- Warning Alert when < 2 accounts available -->
+              <div id="warmerInsufficientAlert" style="display:none; background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.3); border-radius:8px; padding:10px 14px; margin-bottom:14px; font-size:12px; color:#fbbf24;">
+                ⚠️ <strong>Need at least 2 connected accounts</strong> to simulate peer-to-peer conversations. Connect a second line in the Accounts tab.
+              </div>
+
+              <div id="warmerAccountsList" style="display:flex; flex-direction:column; gap:8px; max-height:220px; overflow-y:auto; margin-bottom:14px;">
+                <!-- Populated dynamically by warmer.js -->
+                <div style="font-size:12px; color:var(--text-muted); padding:12px;">Loading connected accounts...</div>
+              </div>
+            </div>
+
+            <!-- Right: Targets & Humanized Sliders (Phase 7D.4) -->
+            <div class="card" style="padding:20px;">
+              <div class="flex-between" style="margin-bottom:14px;">
+                <h4 style="font-size:15px; font-weight:700; margin:0;">2. Targets & Anti-Ban Sliders</h4>
+                <button type="button" class="btn-xs btn-outline" id="btnSaveWarmerConfig">💾 Save Settings</button>
+              </div>
+
+              <!-- Daily Target Slider -->
+              <div class="form-group" style="margin-bottom:18px;">
+                <div class="flex-between" style="margin-bottom:6px;">
+                  <label style="font-size:12px; font-weight:600; margin:0;">Daily Target (Messages / Account)</label>
+                  <span class="warmer-slider-val" id="valWarmerDailyTarget">30 msgs</span>
+                </div>
+                <div class="warmer-slider-wrap">
+                  <input type="range" id="warmerDailyTargetSlider" min="5" max="100" step="5" value="30">
+                </div>
+                <div style="font-size:11px; color:var(--text-dim); margin-top:4px;">
+                  Recommended: 20-40 msgs for fresh numbers; up to 80 for mature lines.
+                </div>
+              </div>
+
+              <!-- Min Delay Slider -->
+              <div class="form-group" style="margin-bottom:18px;">
+                <div class="flex-between" style="margin-bottom:6px;">
+                  <label style="font-size:12px; font-weight:600; margin:0;">Minimum Delay Between Exchanges</label>
+                  <span class="warmer-slider-val" id="valWarmerMinDelay">45s</span>
+                </div>
+                <div class="warmer-slider-wrap">
+                  <input type="range" id="warmerMinDelaySlider" min="15" max="300" step="5" value="45">
+                </div>
+              </div>
+
+              <!-- Max Delay Slider -->
+              <div class="form-group" style="margin-bottom:18px;">
+                <div class="flex-between" style="margin-bottom:6px;">
+                  <label style="font-size:12px; font-weight:600; margin:0;">Maximum Delay Between Exchanges</label>
+                  <span class="warmer-slider-val" id="valWarmerMaxDelay">180s</span>
+                </div>
+                <div class="warmer-slider-wrap">
+                  <input type="range" id="warmerMaxDelaySlider" min="30" max="600" step="10" value="180">
+                </div>
+                <div style="font-size:11px; color:var(--text-dim); margin-top:4px;">
+                  Random human delays mimic organic user browsing and pause patterns.
+                </div>
+              </div>
+
+              <!-- Typing Indicator Toggle & Topics -->
+              <div style="border-top:1px solid var(--border-subtle); padding-top:12px;">
+                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin-bottom:12px;">
+                  <input type="checkbox" id="warmerSimulateTyping" checked>
+                  <span style="font-size:12px; font-weight:600;">Simulate WhatsApp "Typing..." Indicator (2-4s)</span>
+                </label>
+
+                <div style="font-size:11px; font-weight:700; color:var(--text-dim); text-transform:uppercase; margin-bottom:8px;">
+                  Active Conversation Categories:
+                </div>
+                <div style="display:flex; flex-wrap:wrap; gap:10px; font-size:12px;">
+                  <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
+                    <input type="checkbox" class="warmer-cat-cb" value="greetings" checked> 👋 Greetings
+                  </label>
+                  <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
+                    <input type="checkbox" class="warmer-cat-cb" value="casual" checked> ☕ Casual
+                  </label>
+                  <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
+                    <input type="checkbox" class="warmer-cat-cb" value="followups" checked> 🤝 Follow-ups
+                  </label>
+                  <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
+                    <input type="checkbox" class="warmer-cat-cb" value="emoji" checked> 😂 Emojis
+                  </label>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Curated Templates Library Card (Phase 7D.2) -->
+          <div class="card" style="padding:20px; margin-bottom:20px;">
+            <div class="flex-between" style="margin-bottom:12px;">
+              <div>
+                <h4 style="font-size:15px; font-weight:700; margin:0 0 4px 0;">📚 Curated Warming Dialogues Library</h4>
+                <p style="font-size:12px; color:var(--text-muted); margin:0;">Realistic starter, reply, and reaction multi-turn dialogues with Spintax</p>
+              </div>
+              <div class="flex-gap">
+                <select id="warmerTemplateCategoryFilter" class="form-control" style="font-size:12px; height:32px; width:150px;">
+                  <option value="all">All Categories</option>
+                  <option value="greetings">👋 Greetings</option>
+                  <option value="casual">☕ Casual</option>
+                  <option value="followups">🤝 Follow-ups</option>
+                  <option value="emoji">😂 Emojis</option>
+                </select>
+                <span class="tool-badge badge-pro" id="warmerTemplateCountBadge">Loading...</span>
+              </div>
+            </div>
+
+            <div id="warmerTemplatesList" style="max-height:190px; overflow-y:auto; background:var(--bg-input); border-radius:8px; padding:12px; border:1px solid var(--border-subtle); margin-bottom:14px;">
+              <!-- Populated dynamically -->
+            </div>
+
+            <div class="flex-gap">
+              <input type="text" id="customWarmerTemplateInput" class="form-control" placeholder="Add custom dialogue template with {spintax|alternatives}..." style="font-size:12px;">
+              <select id="customWarmerCategorySelect" class="form-control" style="width:130px; font-size:12px;">
+                <option value="casual">Casual</option>
+                <option value="greetings">Greetings</option>
+                <option value="followups">Follow-ups</option>
+                <option value="emoji">Emoji</option>
+              </select>
+              <button type="button" class="btn btn-outline" id="btnAddWarmerTemplate">+ Add Dialogue</button>
+            </div>
+          </div>
+
+          <!-- Warmer Activity Stream & Log History (Phase 7D.4) -->
+          <div class="card" style="padding:20px;">
+            <div class="flex-between" style="margin-bottom:12px;">
+              <h4 style="font-size:15px; font-weight:700; margin:0;">📜 Real-Time Warming Exchanges Log</h4>
+              <button class="btn-xs btn-outline" id="btnClearWarmerLog">Clear Logs</button>
+            </div>
+            <div class="table-wrapper" style="max-height:240px; overflow-y:auto;">
+              <table class="data-table" style="font-size:12px;">
+                <thead>
+                  <tr>
+                    <th style="width:90px;">Time</th>
+                    <th>Sender Line</th>
+                    <th>Receiver Line</th>
+                    <th>Turn</th>
+                    <th>Message Exchanged</th>
+                    <th style="width:80px;">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="warmerLogTableBody">
+                  <tr>
+                    <td colspan="6" class="text-center text-muted" style="padding:20px;">
+                      No warming exchanges recorded yet. Start the warmer to begin simulation.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
         </section>
 
         <!-- 3. GROUP GRABBER VIEW -->
@@ -942,7 +1992,11 @@ Reply INFO to learn more, or STOP to unsubscribe.</textarea>
   <!-- Renderer JavaScript Modules -->
   <script src="js/app.js"></script>
   <script src="js/accounts.js"></script>
+  <script src="js/phone-preview.js"></script>
   <script src="js/campaigns.js"></script>
+  <script src="js/maps-scraper.js"></script>
+  <script src="js/group-tools.js"></script>
+  <script src="js/warmer.js"></script>
   <script src="js/extractor.js"></script>
   <script src="js/validator.js"></script>
   <script src="js/chatbot.js"></script>

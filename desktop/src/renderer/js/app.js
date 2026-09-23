@@ -134,7 +134,98 @@ window.addEventListener('DOMContentLoaded', async () => {
     }, 3500);
   };
 
+  // 4. Global Tab Switcher helper
+  window.switchTab = function(tabId, subtab) {
+    const navBtn = document.querySelector(`.nav-btn[data-tab="${tabId}"]`);
+    if (navBtn) {
+      navButtons.forEach(b => b.classList.remove('active'));
+      tabPanes.forEach(p => p.classList.remove('active'));
+      navBtn.classList.add('active');
+      const targetPane = document.getElementById(`pane-${tabId}`);
+      if (targetPane) targetPane.classList.add('active');
+
+      if (subtab && tabId === 'grouptools') {
+        const subBtn = document.querySelector(`.sub-tab-btn[data-subtab="${subtab}"]`);
+        if (subBtn) subBtn.click();
+      }
+    }
+  };
+
+  // Tool Card clicks -> Switch Tab
+  document.querySelectorAll('.tool-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const tab = card.getAttribute('data-tab');
+      const subtab = card.getAttribute('data-subtab');
+      if (tab) window.switchTab(tab, subtab);
+    });
+  });
+
+  // Stat Card clicks -> Switch Tab
+  document.querySelectorAll('.stat-card[data-goto]').forEach(card => {
+    card.addEventListener('click', () => {
+      const tab = card.getAttribute('data-goto');
+      if (tab) window.switchTab(tab);
+    });
+  });
+
+  // Dashboard Banner Quick Buttons
+  const btnQuickCamp = document.getElementById('dashBtnLaunchCampaign');
+  if (btnQuickCamp) btnQuickCamp.addEventListener('click', () => window.switchTab('campaigns'));
+  
+  const btnQuickMaps = document.getElementById('dashBtnScrapeLeads');
+  if (btnQuickMaps) btnQuickMaps.addEventListener('click', () => window.switchTab('maps'));
+
+  const btnQuickWarm = document.getElementById('dashBtnWarmNumbers');
+  if (btnQuickWarm) btnQuickWarm.addEventListener('click', () => window.switchTab('warmer'));
+
+  // Tool Search Filter
+  const toolSearch = document.getElementById('toolSearchInput');
+  if (toolSearch) {
+    toolSearch.addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase().trim();
+      document.querySelectorAll('.tool-card').forEach(card => {
+        const title = (card.querySelector('.tool-title')?.textContent || '').toLowerCase();
+        const desc = (card.querySelector('.tool-desc')?.textContent || '').toLowerCase();
+        if (!q || title.includes(q) || desc.includes(q)) {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    });
+  }
+
+  // 5. Dashboard Aggregated Metrics Auto-refresh
+  async function refreshDashboardStats() {
+    try {
+      if (window.api && window.api.getDashboardStats) {
+        const stats = await window.api.getDashboardStats();
+        const elOnline = document.getElementById('dashStatAccountsOnline');
+        const elTotal = document.getElementById('dashStatAccountsTotal');
+        const elSent = document.getElementById('dashStatSentToday');
+        const elContacts = document.getElementById('dashStatContacts');
+        const elRules = document.getElementById('dashStatActiveRules');
+        const elAiBadge = document.getElementById('dashStatAiBadge');
+
+        if (elOnline) elOnline.textContent = stats.connectedAccounts || 0;
+        if (elTotal) elTotal.textContent = stats.totalAccounts || 0;
+        if (elSent) elSent.textContent = (stats.messagesSentToday || 0).toLocaleString();
+        if (elContacts) elContacts.textContent = (stats.totalContacts || 0).toLocaleString();
+        if (elRules) elRules.textContent = stats.activeRules || 0;
+        if (elAiBadge) {
+          elAiBadge.textContent = stats.aiEnabled ? '⚡ AI Auto-Reply ON' : 'Rule Matching';
+        }
+      }
+    } catch (err) {
+      console.warn('Dashboard stats refresh error:', err);
+    }
+  }
+
   // Initial load
   await refreshHeaderAccounts();
   await refreshHeaderLicense();
+  await refreshDashboardStats();
+
+  // Periodic refresh every 25 seconds
+  setInterval(refreshDashboardStats, 25000);
 });
