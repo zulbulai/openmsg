@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenMsg Desktop — WhatsApp Marketing & Automation Suite</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Top Navigation Bar -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-logo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">OpenMsg <span class="badge-pro">PRO</span></span>
+          <span class="brand-sub">WhatsApp Marketing Suite</span>
+        </div>
+      </div>
+
+      <div class="header-center">
+        <div class="active-account-pill" id="activeAccountPill">
+          <span class="status-dot offline" id="headerStatusDot"></span>
+          <span class="account-name" id="headerAccountName">Loading Account...</span>
+          <span class="account-phone" id="headerAccountPhone"></span>
+          <select id="headerAccountSelect" class="header-select" title="Switch WhatsApp Account"></select>
+        </div>
+        <button class="btn btn-sm btn-outline" id="headerAddAccountBtn" title="Add New WhatsApp Profile">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Add Profile
+        </button>
+      </div>
+
+      <div class="header-right">
+        <div class="license-status-badge" id="headerLicenseBadge" style="background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.4); color: #34d399;">
+          <span class="dot" style="background:#34d399;"></span>
+          <span id="headerLicenseText">COMMUNITY EDITION (UNLOCKED)</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="app-body">
+      <!-- Left Sidebar Navigation -->
+      <nav class="sidebar">
+        <ul class="nav-links">
+          <li class="nav-item">
+            <button class="nav-btn active" data-tab="accounts">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+              <span>Accounts</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-btn" data-tab="campaigns">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"></path><path d="M22 2l-7 20-4-9-9-4 20-7z"></path></svg>
+              <span>Bulk Campaign</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-btn" data-tab="extractor">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+              <span>Group Grabber</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-btn" data-tab="validator">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+              <span>Number Filter</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-btn" data-tab="contacts">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="23" y1="11" x2="17" y2="11"></line><line x1="20" y1="8" x2="20" y2="14"></line></svg>
+              <span>Contacts</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-btn" data-tab="chatbot">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4"></path><line x1="8" y1="16" x2="8.01" y2="16"></line><line x1="16" y1="16" x2="16.01" y2="16"></line></svg>
+              <span>AI & Chatbot</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-btn" data-tab="settings">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+              <span>Settings & License</span>
+            </button>
+          </li>
+        </ul>
+
+        <div class="sidebar-footer">
+          <div class="anti-ban-indicator">
+            <span class="shield-icon">🛡️</span>
+            <div>
+              <span class="shield-title">Anti-Ban Shield</span>
+              <span class="shield-status">Active (5-15s delay)</span>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Main Content Area -->
+      <main class="main-content">
+        <!-- 1. ACCOUNTS VIEW -->
+        <section class="tab-pane active" id="pane-accounts">
+          <div class="pane-header">
+            <div>
+              <h2>Multi-Account Manager</h2>
+              <p>Connect and isolate multiple WhatsApp numbers simultaneously.</p>
+            </div>
+            <button class="btn btn-primary" id="btnAddNewAccount">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              Connect New Account
+            </button>
+          </div>
+
+          <div class="accounts-grid" id="accountsGrid">
+            <!-- Account cards rendered dynamically -->
+          </div>
+
+          <!-- QR Code Display Modal / Section -->
+          <div class="qr-modal-overlay" id="qrModal" style="display: none;">
+            <div class="qr-modal-content">
+              <div class="qr-modal-header">
+                <h3 id="qrModalTitle">Scan WhatsApp QR Code</h3>
+                <button class="btn-close" id="closeQrModal">&times;</button>
+              </div>
+              <div class="qr-modal-body">
+                <div class="qr-box" id="qrContainer">
+                  <div class="qr-spinner" id="qrLoading">
+                    <div class="spinner"></div>
+                    <p>Generating session QR code...</p>
+                  </div>
+                  <canvas id="qrCanvas" style="display:none;"></canvas>
+                </div>
+                <div class="qr-instructions">
+                  <ol>
+                    <li>Open WhatsApp on your mobile phone</li>
+                    <li>Tap <strong>Settings</strong> > <strong>Linked Devices</strong></li>
+                    <li>Tap <strong>Link a Device</strong> and point your camera at this QR code</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. BULK CAMPAIGN VIEW -->
+        <section class="tab-pane" id="pane-campaigns">
+          <div class="pane-header">
+            <div>
+              <h2>Smart Bulk Message Campaign</h2>
+              <p>Dispatch personalized campaigns with anti-ban spintax, scheduler, and dynamic variables.</p>
+            </div>
+            <div class="campaign-actions" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+              <button class="btn btn-outline" id="btnPreviewSpintax">Preview Spintax</button>
+              <!-- Scheduler toggle -->
+              <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; color:var(--text-muted);">
+                <input type="checkbox" id="scheduleToggle" style="width:16px; height:16px;">
+                <span>Schedule</span>
+              </label>
+              <div id="scheduleDatePanel" style="display:none; align-items:center; gap:6px;">
+                <input type="datetime-local" id="scheduleDateInput" class="form-control" style="width:200px; font-size:12px; padding:6px 10px;">
+                <button class="btn btn-outline" id="btnScheduleCampaign" style="font-size:12px; padding:6px 12px;">📅 Schedule</button>
+              </div>
+              <button class="btn btn-success" id="btnStartCampaign">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                Launch Now
+              </button>
+            </div>
+          </div>
+
+          <div class="campaign-grid">
+            <!-- Left Form Column -->
+            <div class="campaign-form-card">
+              <div class="form-group">
+                <label>Campaign Title</label>
+                <input type="text" id="campTitle" class="form-control" placeholder="e.g. October Product Launch Promo" value="Promotional Campaign #1">
+              </div>
+
+              <div class="form-group">
+                <div class="flex-between">
+                  <label>Recipients & Contacts</label>
+                  <span class="text-muted" id="contactCountBadge">0 contacts loaded</span>
+                </div>
+                <div class="contact-input-tabs">
+                  <button class="btn-chip active" id="tabPasteContacts">Paste Numbers</button>
+                  <button class="btn-chip" id="tabUploadCsv">Upload CSV</button>
+                  <button class="btn-chip" id="tabUploadXlsx">📊 Import Excel</button>
+                </div>
+                <textarea id="campContactsText" class="form-control code-font" rows="5" placeholder="Enter phone numbers with country code (one per line):&#10;+12025550192, John, Acme Corp&#10;+447911123456, Sarah, Tech Solutions"></textarea>
+                <input type="file" id="campCsvFile" accept=".csv,.txt" style="display:none;">
+              </div>
+
+              <div class="form-group">
+                <div class="flex-between">
+                  <label>Message Template (Supports Spintax & Variables)</label>
+                  <div class="variable-chips">
+                    <span class="chip-var" data-var="{{Name}}">+ {{Name}}</span>
+                    <span class="chip-var" data-var="{{Phone}}">+ {{Phone}}</span>
+                    <span class="chip-var" data-var="{{Company}}">+ {{Company}}</span>
+                  </div>
+                </div>
+                <div class="flex-gap" style="margin-bottom:8px;">
+                  <select id="campTemplatePreset" class="form-control" style="font-size:12px; padding:6px 10px;">
+                    <option value="">⚡ Load Pre-built Template...</option>
+                    <option value="promo">🎉 Exclusive Discount / Promo</option>
+                    <option value="followup">🤝 Business Follow-up</option>
+                    <option value="reminder">⏰ Appointment / Event Reminder</option>
+                    <option value="feedback">⭐ Customer Satisfaction Review</option>
+                  </select>
+                </div>
+                <textarea id="campMessageText" class="form-control" rows="6" placeholder="{Hello|Hi|Greetings} {{Name}},&#10;&#10;We are delighted to share our exclusive discount with you! {Check out the details below|Don't miss out on this deal}.&#10;&#10;Reply YES to get started.">{Hello|Hi|Greetings} {{Name}},
+
+Hope you are having a wonderful week! We have an exciting special offer for {{Company}}.
+
+Reply INFO to learn more, or STOP to unsubscribe.</textarea>
+              </div>
+
+              <!-- Media Attachment Uploader -->
+              <div class="form-group">
+                <label>Media Attachment (Image, PDF, Document)</label>
+                <div class="flex-gap">
+                  <button type="button" class="btn btn-outline btn-sm" id="btnPickAttachment">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                    Attach File
+                  </button>
+                  <span class="text-muted" id="attachmentNameBadge">No file attached</span>
+                  <button type="button" class="btn-text-sm" id="btnRemoveAttachment" style="display:none; color:#f87171;">Remove</button>
+                </div>
+                <input type="file" id="campAttachmentInput" style="display:none;" accept="image/*,.pdf,.doc,.docx,.xlsx,.mp4">
+              </div>
+
+              <div class="anti-ban-settings-box">
+                <h4>Anti-Ban Throttling Controls</h4>
+                <div class="settings-row">
+                  <div>
+                    <label>Random Delay Range (Seconds)</label>
+                    <div class="flex-gap">
+                      <input type="number" id="campMinDelay" class="form-control" value="6" min="2" max="60">
+                      <span>to</span>
+                      <input type="number" id="campMaxDelay" class="form-control" value="16" min="5" max="120">
+                    </div>
+                  </div>
+                  <div>
+                    <label>Batch Sleep (Every N Messages)</label>
+                    <div class="flex-gap">
+                      <input type="number" id="campBatchSize" class="form-control" value="20" min="5" max="100">
+                      <span>msgs, wait</span>
+                      <input type="number" id="campBatchPause" class="form-control" value="90" min="10" max="600">
+                      <span>sec</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Live Execution Monitor -->
+            <div class="campaign-monitor-card">
+              <h3>Live Dispatch Monitor</h3>
+              <div class="progress-stats-grid">
+                <div class="stat-card">
+                  <span class="stat-val" id="statTotal">0</span>
+                  <span class="stat-lbl">Total</span>
+                </div>
+                <div class="stat-card success">
+                  <span class="stat-val" id="statSent">0</span>
+                  <span class="stat-lbl">Sent</span>
+                </div>
+                <div class="stat-card danger">
+                  <span class="stat-val" id="statFailed">0</span>
+                  <span class="stat-lbl">Failed</span>
+                </div>
+                <div class="stat-card">
+                  <span class="stat-val" id="statPending">0</span>
+                  <span class="stat-lbl">Pending</span>
+                </div>
+              </div>
+
+              <div class="campaign-progress-bar">
+                <div class="progress-fill" id="campaignProgressFill" style="width: 0%;"></div>
+              </div>
+
+              <div class="live-status-alert" id="campaignStatusBanner">
+                <span id="campaignBannerText">Ready to start campaign.</span>
+              </div>
+
+              <div class="control-btn-group" id="campaignControls" style="display:none;">
+                <button class="btn btn-warning btn-sm" id="btnPauseCampaign">Pause</button>
+                <button class="btn btn-primary btn-sm" id="btnResumeCampaign" style="display:none;">Resume</button>
+                <button class="btn btn-danger btn-sm" id="btnStopCampaign">Stop</button>
+              </div>
+
+              <div class="console-log-box">
+                <div class="console-header">
+                  <span>Live Activity Stream</span>
+                  <button class="btn-text-sm" id="btnClearLog">Clear</button>
+                </div>
+                <div class="console-stream" id="campaignLogStream">
+                  <div class="log-entry info">[System] Sender engine initialized and ready.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. GROUP GRABBER VIEW -->
+        <section class="tab-pane" id="pane-extractor">
+          <div class="pane-header">
+            <div>
+              <h2>Group & Contact Extractor</h2>
+              <p>Extract group members, recent chats, and WA Business label contacts — export to CSV or Excel.</p>
+            </div>
+          </div>
+
+          <!-- Extractor Sub-tabs -->
+          <div class="flex-gap" style="margin-bottom:16px; border-bottom:1px solid var(--border); padding-bottom:12px;">
+            <button class="extractor-tab-btn btn btn-outline active" data-extractor-tab="groups" style="font-size:12px;">👥 Group Grabber</button>
+            <button class="extractor-tab-btn btn btn-outline" data-extractor-tab="recent" style="font-size:12px;">🕐 Recent Chats</button>
+            <button class="extractor-tab-btn btn btn-outline" data-extractor-tab="labels" style="font-size:12px;">🏷️ WA Biz Labels</button>
+          </div>
+
+          <!-- Group Grabber Tab -->
+          <div class="extractor-tab-pane active" id="extractor-pane-groups">
+            <div class="flex-gap" style="margin-bottom:12px;">
+              <button class="btn btn-primary" id="btnFetchGroups">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                Fetch My Groups
+              </button>
+              <button class="btn btn-outline" id="btnExportContacts" disabled>📄 Export CSV</button>
+              <button class="btn btn-outline" id="btnExportXlsx" disabled>📊 Export XLSX</button>
+              <button class="btn btn-outline" id="btnSaveToContacts" disabled>💾 Save to Contacts</button>
+              <button class="btn btn-success" id="btnSendToCampaign" disabled>🚀 Send to Campaign</button>
+            </div>
+            <div class="extractor-layout">
+              <div class="group-list-panel">
+                <input type="text" id="groupSearchInput" class="form-control" placeholder="Search groups...">
+                <div class="groups-container" id="groupsContainer">
+                  <div class="empty-state">Click "Fetch My Groups" to load all joined WhatsApp groups.</div>
+                </div>
+              </div>
+              <div class="participants-panel">
+                <div class="participants-header">
+                  <h3 id="currentGroupName">No Group Selected</h3>
+                  <span class="badge" id="participantCountBadge">0 members</span>
+                </div>
+                <div class="table-container">
+                  <table class="data-table">
+                    <thead><tr><th>#</th><th>Phone Number</th><th>Role</th><th>Action</th></tr></thead>
+                    <tbody id="participantsTableBody">
+                      <tr><td colspan="4" class="text-center text-muted">Select a group to view members.</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Chats Tab -->
+          <div class="extractor-tab-pane" id="extractor-pane-recent">
+            <div class="flex-gap" style="margin-bottom:12px;">
+              <button class="btn btn-primary" id="btnFetchRecentChats">🔄 Fetch Recent Chats</button>
+              <button class="btn btn-outline" id="btnExportRecentCsv">📄 Export CSV</button>
+              <button class="btn btn-success" id="btnSendRecentToCampaign">🚀 Send to Campaign</button>
+            </div>
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead><tr><th>#</th><th>Phone</th><th>Name</th><th>Last Message Preview</th><th>Last Active</th></tr></thead>
+                <tbody id="recentChatsTableBody">
+                  <tr><td colspan="5" class="text-center text-muted">Click "Fetch Recent Chats" to extract contacts from your recent individual chats.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- WA Business Labels Tab -->
+          <div class="extractor-tab-pane" id="extractor-pane-labels">
+            <div class="flex-gap" style="margin-bottom:12px;">
+              <button class="btn btn-primary" id="btnFetchLabels">🏷️ Fetch Business Labels</button>
+              <button class="btn btn-success" id="btnSendLabelToCampaign" disabled>🚀 Send to Campaign</button>
+              <button class="btn btn-outline" id="btnExportLabelXlsx" disabled>📊 Export XLSX</button>
+            </div>
+            <div id="labelsContainer" style="margin-bottom:16px;">
+              <div class="empty-state">Click "Fetch Business Labels" to load your WhatsApp Business labels. Only available on WA Business accounts.</div>
+            </div>
+            <div class="table-wrapper" id="labelContactsWrapper" style="display:none;">
+              <table class="data-table">
+                <thead><tr><th>#</th><th>Phone</th><th>Name</th></tr></thead>
+                <tbody id="labelContactsTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. NUMBER FILTER & VALIDATOR VIEW -->
+        <section class="tab-pane" id="pane-validator">
+          <div class="pane-header">
+            <div>
+              <h2>WhatsApp Number Filter & Validator</h2>
+              <p>Check phone numbers in bulk — filter active WhatsApp accounts, export to Excel, save to contacts.</p>
+            </div>
+            <div class="flex-gap">
+              <button class="btn btn-outline" id="btnResumeValidation" style="display:none;">▶ Resume</button>
+              <button class="btn btn-outline" id="btnClearValidation">🗑 Clear</button>
+              <button class="btn btn-outline" id="btnExportValidNumbers" disabled>📄 CSV (Valid)</button>
+              <button class="btn btn-outline" id="btnExportValidXlsx" disabled>📊 XLSX (Valid)</button>
+              <button class="btn btn-outline" id="btnExportAllXlsx" disabled>📥 XLSX (All)</button>
+              <button class="btn btn-outline" id="btnSaveValidToContacts" disabled>💾 Save to Contacts</button>
+              <button class="btn btn-success" id="btnSendValidToCampaign" disabled>🚀 Load into Campaign</button>
+            </div>
+          </div>
+
+          <div class="validator-layout">
+            <div class="validator-input-card">
+              <div class="form-group">
+                <label>Input Phone Numbers (one per line or comma/semicolon separated)</label>
+                <textarea id="validatorInput" class="form-control code-font" rows="10" placeholder="+12025550192&#10;+919876543210&#10;+447911123456"></textarea>
+              </div>
+              <!-- Speed Control (Phase 4.5) -->
+              <div class="form-group">
+                <label style="display:flex; justify-content:space-between;">
+                  <span>Validation Speed</span>
+                  <span id="validationSpeedLabel" style="color:var(--accent-primary); font-weight:600;">200ms (Fast)</span>
+                </label>
+                <input type="range" id="validationSpeedSlider" min="100" max="2000" step="100" value="200" style="width:100%;">
+                <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--text-muted); margin-top:4px;">
+                  <span>100ms (Max Speed)</span><span>1000ms (Normal)</span><span>2000ms (Safe)</span>
+                </div>
+              </div>
+              <button class="btn btn-primary btn-block" id="btnStartValidation">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                Validate Numbers
+              </button>
+            </div>
+
+            <div class="validator-results-card">
+              <div class="validator-stats-row">
+                <div class="stat-card">
+                  <span class="stat-val" id="valStatTotal">0</span>
+                  <span class="stat-lbl">Checked</span>
+                </div>
+                <div class="stat-card success">
+                  <span class="stat-val" id="valStatValid">0</span>
+                  <span class="stat-lbl">WhatsApp Active</span>
+                </div>
+                <div class="stat-card danger">
+                  <span class="stat-val" id="valStatInvalid">0</span>
+                  <span class="stat-lbl">Not Registered</span>
+                </div>
+                <div class="stat-card" style="background: rgba(139,92,246,0.1); border-color: rgba(139,92,246,0.3);">
+                  <span class="stat-val" id="valStatPct" style="color:#a78bfa;">0% valid</span>
+                  <span class="stat-lbl">Success Rate</span>
+                </div>
+              </div>
+
+              <!-- Progress bar -->
+              <div style="background:var(--bg-card); border-radius:4px; height:6px; margin:8px 0; overflow:hidden;">
+                <div id="valProgressBar" style="height:100%; background:linear-gradient(90deg,#10b981,#06d6a0); width:0%; transition:width 0.3s;"></div>
+              </div>
+
+              <div class="table-container">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Phone Number</th>
+                      <th>WhatsApp Status</th>
+                      <th>Account Type</th>
+                    </tr>
+                  </thead>
+                  <tbody id="validatorTableBody">
+                    <tr><td colspan="4" class="text-center text-muted">Input numbers and click "Validate Numbers".</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 5. AI & CHATBOT VIEW (Phase 5 - Advanced Autoresponder Studio) -->
+        <section class="tab-pane" id="pane-chatbot">
+          <div class="pane-header">
+            <div>
+              <h2>AI Assistant & Keyword Autoresponder Studio</h2>
+              <p>Build intelligent conversational rules, connect Google Gemini & OpenAI models, and test live in the simulator.</p>
+            </div>
+            <div class="flex-gap">
+              <button class="btn btn-primary" id="btnOpenAddRuleModal">+ Add Keyword Rule</button>
+            </div>
+          </div>
+
+          <!-- Chatbot Sub Tabs -->
+          <div class="extractor-tabs" style="margin-bottom: 20px;">
+            <button class="extractor-tab-btn active" data-subtab="cb-tab-rules">⚡ Keyword Rules</button>
+            <button class="extractor-tab-btn" data-subtab="cb-tab-ai">🧠 AI Intelligence (Gemini / OpenAI)</button>
+            <button class="extractor-tab-btn" data-subtab="cb-tab-simulator">🧪 Live WhatsApp Simulator</button>
+            <button class="extractor-tab-btn" data-subtab="cb-tab-logs">📜 Activity Logs <span id="cbLogBadge" class="badge" style="display:none; margin-left:6px; background:var(--accent-primary); color:#000;">0</span></button>
+          </div>
+
+          <!-- SUB-TAB 1: KEYWORD RULES -->
+          <div class="extractor-tab-pane active" id="cb-tab-rules">
+            <div class="card">
+              <div class="flex-between" style="margin-bottom: 16px; flex-wrap:wrap; gap:12px;">
+                <div style="display:flex; gap:10px; flex:1; min-width:280px;">
+                  <input type="text" id="ruleSearchInput" class="form-control" placeholder="🔍 Search rules by trigger keyword or response..." style="flex:1;">
+                  <select id="ruleTypeFilter" class="form-control" style="width:140px;">
+                    <option value="">All Types</option>
+                    <option value="contains">Contains</option>
+                    <option value="exact">Exact Match</option>
+                    <option value="startswith">Starts With</option>
+                    <option value="endswith">Ends With</option>
+                    <option value="regex">Regex</option>
+                  </select>
+                </div>
+                <div class="flex-gap">
+                  <span id="rulesCountBadge" class="badge" style="background:rgba(56,189,248,0.15); color:#38bdf8; border:1px solid rgba(56,189,248,0.3);">2 Rules Active</span>
+                </div>
+              </div>
+
+              <div class="table-container">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th style="width:180px;">Trigger Keyword</th>
+                      <th style="width:110px;">Match Type</th>
+                      <th>Automated Response</th>
+                      <th style="width:80px; text-align:center;">Status</th>
+                      <th style="width:140px; text-align:right;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="rulesTableBody">
+                    <!-- Populated dynamically -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB-TAB 2: AI INTELLIGENCE CONFIG -->
+          <div class="extractor-tab-pane" id="cb-tab-ai">
+            <div class="settings-grid" style="grid-template-columns: 1fr 1fr; gap:20px;">
+              
+              <!-- Column 1: Provider & Core Settings -->
+              <div class="card">
+                <div class="flex-between" style="margin-bottom: 16px;">
+                  <div>
+                    <h3>AI Fallback Intelligence</h3>
+                    <p class="text-muted">Answers incoming customer questions naturally when no keyword rule matches.</p>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="aiEnabledToggle">
+                    <span class="slider"></span>
+                  </label>
+                </div>
+
+                <div class="form-group">
+                  <label>AI Provider</label>
+                  <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
+                    <div class="ai-provider-card active" id="cardProviderGemini" data-provider="gemini">
+                      <div style="font-size:20px; margin-bottom:4px;">✨</div>
+                      <div style="font-weight:700; color:#38bdf8;">Google Gemini</div>
+                      <div style="font-size:11px; color:var(--text-muted);">Recommended & Ultra Fast</div>
+                    </div>
+                    <div class="ai-provider-card" id="cardProviderOpenAi" data-provider="openai">
+                      <div style="font-size:20px; margin-bottom:4px;">🤖</div>
+                      <div style="font-weight:700; color:#10b981;">OpenAI ChatGPT</div>
+                      <div style="font-size:11px; color:var(--text-muted);">GPT-4o & Mini Models</div>
+                    </div>
+                  </div>
+                  <input type="hidden" id="aiProviderSelect" value="gemini">
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group flex-1">
+                    <label>Model</label>
+                    <select id="aiModelSelect" class="form-control">
+                      <option value="gemini-1.5-flash">gemini-1.5-flash (Fast & Free Tier)</option>
+                      <option value="gemini-1.5-pro">gemini-1.5-pro (Complex Reasoning)</option>
+                      <option value="gemini-2.0-flash-exp">gemini-2.0-flash (Experimental)</option>
+                    </select>
+                  </div>
+                  <div class="form-group flex-1">
+                    <label>Temperature (<span id="tempValDisplay">0.7</span>)</label>
+                    <input type="range" id="aiTemperature" min="0" max="1" step="0.1" value="0.7" class="form-control" style="padding:4px;">
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label style="display:flex; justify-content:space-between;">
+                    <span>API Key</span>
+                    <a href="https://aistudio.google.com/app/apikey" id="apiKeyHelpLink" target="_blank" style="font-size:11px; color:var(--accent-primary); text-decoration:none;">Get Gemini Key ↗</a>
+                  </label>
+                  <div class="flex-gap">
+                    <input type="password" id="aiApiKey" class="form-control code-font" placeholder="Enter API Key">
+                    <button class="btn btn-outline" type="button" id="btnToggleApiKeyVisibility" title="Show/Hide">👁</button>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group flex-1">
+                    <label>Typing Simulation Delay</label>
+                    <select id="aiTypingDuration" class="form-control">
+                      <option value="1">1 second (Quick)</option>
+                      <option value="2" selected>2 seconds (Natural)</option>
+                      <option value="3">3 seconds (Human-like)</option>
+                      <option value="4">4 seconds (Thorough)</option>
+                    </select>
+                  </div>
+                  <div class="form-group flex-1">
+                    <label>Max Reply Length</label>
+                    <select id="aiMaxTokens" class="form-control">
+                      <option value="150">Short (~50 words)</option>
+                      <option value="300" selected>Medium (~100 words)</option>
+                      <option value="500">Long (~200 words)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>Ignored / Blacklisted Numbers (Comma Separated)</label>
+                  <input type="text" id="aiIgnoreNumbers" class="form-control" placeholder="e.g. 919876543210, +12025550192 (never auto-reply to these)">
+                </div>
+              </div>
+
+              <!-- Column 2: Prompt Instructions & Quick Templates -->
+              <div class="card">
+                <h3>AI Persona & Business Knowledge</h3>
+                <p class="text-muted" style="margin-bottom:12px;">Click a quick template or write your custom instructions and pricing details:</p>
+
+                <!-- Template Preset Chips -->
+                <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px;">
+                  <button type="button" class="btn-xs btn-outline preset-prompt-chip" data-preset="support">🏢 Customer Support</button>
+                  <button type="button" class="btn-xs btn-outline preset-prompt-chip" data-preset="ecommerce">🛍️ E-Commerce</button>
+                  <button type="button" class="btn-xs btn-outline preset-prompt-chip" data-preset="realestate">🏡 Real Estate</button>
+                  <button type="button" class="btn-xs btn-outline preset-prompt-chip" data-preset="booking">📅 Appointments</button>
+                  <button type="button" class="btn-xs btn-outline preset-prompt-chip" data-preset="restaurant">🍕 Restaurant</button>
+                </div>
+
+                <div class="form-group">
+                  <label>System Instructions (Instructions given to the AI)</label>
+                  <textarea id="aiSystemPrompt" class="form-control" rows="8" placeholder="You are an automated support agent for our company. Keep answers helpful and short."></textarea>
+                </div>
+
+                <div class="form-group">
+                  <label>Fallback Default Message (when AI is disabled or fails)</label>
+                  <textarea id="aiFallbackMessage" class="form-control" rows="2" placeholder="Thank you for contacting us! Our representative will reply to you shortly."></textarea>
+                </div>
+
+                <div style="text-align:right;">
+                  <button class="btn btn-primary" id="btnSaveAiConfig">💾 Save AI Configuration</button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- SUB-TAB 3: LIVE SIMULATOR -->
+          <div class="extractor-tab-pane" id="cb-tab-simulator">
+            <div class="simulator-wrapper" style="max-width: 760px; margin: 0 auto;">
+              <div class="card" style="padding: 0; overflow: hidden; border: 1px solid var(--border-glass);">
+                
+                <!-- Simulator Header -->
+                <div style="background: #1e293b; padding: 14px 20px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.08);">
+                  <div style="display:flex; align-items:center; gap:12px;">
+                    <div style="width:38px; height:38px; border-radius:50%; background:linear-gradient(135deg, #10b981, #06d6a0); display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px;">
+                      💬
+                    </div>
+                    <div>
+                      <div style="font-weight:700; font-size:14px; color:#fff;">WhatsApp Customer Simulator</div>
+                      <div style="font-size:11px; color:#34d399; display:flex; align-items:center; gap:4px;">
+                        <span style="width:6px; height:6px; border-radius:50%; background:#10b981; display:inline-block;"></span>
+                        Bot Ready &bull; Keyword Rules + AI Active
+                      </div>
+                    </div>
+                  </div>
+                  <button class="btn btn-outline btn-sm" id="btnResetSimulator">🗑 Reset Chat</button>
+                </div>
+
+                <!-- Chat Messages Scroll Container -->
+                <div id="simChatHistory" style="background:#0b141a; min-height:360px; max-height:460px; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:12px;">
+                  <!-- Initial welcome message -->
+                  <div class="sim-bubble-bot">
+                    <div>👋 Hi! I am your configured WhatsApp Autoresponder simulator. Send any customer message below to test your keyword rules or AI responses live!</div>
+                    <div class="sim-meta">Simulator Bot &bull; Ready</div>
+                  </div>
+                </div>
+
+                <!-- Simulator Input Row -->
+                <div style="background:#1e293b; padding:12px 16px; display:flex; gap:10px; align-items:center; border-top:1px solid rgba(255,255,255,0.08);">
+                  <input type="text" id="simChatInput" class="form-control" placeholder="Type a message (e.g. 'hello', 'what is the price?', 'help')..." style="flex:1;">
+                  <button class="btn btn-primary" id="btnSendSimulatorMsg" style="min-width:90px;">
+                    Send ➤
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB-TAB 4: ACTIVITY LOGS -->
+          <div class="extractor-tab-pane" id="cb-tab-logs">
+            <div class="card">
+              <div class="flex-between" style="margin-bottom:16px;">
+                <div>
+                  <h3>Real-Time Autoresponder Activity Logs</h3>
+                  <p class="text-muted">Live event feed of incoming WhatsApp messages and automated responses.</p>
+                </div>
+                <div class="flex-gap">
+                  <button class="btn btn-outline btn-sm" id="btnClearCbLogs">🗑 Clear Logs</button>
+                </div>
+              </div>
+
+              <div class="table-container">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th style="width:130px;">Time</th>
+                      <th style="width:140px;">Sender Phone</th>
+                      <th style="width:200px;">Incoming Message</th>
+                      <th style="width:150px;">Resolved By</th>
+                      <th>Automated Reply</th>
+                      <th style="width:90px; text-align:center;">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cbLogsTableBody">
+                    <tr><td colspan="6" class="text-center text-muted">No autoresponder activity recorded yet. Incoming messages will appear here live.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- 6. SETTINGS & LICENSE VIEW -->
+        <section class="tab-pane" id="pane-settings">
+          <div class="pane-header">
+            <div>
+              <h2>Settings & Hardware License</h2>
+              <p>Manage application preferences, anti-ban thresholds, and device licensing.</p>
+            </div>
+          </div>
+
+          <div class="settings-grid">
+            <div class="card">
+              <h3>Open Source Community Edition (Unlocked)</h3>
+              <p class="text-muted">This software is 100% Free & Open-Source. All Pro features, multi-account sessions, and anti-ban limits are fully unlocked.</p>
+              
+              <div class="form-group">
+                <label>Machine Hardware ID (HWID)</label>
+                <div class="flex-gap">
+                  <input type="text" id="hwidDisplay" class="form-control code-font" readonly value="Calculating...">
+                  <button class="btn btn-outline" id="btnCopyHwid">Copy HWID</button>
+                </div>
+              </div>
+
+              <div class="license-info-card" id="licenseInfoCard">
+                <div class="status-indicator">
+                  <span class="status-badge" id="licenseBadgeDetailed" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3);">COMMUNITY PRO (UNLOCKED)</span>
+                </div>
+                <p id="licenseDetailText">Open Source Community Edition — All features permanently unlocked.</p>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3>Global Anti-Ban Defaults</h3>
+              <div class="form-group">
+                <label>Minimum Delay (seconds)</label>
+                <input type="number" id="setDefMinDelay" class="form-control" value="6">
+              </div>
+              <div class="form-group">
+                <label>Maximum Delay (seconds)</label>
+                <input type="number" id="setDefMaxDelay" class="form-control" value="16">
+              </div>
+              <div class="form-group">
+                <label>Simulate Typing Animation</label>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="setDefTyping" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <!-- Phase 4.5: Validation Speed -->
+              <div class="settings-row">
+                <div>
+                  <div class="settings-label">Validation Delay Between Checks</div>
+                  <div class="settings-sub">Slower = Safer. Increase to avoid WA rate-limits.</div>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px;">
+                  <input type="range" id="setValidationDelay" min="100" max="2000" step="100" value="200" style="width:120px;">
+                  <span id="setValidationDelayLabel" style="min-width:80px; font-size:12px; color:var(--accent-primary);">200ms (Fast)</span>
+                </div>
+              </div>
+
+              <button class="btn btn-primary" id="btnSaveSettings">Save Preferences</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 6. CONTACTS ADDRESS BOOK — Phase 3.4 -->
+        <section class="tab-pane" id="pane-contacts">
+          <div class="pane-header">
+            <div>
+              <h2>Contact Address Book</h2>
+              <p id="contactsTotalBadge">Manage your reusable contact lists — import from Excel, tag, and launch campaigns instantly.</p>
+            </div>
+            <div class="flex-gap">
+              <button class="btn btn-outline" id="btnImportContacts">📥 Import CSV/Excel</button>
+              <button class="btn btn-outline" id="btnExportContactsXlsx">📊 Export XLSX</button>
+              <button class="btn btn-accent" id="btnSendContactsToCampaign">🚀 Send to Campaign</button>
+              <button class="btn btn-primary" id="btnAddContact">+ Add Contact</button>
+            </div>
+          </div>
+
+          <!-- Search and Tag Filter -->
+          <div class="flex-gap" style="margin-bottom:16px;">
+            <input type="text" id="contactSearchInput" class="form-control" placeholder="🔍 Search by phone, name, company, tag..." style="flex:1; max-width:400px;">
+            <select id="contactTagFilter" class="form-control" style="width:160px;">
+              <option value="">All Tags</option>
+            </select>
+          </div>
+
+          <!-- Contacts Table -->
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Phone</th>
+                  <th>Name</th>
+                  <th>Company</th>
+                  <th>Tags</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="contactsTableBody">
+                <tr><td colspan="6" class="text-center text-muted">No contacts yet. Import from Excel/CSV or add manually.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Hidden inputs -->
+          <input type="file" id="contactImportFile" accept=".csv,.xlsx,.xls" style="display:none;">
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Modal for Spintax Preview -->
+  <div class="qr-modal-overlay" id="spintaxModal" style="display: none;">
+    <div class="qr-modal-content">
+      <div class="qr-modal-header">
+        <h3>Spintax Sample Variations</h3>
+        <button class="btn-close" id="closeSpintaxModal">&times;</button>
+      </div>
+      <div class="qr-modal-body">
+        <p class="text-muted">Here are 3 unique variations generated from your template:</p>
+        <div id="spintaxSamplesContainer"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for Add/Edit Keyword Rule -->
+  <div class="qr-modal-overlay" id="ruleModal" style="display: none;">
+    <div class="qr-modal-content" style="width: 580px; max-width: 95vw;">
+      <div class="qr-modal-header">
+        <h3 id="ruleModalTitle">Add Keyword Rule</h3>
+        <button class="btn-close" id="closeRuleModal">&times;</button>
+      </div>
+      <div class="qr-modal-body">
+        <input type="hidden" id="modalRuleId" value="">
+        
+        <div class="form-row">
+          <div class="form-group flex-2">
+            <label>Trigger Keyword or Pattern</label>
+            <input type="text" id="modalRuleTrigger" class="form-control code-font" placeholder="e.g. price, demo, support, ^(hi|hello)$">
+          </div>
+          <div class="form-group flex-1">
+            <label>Match Type</label>
+            <select id="modalRuleMatchType" class="form-control">
+              <option value="contains">Contains</option>
+              <option value="exact">Exact Match</option>
+              <option value="startswith">Starts With</option>
+              <option value="endswith">Ends With</option>
+              <option value="regex">Regex</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <label style="margin:0;">Automated Response Message</label>
+            <div style="display:flex; gap:4px;">
+              <button type="button" class="btn-xs btn-outline btn-insert-tag" data-tag="{Hello|Hi|Hey}">+ Spintax</button>
+              <button type="button" class="btn-xs btn-outline btn-insert-tag" data-tag="{{phone}}">+ Phone</button>
+              <button type="button" class="btn-xs btn-outline btn-insert-tag" data-tag="{{time}}">+ Time</button>
+            </div>
+          </div>
+          <textarea id="modalRuleResponse" class="form-control" rows="4" placeholder="{Hello|Hi}! Thanks for reaching out. Our plans start from $19/mo. Reply 1 for sales."></textarea>
+          <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">
+            💡 Supports Spintax <code>{Option 1|Option 2}</code> and dynamic tags <code>{{phone}}</code>, <code>{{time}}</code>, <code>{{date}}</code>.
+          </div>
+        </div>
+
+        <!-- Dry Run Simulator inside Modal -->
+        <div style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:10px 12px; margin-bottom:16px;">
+          <div style="font-size:11px; font-weight:700; color:var(--text-dim); margin-bottom:6px; text-transform:uppercase;">🧪 Live Rule Dry-Run Test</div>
+          <div class="flex-gap">
+            <input type="text" id="modalRuleTestInput" class="form-control form-control-sm" placeholder="Type test message here..." style="font-size:12px; height:32px;">
+            <button type="button" id="btnModalRuleTest" class="btn btn-outline btn-sm">Test</button>
+          </div>
+          <div id="modalRuleTestResult" style="font-size:12px; margin-top:8px; display:none;"></div>
+        </div>
+
+        <div class="flex-between">
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+            <input type="checkbox" id="modalRuleIsActive" checked>
+            <span style="font-size:13px; font-weight:600;">Enable Rule Immediately</span>
+          </label>
+          <div class="flex-gap">
+            <button type="button" class="btn btn-outline" id="btnCancelRuleModal">Cancel</button>
+            <button type="button" class="btn btn-primary" id="btnSaveRuleModal">Save Rule</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden file inputs for Excel/CSV imports -->
+  <input type="file" id="campXlsxFile" accept=".xlsx,.xls,.csv" style="display:none;">
+
+  <!-- QR Code Generator Library (pure JS) -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <!-- Renderer JavaScript Modules -->
+  <script src="js/app.js"></script>
+  <script src="js/accounts.js"></script>
+  <script src="js/campaigns.js"></script>
+  <script src="js/extractor.js"></script>
+  <script src="js/validator.js"></script>
+  <script src="js/chatbot.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/contacts.js"></script>
+  <script src="js/history.js"></script>
+</body>
+</html>

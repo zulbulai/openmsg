@@ -1,0 +1,34 @@
+{
+  "name": "openmsg-desktop",
+  "version": "1.0.0",
+  "description": "Advanced Cross-Platform WhatsApp Marketing & Automation Desktop Software",
+  "main": "src/main/index.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "test": "node --test test/desktop-core.test.js",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "dist:win": "electron-builder --win",
+    "dist:mac": "electron-builder --mac",
+    "dist:linux": "electron-builder --linux"
+  },
+  "keywords": [
+    "whatsapp",
+    "marketing",
+    "automation",
+    "bulk-sender",
+    "leadwave",
+    "crm",
+    "electron"
+  ],
+  "author": "OpenMsg Team",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "electron": "^30.0.9",
+    "electron-builder": "^24.13.3"
+  }
+}
