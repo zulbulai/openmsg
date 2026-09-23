@@ -267,15 +267,15 @@ export default {
             _0x4cba01.select(
               [
                 {
-                  value: 'tab',
-                  label: 'A separate full-screen tab',
+                  value: 'panel',
+                  label: 'A panel inside WhatsApp (default)',
                 },
                 {
-                  value: 'panel',
-                  label: 'A panel inside WhatsApp',
+                  value: 'workspace',
+                  label: 'A separate full-screen tab',
                 },
               ],
-              _0x3951d2.setting('kanbanOpen') || 'tab',
+              _0x3951d2.setting('kanbanOpen') || 'panel',
               _0x4aeddb('kanbanOpen'),
             ),
           ),

@@ -1,4 +1,6 @@
-import { h, icon } from '../ui/dom.js';
+import { h, icon, clear } from '../ui/dom.js';
+import * as kit from '../ui/kit.js';
+
 const TOOLS = [
   {
     panel: 'notes',
@@ -15,43 +17,43 @@ const TOOLS = [
   {
     panel: 'crm-settings',
     icon: 'tags',
-    title: 'Tags and custom fields',
+    title: 'Tags & Custom Fields',
     text: 'Define what you track about each contact.',
   },
   {
     panel: 'blur',
     icon: 'eye-off',
-    title: 'Blur settings',
+    title: 'Blur / Privacy',
     text: 'Hide names, photos and messages on screen.',
   },
   {
     panel: 'validator',
     icon: 'phone-call',
-    title: 'Number validator',
+    title: 'Number Validator',
     text: 'Check which numbers are on WhatsApp.',
   },
   {
     panel: 'export-contacts',
     icon: 'download',
-    title: 'Export contacts',
+    title: 'Export Contacts',
     text: 'Download chats, contacts and group members.',
   },
   {
     panel: 'import-export',
     icon: 'file-spreadsheet',
-    title: 'Import and export data',
+    title: 'Import / Export',
     text: 'Back up everything or import contacts from CSV.',
   },
   {
     panel: 'group-tools',
     icon: 'users',
-    title: 'Group tools',
+    title: 'Group Tools',
     text: 'Clone groups, find duplicates, add people in bulk.',
   },
   {
     panel: 'link-generator',
     icon: 'qr-code',
-    title: 'Click-to-chat link',
+    title: 'Click-to-Chat Link',
     text: 'Generate wa.me links and QR codes.',
   },
   {
@@ -63,46 +65,84 @@ const TOOLS = [
   {
     panel: 'settings',
     icon: 'settings',
-    title: 'Module settings',
+    title: 'Module Settings',
     text: 'Safety limits, signature, notifications and activity.',
   },
 ];
+
 export default {
   id: 'tools',
   title: 'Free Tools',
   subtitle: 'Handy utilities for lists, groups and links.',
   icon: 'wrench',
-  render(_0x751f30) {
-    return h(
-      'div',
-      {
-        class: 'wc-screen',
-      },
-      h(
-        'div',
-        {
-          class: 'wc-grid wc-grid-4',
-        },
-        TOOLS.map((_0x14181b) =>
+  render(ctx) {
+    const { shell } = ctx;
+    let query = '';
+
+    const grid = h('div', { class: 'wc-grid wc-grid-3' });
+
+    function renderTools() {
+      clear(grid);
+      const q = query.toLowerCase().trim();
+      const filtered = TOOLS.filter(
+        (t) =>
+          !q ||
+          t.title.toLowerCase().includes(q) ||
+          t.text.toLowerCase().includes(q),
+      );
+
+      if (!filtered.length) {
+        grid.appendChild(
+          h(
+            'div',
+            {
+              class: 'wc-muted wc-pad',
+              style: {
+                gridColumn: '1 / -1',
+                textAlign: 'center',
+                padding: '32px 16px',
+              },
+            },
+            'No tools matching "' + query + '".',
+          ),
+        );
+        return;
+      }
+
+      filtered.forEach((tool) => {
+        grid.appendChild(
           h(
             'button',
             {
               class: 'wc-card wc-tool',
               type: 'button',
-              onClick: () => _0x751f30.shell.openPanel(_0x14181b.panel),
-            },
-            h(
-              'span',
-              {
-                class: 'wc-tool-icon',
+              'aria-label': tool.title,
+              onClick: () => {
+                if (shell && typeof shell.openPanel === 'function') {
+                  shell.openPanel(tool.panel);
+                }
               },
-              icon(_0x14181b.icon, 22),
-            ),
-            h('strong', null, _0x14181b.title),
-            h('span', null, _0x14181b.text),
+            },
+            h('span', { class: 'wc-tool-icon' }, icon(tool.icon, 22)),
+            h('strong', null, tool.title),
+            h('span', null, tool.text),
           ),
-        ),
-      ),
+        );
+      });
+    }
+
+    renderTools();
+
+    const search = kit.searchInput('Search tools...', (val) => {
+      query = val;
+      renderTools();
+    });
+
+    return h(
+      'div',
+      { class: 'wc-screen' },
+      h('div', { class: 'wc-toolbar' }, search),
+      grid,
     );
   },
 };

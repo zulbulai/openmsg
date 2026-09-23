@@ -1,6 +1,13 @@
-/* WACRM styles. Loaded inside a Shadow DOM, so nothing here leaks into WhatsApp Web. */
-
-:host { all: initial; }
+:host {
+  all: initial;
+  display: block !important;
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 2147483000 !important;
+  pointer-events: none !important;
+}
 
 .wc-root,
 .wc-root *,
@@ -19,15 +26,15 @@
   color: var(--text);
   -webkit-font-smoothing: antialiased;
 
-  /* Top bar is dark in both themes so the light red icons always pop. */
+  /* Top bar is dark in both themes so the yellow icons always pop. */
   --bar-bg: #18191b;
   --bar-border: #2c2d31;
   --bar-text: #eceef2;
   --bar-muted: #a4acb8;
 
-  --accent: #ff4d4f;
-  --accent-hover: #ff7875;
-  --on-accent: #ffffff;
+  --accent: #ffc72c;
+  --accent-hover: #ffd257;
+  --on-accent: #1a1400;
 }
 
 .wc-root[data-theme="dark"] {
@@ -39,9 +46,9 @@
   --border: #45464b;
   --text: #f4f5f7;
   --muted: #a0a8b4;
-  --icon: #ff4d4f;
-  --accent-ink: #ff4d4f;
-  --accent-soft: rgba(255, 77, 79, 0.16);
+  --icon: #ffc72c;
+  --accent-ink: #ffc72c;
+  --accent-soft: rgba(255, 199, 44, 0.14);
   --danger: #ff7a74;
   --danger-solid: #d63a3f;
   --danger-solid-hover: #bf2f34;
@@ -65,9 +72,9 @@
   --border: #e1e1da;
   --text: #1e2126;
   --muted: #667085;
-  --icon: #e02424;
-  --accent-ink: #c81e1e;
-  --accent-soft: #ffebee;
+  --icon: #c48200;
+  --accent-ink: #8a5a00;
+  --accent-soft: #fff3cc;
   --danger: #d92d20;
   --danger-solid: #d92d20;
   --danger-solid-hover: #b42318;
@@ -160,7 +167,7 @@
   transition: background 0.12s;
 }
 .wc-topbtn:hover { background: rgba(255, 255, 255, 0.09); }
-.wc-topbtn.is-active { background: rgba(255, 77, 79, 0.18); }
+.wc-topbtn.is-active { background: rgba(255, 199, 44, 0.16); }
 .wc-topbtn.is-active::before {
   content: "";
   position: absolute;
@@ -206,8 +213,9 @@
   border-left: 1px solid var(--border);
   pointer-events: auto;
   z-index: 10;
-  animation: wc-fade 0.14s ease-out;
   overflow: hidden;
+  /* No animation here — animating the panel itself caused a visible
+     blink/flash every time a tab was clicked. Panel content fades in instead. */
 }
 
 .wc-panel-head {
@@ -229,7 +237,8 @@
 .wc-panel-heading { flex: 1; min-width: 0; }
 .wc-panel-title { margin: 0; font-size: 18px; font-weight: 700; line-height: 1.2; }
 .wc-panel-sub { margin: 3px 0 0; color: var(--muted); font-size: 13px; }
-.wc-panel-actions { display: flex; align-items: center; gap: 8px; }
+.wc-panel-back { flex: none; width: 32px; height: 32px; color: var(--muted); border-radius: 8px; display: grid; place-items: center; cursor: pointer; transition: color 0.12s, background 0.12s; }
+.wc-panel-back:hover { color: var(--text); background: var(--surface-2); }
 .wc-panel-body { flex: 1; min-height: 0; overflow: auto; padding: 22px 24px 40px; }
 .wc-panel-head .wc-iconbtn { color: var(--muted); }
 
@@ -450,7 +459,7 @@
 .wc-screen > .wc-section-title:first-child { margin-top: 0; }
 .wc-grid { display: grid; gap: 16px; }
 .wc-grid-2 { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
-.wc-grid-3 { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.wc-grid-3 { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
 .wc-grid-4 { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
 .wc-two-col { display: grid; grid-template-columns: minmax(280px, 340px) 1fr; gap: 16px; align-items: start; }
 
@@ -585,7 +594,7 @@
 .wc-kv-v { font-weight: 600; text-align: right; }
 
 .wc-bubble-preview { padding: 16px; border-radius: 12px; background: var(--surface-2); }
-.wc-bubble { position: relative; max-width: 82%; margin-left: auto; padding: 9px 12px 20px; border: 1px solid rgba(255, 77, 79, 0.35); border-radius: 12px 12px 3px 12px; background: var(--accent-soft); font-size: 13.5px; }
+.wc-bubble { position: relative; max-width: 82%; margin-left: auto; padding: 9px 12px 20px; border: 1px solid rgba(255, 199, 44, 0.4); border-radius: 12px 12px 3px 12px; background: var(--accent-soft); font-size: 13.5px; }
 .wc-bubble-time { position: absolute; right: 10px; bottom: 4px; color: var(--muted); font-size: 11px; }
 
 .wc-flow { display: flex; align-items: center; overflow-x: auto; padding: 22px 4px 8px; }
@@ -602,7 +611,7 @@
 
 .wc-modal-layer { position: absolute; inset: 0; pointer-events: none; z-index: 50; }
 .wc-modal-layer.has-modal { pointer-events: auto; }
-.wc-backdrop { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; background: var(--overlay); animation: wc-fade 0.14s ease-out; }
+.wc-backdrop { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; background: var(--overlay); animation: wc-fade 0.1s ease-out; }
 .wc-modal { width: 100%; max-height: calc(100vh - 48px); display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); color: var(--text); box-shadow: var(--shadow); animation: wc-pop 0.16s ease-out; }
 .wc-modal:focus { outline: none; }
 .wc-modal-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 22px 26px 8px; }
@@ -838,7 +847,7 @@
 .wc-bubble-row.is-me { justify-content: flex-end; }
 .wc-bubble-row.is-them { justify-content: flex-start; }
 .wc-msgbubble { max-width: 82%; padding: 7px 10px 5px; border-radius: 12px; font-size: 13.5px; background: var(--surface-3); display: flex; flex-direction: column; gap: 2px; }
-.wc-bubble-row.is-me .wc-msgbubble { background: var(--accent-soft); border: 1px solid rgba(255, 77, 79, 0.35); border-bottom-right-radius: 3px; }
+.wc-bubble-row.is-me .wc-msgbubble { background: var(--accent-soft); border: 1px solid rgba(255, 199, 44, 0.4); border-bottom-right-radius: 3px; }
 .wc-bubble-row.is-them .wc-msgbubble { border-bottom-left-radius: 3px; }
 .wc-msgbubble small { align-self: flex-end; color: var(--muted); font-size: 11px; }
 .wc-qr { border-radius: 12px; border: 1px solid var(--border); background: #fff; }
@@ -1117,3 +1126,68 @@
 .wc-topbar.is-locked .wc-vsep,
 .wc-topbar.is-locked .wc-actions > :not(.wc-settings-btn) { display: none !important; }
 .wc-topbar.is-locked .wc-actions { margin-left: auto; }
+
+/* ================================================================ Webhook cards */
+
+.wc-whcard { display: flex; flex-direction: column; gap: 12px; padding: 16px 18px; transition: border-color 0.12s; }
+.wc-whcard:hover { border-color: var(--accent); }
+
+.wc-whcard-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.wc-whcard-title-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
+.wc-whcard-name { font-size: 15px; font-weight: 700; line-height: 1.3; }
+.wc-whcard-head .wc-row-actions { align-items: center; gap: 4px; flex: none; }
+
+/* URL row */
+.wc-whcard-url {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  min-width: 0;
+}
+.wc-whcard-urltext {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.wc-whcard-url .wc-iconbtn { flex: none; width: 24px; height: 24px; }
+
+/* Footer: events + last delivery */
+.wc-whcard-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.wc-whcard-delivery { flex: none; }
+
+/* Payload JSON viewer */
+.wc-payload-pre {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  font-size: 11.5px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 280px;
+  overflow: auto;
+  color: var(--muted);
+}

@@ -12,8 +12,8 @@ export const DEFAULT_STAGES = [
   },
   {
     name: 'Contacted',
-    color: '#ff4d4f',
-    textColor: '#ffffff',
+    color: '#fde047',
+    textColor: '#24200b',
   },
   {
     name: 'Negotiation',
@@ -37,7 +37,7 @@ export const DEFAULT_TAGS = [
   },
   {
     name: 'VIP',
-    color: '#ff4d4f',
+    color: '#fde047',
   },
   {
     name: 'Follow up',
@@ -45,7 +45,7 @@ export const DEFAULT_TAGS = [
   },
 ];
 export const TAG_COLORS = [
-  '#ff4d4f',
+  '#fde047',
   '#7dd3fc',
   '#86efac',
   '#f9a8d4',
@@ -581,8 +581,8 @@ export function createCrm({
         'kanbanStages',
         Object.assign(
           {
-            color: '#ff4d4f',
-            textColor: '#ffffff',
+            color: '#fde047',
+            textColor: '#24200b',
             collapsed: false,
           },
           _0x1c948b,

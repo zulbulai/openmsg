@@ -12,7 +12,7 @@ import {
 import { MAX_FILE_BYTES, fileKind } from '../core/messages.js';
 const BACKGROUNDS = [
   '#128c7e',
-  '#ff4d4f',
+  '#ffc72c',
   '#7dd3fc',
   '#c4b5fd',
   '#f9a8d4',

@@ -165,7 +165,7 @@ export const NODE_TYPES = {
     group: 'logic',
     icon: 'git-branch',
     hint: 'Branch on a saved answer',
-    color: '#ff4d4f',
+    color: '#ffc72c',
     data: () => ({
       branches: [
         {
@@ -186,7 +186,7 @@ export const NODE_TYPES = {
     group: 'logic',
     icon: 'variable',
     hint: 'Store or change a value',
-    color: '#ff4d4f',
+    color: '#ffc72c',
     data: () => ({
       entries: [
         {

@@ -155,7 +155,7 @@ function drawnLogo(_0x3fe8e8) {
       width: 128,
       height: 128,
       rx: 30,
-      fill: '#ff4d4f',
+      fill: '#ffc72c',
     }),
   );
   _0xbda53a.appendChild(
@@ -171,7 +171,7 @@ function drawnLogo(_0x3fe8e8) {
       width: 14,
       height: 34,
       rx: 5,
-      fill: '#ff4d4f',
+      fill: '#ffc72c',
     }),
   );
   _0xbda53a.appendChild(
@@ -181,7 +181,7 @@ function drawnLogo(_0x3fe8e8) {
       width: 14,
       height: 22,
       rx: 5,
-      fill: '#ff4d4f',
+      fill: '#ffc72c',
     }),
   );
   _0xbda53a.appendChild(
@@ -191,7 +191,7 @@ function drawnLogo(_0x3fe8e8) {
       width: 14,
       height: 28,
       rx: 5,
-      fill: '#ff4d4f',
+      fill: '#ffc72c',
     }),
   );
   return _0xbda53a;

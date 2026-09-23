@@ -29,7 +29,7 @@ export async function mountShell(_0x3ba2c4) {
   const _0x529dfb = document.createElement('div');
   _0x529dfb.id = 'wacrm-host';
   _0x529dfb.style.cssText =
-    'position:fixed;inset:0;z-index:2147483000;pointer-events:none;';
+    'position:fixed !important;inset:0 !important;width:100vw !important;height:100vh !important;z-index:2147483000 !important;pointer-events:none !important;display:block !important;';
   const _0x2e034c = _0x529dfb.attachShadow({
     mode: 'open',
   });
@@ -99,8 +99,13 @@ export async function mountShell(_0x3ba2c4) {
       }
     } catch (_0x1db5e2) {}
     if (
+      document.documentElement.classList.contains('dark') ||
       document.body.classList.contains('dark') ||
-      document.body.getAttribute('data-theme') === 'dark'
+      document.documentElement.getAttribute('data-theme') === 'dark' ||
+      document.body.getAttribute('data-theme') === 'dark' ||
+      document.querySelector('#app')?.classList.contains('dark') ||
+      (window.matchMedia &&
+        window.matchMedia('(prefers-color-scheme: dark)').matches)
     ) {
       return 'dark';
     } else {
@@ -129,8 +134,10 @@ export async function mountShell(_0x3ba2c4) {
       'calc(100vh - ' + (TOPBAR_HEIGHT + _0x47bb98.bottomReserve) + 'px)';
     if (
       _0x4cfd91.style.getPropertyValue('top') !== TOPBAR_HEIGHT + 'px' ||
+      _0x4cfd91.style.getPropertyValue('position') !== 'relative' ||
       _0x53ba6b !== _0x1ddb0b
     ) {
+      _0x4cfd91.style.setProperty('position', 'relative', 'important');
       _0x4cfd91.style.setProperty('top', TOPBAR_HEIGHT + 'px', 'important');
       _0x4cfd91.style.setProperty('height', _0x1ddb0b, 'important');
       _0x53ba6b = _0x1ddb0b;
@@ -141,7 +148,11 @@ export async function mountShell(_0x3ba2c4) {
     _0x4a4874();
   };
   function _0x5a412d() {
-    const _0x4833fc = document.querySelector('#pane-side');
+    const _0x4833fc =
+      document.querySelector('#pane-side') ||
+      document.querySelector('#side') ||
+      document.querySelector('[data-testid="chat-list"]') ||
+      document.querySelector('[aria-label="Chat list"]')?.closest('#pane-side, #side, [role="region"]');
     let _0xcd2b11 = 0;
     if (_0x4833fc) {
       const _0x5f0914 = _0x4833fc.getBoundingClientRect();
@@ -166,12 +177,18 @@ export async function mountShell(_0x3ba2c4) {
   const _0x157522 = h('div', {
     class: 'wc-panel-body',
   });
+  const _0xbackBtn = _0x1bc8d2.iconButton('arrow-left', 'Back to Free Tools', () => {
+    _0x32423a.openPanel('tools');
+  });
+  _0xbackBtn.classList.add('wc-panel-back');
+  _0xbackBtn.hidden = true;
   _0x1446db.appendChild(
     h(
       'header',
       {
         class: 'wc-panel-head',
       },
+      _0xbackBtn,
       _0x52a465,
       h(
         'div',
@@ -221,6 +238,7 @@ export async function mountShell(_0x3ba2c4) {
     _0x47bb98.panel = _0x2042d5;
     _0x32423a.setBleed(false);
     _0x1bc8d2.closeAllModals();
+    _0xbackBtn.hidden = PARENT[_0x2042d5] !== 'tools';
     _0x52a465.textContent = '';
     _0x52a465.appendChild(icon(_0x5ce330.icon, 20));
     _0x2fe0bc.textContent = _0x5ce330.title;
@@ -456,14 +474,18 @@ export async function mountShell(_0x3ba2c4) {
       .catch(() =>
         _0x1bc8d2.toast('Could not open the full-screen page.', 'error'),
       );
+  // Kanban opens in the side panel by default.
+  // Only opens as a full workspace tab if the user explicitly set kanbanOpen='workspace'.
   const _0x525502 = (_0x301c1a) =>
-    _0x301c1a === 'kanban' && _0x3ba2c4.store.setting('kanbanOpen') !== 'panel';
+    _0x301c1a === 'kanban' && _0x3ba2c4.store.setting('kanbanOpen') === 'workspace';
   const _0x561b51 = TOPBAR.map((_0x1ccf10) => {
     const _0x596b5a = PANELS[_0x1ccf10];
     const _0x2d310f = _0x8372f8(_0x596b5a.icon, _0x596b5a.title, () => {
       if (_0x525502(_0x1ccf10)) {
         _0x32423a.openWorkspace(_0x1ccf10);
       } else if (_0x47bb98.panel === _0x1ccf10) {
+        // Same tab clicked again — close to toggle. Use a slight delay so the
+        // panel-body animation has time to run without producing a hard blink.
         _0x32423a.closePanel();
       } else {
         _0x32423a.openPanel(_0x1ccf10);
@@ -631,7 +653,12 @@ export async function mountShell(_0x3ba2c4) {
   _0x5dda22();
   _0x1d1bbd();
   _0x3657b9();
-  new MutationObserver(_0x29be73).observe(document.body, {
+  const _0xthemeObserver = new MutationObserver(_0x29be73);
+  _0xthemeObserver.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['class', 'data-theme'],
+  });
+  _0xthemeObserver.observe(document.body, {
     attributes: true,
     attributeFilter: ['class', 'data-theme'],
   });

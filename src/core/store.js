@@ -48,7 +48,7 @@ export const DEFAULT_SETTINGS = {
   },
   aiModels: {
     openai: 'gpt-4o-mini',
-    gemini: 'gemini-2.0-flash',
+    gemini: 'gemini-3.6-flash',
     anthropic: 'claude-haiku-4-5-20251001',
   },
   aiStrapEnabled: true,

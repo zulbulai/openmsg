@@ -1,10 +1,14 @@
 import { h, icon, clear } from '../ui/dom.js';
-import * as _0x3aecd5 from '../ui/kit.js';
+import * as kit from '../ui/kit.js';
 import { WEBHOOK_EVENTS } from '../core/webhooks.js';
 import { fmtDateTime, clone, debounce, truncate } from '../core/util.js';
-function openEditor(_0xd50b69, _0x1e5ce8) {
-  const _0x4d836d = _0x1e5ce8
-    ? clone(_0x1e5ce8)
+
+// ─── Editor (Add / Edit webhook) ────────────────────────────────────────────
+// Uses openModal (centered) instead of openDrawer to avoid the full-screen
+// backdrop-side overlay that caused the blinking / flickering effect.
+function openEditor(app, existing) {
+  const draft = existing
+    ? clone(existing)
     : {
         name: '',
         url: '',
@@ -14,126 +18,98 @@ function openEditor(_0xd50b69, _0x1e5ce8) {
         secret: '',
         enabled: true,
       };
-  const _0x34786a = h('div', {
-    class: 'wc-field-error',
-  });
-  const _0x2c5d3a = h('div', {
-    class: 'wc-stack',
-  });
-  function _0x122e4c() {
-    clear(_0x2c5d3a);
-    _0x4d836d.headers.forEach((_0x3948e7, _0x5b262b) =>
-      _0x2c5d3a.appendChild(
+
+  const errorEl = h('div', { class: 'wc-field-error' });
+
+  // ── Custom headers list ──
+  const headersWrap = h('div', { class: 'wc-stack' });
+
+  function renderHeaders() {
+    clear(headersWrap);
+    draft.headers.forEach((hdr, idx) =>
+      headersWrap.appendChild(
         h(
           'div',
-          {
-            class: 'wc-form-row wc-row-remove',
-          },
-          _0x3aecd5.input({
-            value: _0x3948e7.name,
+          { class: 'wc-form-row wc-row-remove' },
+          kit.input({
+            value: hdr.name,
             placeholder: 'Header name',
-            onInput: (_0x5978e5) => {
-              _0x3948e7.name = _0x5978e5;
-            },
+            onInput: (v) => { hdr.name = v; },
           }),
-          _0x3aecd5.input({
-            value: _0x3948e7.value,
+          kit.input({
+            value: hdr.value,
             placeholder: 'Value',
-            onInput: (_0x21faf5) => {
-              _0x3948e7.value = _0x21faf5;
-            },
+            onInput: (v) => { hdr.value = v; },
           }),
-          _0x3aecd5.iconButton(
-            'trash-2',
-            'Remove',
-            () => {
-              _0x4d836d.headers.splice(_0x5b262b, 1);
-              _0x122e4c();
-            },
-            'is-danger',
-          ),
+          kit.iconButton('trash-2', 'Remove', () => {
+            draft.headers.splice(idx, 1);
+            renderHeaders();
+          }, 'is-danger'),
         ),
       ),
     );
-    _0x2c5d3a.appendChild(
-      _0x3aecd5.button('Add header', {
+    headersWrap.appendChild(
+      kit.button('Add header', {
         icon: 'plus',
         size: 'sm',
         onClick: () => {
-          _0x4d836d.headers.push({
-            name: '',
-            value: '',
-          });
-          _0x122e4c();
+          draft.headers.push({ name: '', value: '' });
+          renderHeaders();
         },
       }),
     );
   }
-  const _0x3f2e91 = h('div', {
-    class: 'wc-stack',
-  });
-  async function _0x27a0cb() {
-    clear(_0x3f2e91);
-    if (!/^https?:\/\//i.test(_0x4d836d.url)) {
-      return;
-    }
-    const _0x1ba1a8 = await _0xd50b69.http
-      .hasAccess(_0x4d836d.url)
-      .catch(() => true);
-    if (!_0x1ba1a8) {
-      _0x3f2e91.appendChild(
+
+  // ── Permission callout ──
+  const permWrap = h('div', { class: 'wc-stack' });
+
+  async function checkPermission() {
+    clear(permWrap);
+    if (!/^https?:\/\//i.test(draft.url)) return;
+    const hasAccess = await app.http.hasAccess(draft.url).catch(() => true);
+    if (!hasAccess) {
+      permWrap.appendChild(
         h(
           'div',
-          {
-            class: 'wc-callout wc-callout-warn',
-          },
+          { class: 'wc-callout wc-callout-warn' },
           icon('shield-check', 16),
-          h(
-            'span',
-            null,
+          h('span', null,
             'Chrome needs your permission to reach ' +
-              _0xd50b69.http.originOf(_0x4d836d.url) +
-              '.',
+            app.http.originOf(draft.url) + '.',
           ),
-          _0x3aecd5.button('Allow', {
+          kit.button('Allow', {
             size: 'sm',
             variant: 'primary',
-            onClick: () =>
-              _0xd50b69.http.grant(_0xd50b69.http.originOf(_0x4d836d.url)),
+            onClick: () => app.http.grant(app.http.originOf(draft.url)),
           }),
         ),
       );
     }
   }
-  const _0x8b983e = _0x3aecd5.openDrawer({
-    title: _0x1e5ce8 ? 'Edit webhook' : 'Add webhook',
+
+  const modal = kit.openModal({
+    title: existing ? 'Edit webhook' : 'Add webhook',
     width: 560,
     body: h(
       'div',
-      {
-        class: 'wc-form',
-      },
-      _0x3aecd5.field(
+      { class: 'wc-form' },
+      kit.field(
         'Name',
-        _0x3aecd5.input({
-          value: _0x4d836d.name,
+        kit.input({
+          value: draft.name,
           placeholder: 'e.g. Send new leads to my spreadsheet',
-          onInput: (_0x512e7f) => {
-            _0x4d836d.name = _0x512e7f;
-          },
+          onInput: (v) => { draft.name = v; },
         }),
-        {
-          required: true,
-        },
+        { required: true },
       ),
-      _0x3aecd5.field(
+      kit.field(
         'URL',
-        _0x3aecd5.input({
-          value: _0x4d836d.url,
+        kit.input({
+          value: draft.url,
           placeholder: 'https://hooks.example.com/abc',
-          onInput: debounce((_0x2868d1) => {
-            _0x4d836d.url = _0x2868d1;
-            _0x27a0cb();
+          onInput: debounce((v) => {
+            draft.url = v;
+            checkPermission();
           }, 300),
         }),
         {
@@ -141,151 +117,190 @@ function openEditor(_0xd50b69, _0x1e5ce8) {
           hint: 'Each event is sent here as a JSON POST.',
         },
       ),
-      _0x3f2e91,
-      _0x3aecd5.field(
+      permWrap,
+      kit.field(
         'Send when',
-        _0x3aecd5.multiSelect({
-          options: WEBHOOK_EVENTS.map((_0x2992d6) => ({
-            value: _0x2992d6.id,
-            label: _0x2992d6.label,
-          })),
-          value: _0x4d836d.events,
+        kit.multiSelect({
+          options: WEBHOOK_EVENTS.map((e) => ({ value: e.id, label: e.label })),
+          value: draft.events,
           placeholder: 'Choose events',
-          onChange: (_0x40bbd3) => {
-            _0x4d836d.events = _0x40bbd3;
-          },
+          onChange: (v) => { draft.events = v; },
         }),
-        {
-          required: true,
-        },
+        { required: true },
       ),
-      _0x3aecd5.field(
+      kit.field(
+        'HTTP method',
+        kit.select(
+          ['POST', 'PUT', 'PATCH'],
+          draft.method || 'POST',
+          (v) => { draft.method = v; },
+        ),
+      ),
+      kit.field(
         'Signing secret (optional)',
-        _0x3aecd5.input({
-          value: _0x4d836d.secret,
+        kit.input({
+          value: draft.secret,
           placeholder: 'Used to sign each request',
-          onInput: (_0x107421) => {
-            _0x4d836d.secret = _0x107421;
-          },
+          onInput: (v) => { draft.secret = v; },
         }),
         {
           hint: 'When set, every request has an X-WACRM-Signature header (HMAC SHA-256 of the body).',
         },
       ),
-      _0x3aecd5.field('Extra headers', _0x2c5d3a),
-      _0x3aecd5.field(
+      kit.field('Extra headers', headersWrap),
+      kit.field(
         'Status',
         h(
           'div',
-          {
-            class: 'wc-inline',
-          },
-          _0x3aecd5.toggle(
-            _0x4d836d.enabled,
-            (_0x319ae0) => {
-              _0x4d836d.enabled = _0x319ae0;
-            },
-            'On',
-          ),
-          h(
-            'span',
-            {
-              class: 'wc-muted',
-            },
-            'When off, nothing is sent.',
-          ),
+          { class: 'wc-inline' },
+          kit.toggle(draft.enabled, (v) => { draft.enabled = v; }, 'On'),
+          h('span', { class: 'wc-muted' }, 'When off, nothing is sent.'),
         ),
       ),
-      _0x34786a,
+      errorEl,
     ),
     footer: h(
       'div',
-      {
-        class: 'wc-modal-actions',
-      },
-      _0x3aecd5.button('Cancel', {
-        variant: 'dark',
-        onClick: () => _0x8b983e.close(),
-      }),
-      _0x3aecd5.button('Save', {
+      { class: 'wc-modal-actions' },
+      kit.button('Cancel', { variant: 'dark', onClick: () => modal.close() }),
+      kit.button('Save', {
         variant: 'primary',
         onClick: async () => {
-          if (!_0x4d836d.name.trim()) {
-            _0x34786a.textContent = 'Give the webhook a name.';
+          if (!draft.name.trim()) {
+            errorEl.textContent = 'Give the webhook a name.';
             return;
           }
-          if (!/^https?:\/\/\S+/i.test(_0x4d836d.url.trim())) {
-            _0x34786a.textContent =
-              'Enter a valid URL starting with http:// or https://.';
+          if (!/^https?:\/\/\S+/i.test(draft.url.trim())) {
+            errorEl.textContent = 'Enter a valid URL starting with http:// or https://.';
             return;
           }
-          if (!_0x4d836d.events.length) {
-            _0x34786a.textContent = 'Choose at least one event.';
+          if (!draft.events.length) {
+            errorEl.textContent = 'Choose at least one event.';
             return;
           }
-          await _0xd50b69.store.put(
+          await app.store.put(
             'webhooks',
-            Object.assign({}, _0x4d836d, {
-              name: _0x4d836d.name.trim(),
-              url: _0x4d836d.url.trim(),
+            Object.assign({}, draft, {
+              name: draft.name.trim(),
+              url: draft.url.trim(),
             }),
           );
-          _0x8b983e.close();
-          _0x3aecd5.toast('Webhook saved', 'success');
+          modal.close();
+          kit.toast('Webhook saved', 'success');
         },
       }),
     ),
   });
-  _0x122e4c();
-  _0x27a0cb();
+
+  renderHeaders();
+  checkPermission();
 }
-function openHistory(_0x142c9b, _0x43c836) {
-  const _0x2cc235 = h('div', {
-    class: 'wc-stack',
-  });
-  function _0x19227d() {
-    clear(_0x2cc235);
-    const _0x2c3ced = _0x142c9b.webhooks.logFor(_0x43c836).slice(0, 100);
-    _0x2cc235.appendChild(
-      _0x3aecd5.table(
-        ['Time', 'Webhook', 'Event', 'Result', ''],
-        _0x2c3ced.map((_0x3eaf37) => [
-          fmtDateTime(_0x3eaf37.createdAt),
-          _0x3eaf37.webhookName,
-          _0x3eaf37.event,
-          _0x3eaf37.ok
-            ? _0x3aecd5.chip('OK ' + _0x3eaf37.status, 'ok')
-            : _0x3aecd5.chip(
-                _0x3eaf37.status ? 'Failed ' + _0x3eaf37.status : 'Failed',
-                'danger',
-              ),
-          h(
-            'div',
-            {
-              class: 'wc-row-actions',
-            },
-            _0x3eaf37.error
-              ? h(
-                  'span',
-                  {
-                    class: 'wc-muted wc-small',
-                    title: _0x3eaf37.error,
-                  },
-                  truncate(_0x3eaf37.error, 30),
-                )
-              : null,
-            _0x3aecd5.iconButton('refresh-cw', 'Send again', async () => {
-              await _0x142c9b.webhooks
-                .resend(_0x3eaf37.id)
-                .catch((_0x1ed9ac) =>
-                  _0x3aecd5.toast(_0x1ed9ac.message, 'error'),
-                );
-              _0x19227d();
-            }),
-          ),
-        ]),
+
+// ─── Delivery History modal ──────────────────────────────────────────────────
+function openHistory(app, webhookId) {
+  // webhookId = undefined → global (all webhooks) view
+  const isGlobal = !webhookId;
+
+  const contentWrap = h('div', { class: 'wc-stack' });
+
+  // Global view: filter by webhook
+  let filterWebhookId = webhookId || '';
+  let filterEl = null;
+
+  if (isGlobal) {
+    const webhooks = app.store.all('webhooks');
+    const options = [
+      { value: '', label: 'All webhooks' },
+      ...webhooks.map((w) => ({ value: w.id, label: w.name })),
+    ];
+    filterEl = kit.multiSelect({
+      options,
+      value: filterWebhookId,
+      placeholder: 'Filter by webhook',
+      single: true,
+      onChange: (v) => {
+        filterWebhookId = v;
+        renderTable();
+      },
+    });
+  }
+
+  // ── Payload inline viewer ──
+  function makePayloadViewer(entry) {
+    if (!entry.payload) return null;
+    let open = false;
+    const pre = h('pre', { class: 'wc-payload-pre', hidden: true },
+      JSON.stringify(entry.payload, null, 2),
+    );
+    const btn = kit.button('View payload', {
+      size: 'sm',
+      icon: 'code',
+      onClick: () => {
+        open = !open;
+        pre.hidden = !open;
+        btn.querySelector('span').textContent = open ? 'Hide payload' : 'View payload';
+      },
+    });
+    return h('div', { class: 'wc-stack' }, btn, pre);
+  }
+
+  // ── Table renderer ──
+  function renderTable() {
+    clear(contentWrap);
+
+    const entries = app.webhooks
+      .logFor(filterWebhookId || undefined)
+      .slice(0, 100);
+
+    const columns = isGlobal
+      ? ['Time', 'Webhook', 'Event', 'Result', 'Actions']
+      : ['Time', 'Event', 'Result', 'Actions'];
+
+    const rows = entries.map((entry) => {
+      const resultChip = entry.ok
+        ? kit.chip('OK ' + entry.status, 'ok')
+        : kit.chip(entry.status ? 'Failed ' + entry.status : 'Failed', 'danger');
+
+      const actionsCell = h(
+        'div',
+        { class: 'wc-row-actions' },
+        entry.error
+          ? h('span', { class: 'wc-muted wc-small', title: entry.error },
+              truncate(entry.error, 30),
+            )
+          : null,
+        entry.payload ? makePayloadViewer(entry) : null,
+        kit.iconButton('refresh-cw', 'Send again', async () => {
+          await app.webhooks
+            .resend(entry.id)
+            .catch((err) => kit.toast(err.message, 'error'));
+          renderTable();
+        }),
+      );
+
+      if (isGlobal) {
+        return [
+          fmtDateTime(entry.createdAt),
+          entry.webhookName,
+          entry.event,
+          resultChip,
+          actionsCell,
+        ];
+      }
+      return [
+        fmtDateTime(entry.createdAt),
+        entry.event,
+        resultChip,
+        actionsCell,
+      ];
+    });
+
+    contentWrap.appendChild(
+      kit.table(
+        columns,
+        rows,
         {
-          empty: _0x3aecd5.emptyState(
+          empty: kit.emptyState(
             'history',
             'Nothing has been delivered yet',
           ),
@@ -293,177 +308,230 @@ function openHistory(_0x142c9b, _0x43c836) {
       ),
     );
   }
-  const _0x1c9e11 = _0x3aecd5.openModal({
-    title: 'Delivery history',
-    width: 720,
-    body: _0x2cc235,
+
+  const bodyEl = h(
+    'div',
+    { class: 'wc-stack' },
+    filterEl,
+    contentWrap,
+  );
+
+  const modal = kit.openModal({
+    title: isGlobal ? 'Delivery history (all)' : 'Delivery history',
+    width: isGlobal ? 780 : 680,
+    body: bodyEl,
   });
-  _0x19227d();
-  return _0x1c9e11;
+
+  // Auto-refresh when new log entries arrive
+  const unsubscribe = app.store.on(
+    'webhookLog',
+    debounce(renderTable, 80),
+  );
+  // Clean up listener when modal closes (monkey-patch close)
+  const origClose = modal.close.bind(modal);
+  modal.close = () => {
+    if (typeof unsubscribe === 'function') unsubscribe();
+    origClose();
+  };
+
+  renderTable();
+  return modal;
 }
+
+// ─── Copy to clipboard helper ────────────────────────────────────────────────
+function copyText(text) {
+  try {
+    navigator.clipboard.writeText(text).catch(() => {});
+  } catch (_) {}
+}
+
+// ─── Webhook card renderer ───────────────────────────────────────────────────
+function makeWebhookCard(app, wh, refresh) {
+  // Test button with loading state
+  let testing = false;
+  const testBtn = kit.iconButton('play', 'Send a test', async () => {
+    if (testing) return;
+    testing = true;
+    testBtn.disabled = true;
+    testBtn.title = 'Sending…';
+    try {
+      const result = await app.webhooks.test(wh.id);
+      kit.toast(
+        result.ok
+          ? 'Test delivered (' + result.status + ')'
+          : 'Test failed: ' + (result.error || result.status),
+        result.ok ? 'success' : 'error',
+      );
+    } catch (err) {
+      kit.toast(err.message, 'error');
+    } finally {
+      testing = false;
+      testBtn.disabled = false;
+      testBtn.title = 'Send a test';
+    }
+  });
+
+  // Last delivery status badge
+  const lastDelivery = wh.lastAt
+    ? h(
+        'span',
+        { class: 'wc-inline wc-whcard-delivery' },
+        kit.chip(wh.lastOk ? 'OK' : 'Failed', wh.lastOk ? 'ok' : 'danger'),
+        h('span', { class: 'wc-muted wc-small' }, fmtDateTime(wh.lastAt)),
+      )
+    : h('span', { class: 'wc-muted wc-small' }, 'Never delivered');
+
+  // Events chips (max 3, then +N)
+  const events = (wh.events || []);
+  const visibleEvents = events.slice(0, 3);
+  const moreCount = events.length - visibleEvents.length;
+  const eventsEl = h(
+    'div',
+    { class: 'wc-tags' },
+    visibleEvents.map((evId) =>
+      kit.chip(
+        (WEBHOOK_EVENTS.find((e) => e.id === evId) || { label: evId }).label,
+        'accent',
+      ),
+    ),
+    moreCount > 0 ? kit.chip('+' + moreCount, 'neutral') : null,
+  );
+
+  // URL row with copy button
+  const urlEl = h(
+    'div',
+    { class: 'wc-whcard-url' },
+    h('span', { class: 'wc-mono wc-whcard-urltext', title: wh.url }, wh.url),
+    kit.iconButton('copy', 'Copy URL', () => {
+      copyText(wh.url);
+      kit.toast('URL copied', 'success');
+    }),
+  );
+
+  const card = h(
+    'article',
+    { class: 'wc-card wc-whcard' },
+    // ── Card header ──
+    h(
+      'div',
+      { class: 'wc-whcard-head' },
+      h(
+        'div',
+        { class: 'wc-whcard-title-row' },
+        h('strong', { class: 'wc-whcard-name' }, wh.name),
+        wh.enabled !== false
+          ? kit.chip('Active', 'ok')
+          : kit.chip('Paused', 'neutral'),
+      ),
+      h(
+        'div',
+        { class: 'wc-row-actions' },
+        kit.toggle(
+          wh.enabled !== false,
+          (val) => app.store.patch('webhooks', wh.id, { enabled: val }),
+          'Active',
+        ),
+        testBtn,
+        kit.iconButton('history', 'Delivery history', () => openHistory(app, wh.id)),
+        kit.iconButton('pencil', 'Edit', () => openEditor(app, wh)),
+        kit.iconButton(
+          'trash-2',
+          'Delete',
+          async () => {
+            if (
+              await kit.confirmDialog('Delete this webhook?', {
+                danger: true,
+                confirmLabel: 'Delete',
+              })
+            ) {
+              app.store.remove('webhooks', wh.id);
+            }
+          },
+          'is-danger',
+        ),
+      ),
+    ),
+    // ── URL ──
+    urlEl,
+    // ── Events + last delivery ──
+    h(
+      'div',
+      { class: 'wc-whcard-foot' },
+      eventsEl,
+      lastDelivery,
+    ),
+  );
+
+  return card;
+}
+
+// ─── Panel export ────────────────────────────────────────────────────────────
 export default {
   id: 'webhooks',
   title: 'Webhook',
   subtitle:
     'Send events such as new messages, stage changes and reminders to the tools you already use.',
   icon: 'webhook',
-  render(_0x79fe28) {
-    const { app: _0x8a806e } = _0x79fe28;
-    const _0x44ccc5 = h('div', {
-      class: 'wc-stack',
-    });
-    function _0x13cd09() {
-      clear(_0x44ccc5);
-      const _0x4fdcf1 = _0x8a806e.store.all('webhooks');
-      _0x44ccc5.appendChild(
-        _0x3aecd5.banner(
-          'Each webhook sends a JSON request to your URL when the chosen event happens. Chrome asks for permission the first time you use a new website.',
+  render(ctx) {
+    const { app } = ctx;
+    const listWrap = h('div', { class: 'wc-stack' });
+
+    function refresh() {
+      clear(listWrap);
+
+      // Info banner
+      listWrap.appendChild(
+        kit.banner(
+          'Each webhook sends a JSON request to your URL when the chosen event happens. ' +
+          'Chrome asks for permission the first time you use a new website.',
           'info',
         ),
       );
-      _0x44ccc5.appendChild(
-        _0x3aecd5.table(
-          ['Name', 'Events', 'URL', 'Last delivery', 'Active', ''],
-          _0x4fdcf1.map((_0x34b572) => [
-            h('strong', null, _0x34b572.name),
-            h(
-              'div',
-              {
-                class: 'wc-tags',
-              },
-              (_0x34b572.events || []).slice(0, 2).map((_0x59efd5) =>
-                _0x3aecd5.chip(
-                  (
-                    WEBHOOK_EVENTS.find(
-                      (_0x462b32) => _0x462b32.id === _0x59efd5,
-                    ) || {
-                      label: _0x59efd5,
-                    }
-                  ).label,
-                  'accent',
-                ),
-              ),
-              (_0x34b572.events || []).length > 2
-                ? _0x3aecd5.chip('+' + (_0x34b572.events.length - 2), 'neutral')
-                : null,
-            ),
-            h(
-              'span',
-              {
-                class: 'wc-mono wc-cell-clip',
-              },
-              _0x34b572.url,
-            ),
-            _0x34b572.lastAt
-              ? h(
-                  'span',
-                  {
-                    class: 'wc-inline',
-                  },
-                  _0x3aecd5.chip(
-                    _0x34b572.lastOk ? 'OK' : 'Failed',
-                    _0x34b572.lastOk ? 'ok' : 'danger',
-                  ),
-                  h(
-                    'span',
-                    {
-                      class: 'wc-muted',
-                    },
-                    fmtDateTime(_0x34b572.lastAt),
-                  ),
-                )
-              : h(
-                  'span',
-                  {
-                    class: 'wc-muted',
-                  },
-                  'Never',
-                ),
-            _0x3aecd5.toggle(
-              _0x34b572.enabled !== false,
-              (_0x4b6b88) =>
-                _0x8a806e.store.patch('webhooks', _0x34b572.id, {
-                  enabled: _0x4b6b88,
-                }),
-              'Active',
-            ),
-            h(
-              'div',
-              {
-                class: 'wc-row-actions',
-              },
-              _0x3aecd5.iconButton('play', 'Send a test', async () => {
-                try {
-                  const _0x3a38d6 = await _0x8a806e.webhooks.test(_0x34b572.id);
-                  _0x3aecd5.toast(
-                    _0x3a38d6.ok
-                      ? 'Test delivered (' + _0x3a38d6.status + ')'
-                      : 'Test failed: ' + (_0x3a38d6.error || _0x3a38d6.status),
-                    _0x3a38d6.ok ? 'success' : 'error',
-                  );
-                } catch (_0x3bc5e9) {
-                  _0x3aecd5.toast(_0x3bc5e9.message, 'error');
-                }
-              }),
-              _0x3aecd5.iconButton('history', 'Delivery history', () =>
-                openHistory(_0x8a806e, _0x34b572.id),
-              ),
-              _0x3aecd5.iconButton('pencil', 'Edit', () =>
-                openEditor(_0x8a806e, _0x34b572),
-              ),
-              _0x3aecd5.iconButton(
-                'trash-2',
-                'Delete',
-                async () => {
-                  if (
-                    await _0x3aecd5.confirmDialog('Delete this webhook?', {
-                      danger: true,
-                      confirmLabel: 'Delete',
-                    })
-                  ) {
-                    _0x8a806e.store.remove('webhooks', _0x34b572.id);
-                  }
-                },
-                'is-danger',
-              ),
-            ),
-          ]),
-          {
-            empty: _0x3aecd5.emptyState(
-              'webhook',
-              'No webhooks yet',
-              'Add one to start sending events.',
-              _0x3aecd5.button('Add webhook', {
-                icon: 'plus',
-                variant: 'primary',
-                onClick: () => openEditor(_0x8a806e),
-              }),
-            ),
-          },
-        ),
-      );
+
+      const webhooks = app.store.all('webhooks');
+
+      if (!webhooks.length) {
+        listWrap.appendChild(
+          kit.emptyState(
+            'webhook',
+            'No webhooks yet',
+            'Add one to start sending events to your tools.',
+            kit.button('Add webhook', {
+              icon: 'plus',
+              variant: 'primary',
+              onClick: () => openEditor(app),
+            }),
+          ),
+        );
+        return;
+      }
+
+      // Render a card per webhook
+      for (const wh of webhooks) {
+        listWrap.appendChild(makeWebhookCard(app, wh, refresh));
+      }
     }
-    _0x79fe28.setActions([
-      _0x3aecd5.button('History', {
+
+    // ── Header action buttons ──
+    ctx.setActions([
+      kit.button('History', {
         icon: 'history',
-        onClick: () => openHistory(_0x8a806e),
+        onClick: () => openHistory(app),
       }),
-      _0x3aecd5.button('Add webhook', {
+      kit.button('Add webhook', {
         icon: 'plus',
         variant: 'primary',
-        onClick: () => openEditor(_0x8a806e),
+        onClick: () => openEditor(app),
       }),
     ]);
-    _0x79fe28.onDispose(
-      _0x8a806e.store.on('webhooks', debounce(_0x13cd09, 50)),
+
+    // ── Reactive: re-render on data changes ──
+    ctx.onDispose(
+      app.store.on('webhooks', debounce(refresh, 50)),
     );
-    _0x13cd09();
-    return h(
-      'div',
-      {
-        class: 'wc-screen',
-      },
-      _0x44ccc5,
-    );
+
+    refresh();
+
+    return h('div', { class: 'wc-screen' }, listWrap);
   },
 };

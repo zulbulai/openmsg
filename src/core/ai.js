@@ -9,7 +9,7 @@ export const AI_PROVIDERS = {
     label: 'Gemini (Google)',
     origin: 'https://generativelanguage.googleapis.com',
     keyUrl: 'aistudio.google.com/app/apikey',
-    models: ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'],
+    models: ['gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'],
   },
   anthropic: {
     label: 'Claude (Anthropic)',
@@ -109,11 +109,12 @@ export function createAi({ store: _0xa03581, http: _0x51edd8 }) {
       );
     },
     modelFor(_0x46fe6e) {
-      return (
-        (_0xa03581.setting('aiModels', {}) || {})[
-          _0x46fe6e || _0x59eb26.provider()
-        ] || AI_PROVIDERS[_0x46fe6e || _0x59eb26.provider()].models[0]
-      );
+      const _0xprov = _0x46fe6e || _0x59eb26.provider();
+      const _0xsaved = (_0xa03581.setting('aiModels', {}) || {})[_0xprov];
+      if (_0xprov === 'gemini' && (!_0xsaved || _0xsaved === 'gemini-2.0-flash')) {
+        return 'gemini-3.6-flash';
+      }
+      return _0xsaved || AI_PROVIDERS[_0xprov].models[0];
     },
     isConfigured(_0x171ab4) {
       return !!_0x59eb26.keyFor(_0x171ab4);
@@ -135,7 +136,10 @@ export function createAi({ store: _0xa03581, http: _0x51edd8 }) {
             ' API key in Settings first.',
         );
       }
-      const _0x3f4e9f = _0x4871a5 || _0x59eb26.modelFor(_0x4a0102);
+      let _0x3f4e9f = _0x4871a5 || _0x59eb26.modelFor(_0x4a0102);
+      if (_0x4a0102 === 'gemini' && (!_0x3f4e9f || _0x3f4e9f === 'gemini-2.0-flash')) {
+        _0x3f4e9f = 'gemini-3.6-flash';
+      }
       let _0x50f2c1;
       if (_0x4a0102 === 'openai') {
         _0x50f2c1 = await _0x51edd8.request({
