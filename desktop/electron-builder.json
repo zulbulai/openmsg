@@ -10,6 +10,11 @@
     "src/**/*",
     "package.json"
   ],
+  "publish": {
+    "provider": "github",
+    "owner": "zulbulai",
+    "repo": "openmsg"
+  },
   "win": {
     "target": [
       {
