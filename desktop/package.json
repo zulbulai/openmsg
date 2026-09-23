@@ -26,7 +26,10 @@
     "type": "git",
     "url": "https://github.com/zulbulai/openmsg.git"
   },
-  "author": "OpenMsg Team",
+  "author": {
+    "name": "OpenMsg Team",
+    "email": "support@openmsg.org"
+  },
   "license": "Apache-2.0",
   "dependencies": {
     "xlsx": "^0.18.5"
