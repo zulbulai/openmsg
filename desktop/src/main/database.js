@@ -85,7 +85,146 @@ class LocalDatabase {
         activatedAt: null,
         plan: 'COMMUNITY_PRO_UNLIMITED',
         expiresAt: null
-      }
+      },
+      kanbanStages: [
+        { id: 'stage_lead', name: 'New Leads', color: '#7dd3fc', textColor: '#14110a', order: 0 },
+        { id: 'stage_contacted', name: 'Contacted', color: '#fde047', textColor: '#14110a', order: 1 },
+        { id: 'stage_qualified', name: 'Qualified', color: '#86efac', textColor: '#14110a', order: 2 },
+        { id: 'stage_proposal', name: 'Proposal Sent', color: '#fdba74', textColor: '#14110a', order: 3 },
+        { id: 'stage_won', name: 'Won / Closed', color: '#5eead4', textColor: '#14110a', order: 4 },
+        { id: 'stage_lost', name: 'Lost', color: '#fca5a5', textColor: '#14110a', order: 5 }
+      ],
+      kanbanCards: [],
+      cannedResponses: [
+        {
+          id: 'canned_intro',
+          shortcut: '/intro',
+          title: 'Welcome Introduction',
+          category: 'Sales',
+          message: 'Hello! Thank you for connecting with us. How can we help your business grow today?',
+          createdAt: Date.now()
+        },
+        {
+          id: 'canned_pricing',
+          shortcut: '/pricing',
+          title: 'Pricing & Plans',
+          category: 'Sales',
+          message: 'Our plans start from $29/mo with unlimited messaging, CRM integration, and AI bot capabilities. Would you like a 10-minute demo?',
+          createdAt: Date.now()
+        },
+        {
+          id: 'canned_support',
+          shortcut: '/support',
+          title: 'Customer Support',
+          category: 'Support',
+          message: 'Thank you for reaching out. Our support team is reviewing your inquiry and will update you shortly.',
+          createdAt: Date.now()
+        },
+        {
+          id: 'canned_thanks',
+          shortcut: '/thanks',
+          title: 'Closing Thank You',
+          category: 'General',
+          message: 'Thank you for choosing OpenMsg! Let us know if you need anything else.',
+          createdAt: Date.now()
+        }
+      ],
+      reminders: [],
+      webhooks: [],
+      flows: [
+        {
+          id: 'flow_welcome_lead',
+          name: 'Welcome & Lead Qualification Flow',
+          description: 'Engages new contacts, asks for their business needs, and auto-qualifies them into CRM.',
+          trigger: {
+            type: 'keyword',
+            keywords: ['hi', 'hello', 'start', 'demo', 'info'],
+            match: 'contains',
+            caseSensitive: false
+          },
+          enabled: true,
+          createdAt: Date.now(),
+          nodes: [
+            {
+              id: 'node_start',
+              type: 'start',
+              title: 'Start Conversation',
+              x: 80,
+              y: 120,
+              data: {}
+            },
+            {
+              id: 'node_welcome',
+              type: 'text',
+              title: 'Welcome Message',
+              x: 360,
+              y: 120,
+              data: {
+                text: '{Hello|Hi|Greetings}! Welcome to our official WhatsApp assistant.\nHow can our team help your business today?',
+                typingDelay: 1,
+                wait: false
+              }
+            },
+            {
+              id: 'node_menu',
+              type: 'buttons',
+              title: 'Service Options',
+              x: 680,
+              y: 120,
+              data: {
+                text: 'Please select one of the options below to get started:',
+                buttons: [
+                  { id: 'btn_1', text: '💼 View Services' },
+                  { id: 'btn_2', text: '💰 Pricing & Plans' },
+                  { id: 'btn_3', text: '👨‍💼 Speak to Agent' }
+                ],
+                saveAs: 'selected_service'
+              }
+            },
+            {
+              id: 'node_services_info',
+              type: 'text',
+              title: 'Services Info',
+              x: 1040,
+              y: 40,
+              data: {
+                text: '🚀 *Our Core Services:*\n1. Automated WhatsApp CRM & Live Chat\n2. Google Maps B2B Lead Scraper\n3. High-Speed Bulk Campaign Dispatcher\n4. AI Autoresponders & Interactive Flow Builder\n\nWould you like a demo or quotation?',
+                wait: false
+              }
+            },
+            {
+              id: 'node_pricing_info',
+              type: 'text',
+              title: 'Pricing Info',
+              x: 1040,
+              y: 200,
+              data: {
+                text: '💎 *OpenMsg Community Edition is 100% FREE & UNLOCKED!*\nAll Pro features, unlimited numbers, and anti-ban safeguards are permanently active.\n\nType *hi* anytime to see the menu again.',
+                wait: false
+              }
+            },
+            {
+              id: 'node_agent_handoff',
+              type: 'handoff',
+              title: 'Human Agent Handoff',
+              x: 1040,
+              y: 380,
+              data: {
+                customerMessage: 'Connecting you to our senior support executive now. Please hold on for a moment! 🔔',
+                agentMessage: 'Customer {{phone}} requested live agent assistance.'
+              }
+            }
+          ],
+          edges: [
+            { id: 'e1', from: 'node_start', handle: 'next', to: 'node_welcome' },
+            { id: 'e2', from: 'node_welcome', handle: 'next', to: 'node_menu' },
+            { id: 'e3', from: 'node_menu', handle: 'option:0', to: 'node_services_info' },
+            { id: 'e4', from: 'node_menu', handle: 'option:1', to: 'node_pricing_info' },
+            { id: 'e5', from: 'node_menu', handle: 'option:2', to: 'node_agent_handoff' }
+          ]
+        }
+      ],
+      flowSessions: {}
     };
 
     this.init();
@@ -581,6 +720,436 @@ class LocalDatabase {
 
   clearWarmerLogs() {
     this.data.warmerLogs = [];
+    this.saveSync();
+    return true;
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  LIVE CHAT / INBOX PERSISTENCE
+  // ═══════════════════════════════════════════════════════
+  getChatThreads(accountId = null) {
+    this.data.chatThreads = this.data.chatThreads || {};
+    const threads = Object.values(this.data.chatThreads);
+    const filtered = accountId ? threads.filter(t => !t.accountId || t.accountId === accountId) : threads;
+    return filtered.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+  }
+
+  getChatMessages(phone) {
+    if (!phone) return [];
+    const rawId = String(phone).trim();
+    const cleanDigits = rawId.includes('@') ? rawId.replace(/@.*$/, '').replace(/\D+/g, '') : rawId.replace(/\D+/g, '');
+    const cleanPhone = cleanDigits || rawId;
+    this.data.chatMessages = this.data.chatMessages || {};
+    return this.data.chatMessages[cleanPhone] || this.data.chatMessages[rawId] || [];
+  }
+
+  upsertChatThread({ accountId, phone, chatId, isGroup, name, lastMessage, timestamp, unreadCount }) {
+    if (!phone && !chatId) return null;
+    const rawId = String(chatId || phone || '').trim();
+    const cleanDigits = rawId.includes('@') ? rawId.replace(/@.*$/, '').replace(/\D+/g, '') : rawId.replace(/\D+/g, '');
+    const key = cleanDigits || rawId;
+    const resolvedChatId = rawId.includes('@') ? rawId : (key.startsWith('120363') ? (key + '@g.us') : (key + '@c.us'));
+    const isGrp = typeof isGroup === 'boolean' ? isGroup : Boolean(resolvedChatId.includes('@g.us') || key.startsWith('120363'));
+
+    const ts = timestamp ? (timestamp < 1e11 ? timestamp * 1000 : timestamp) : Date.now();
+
+    this.data.chatThreads = this.data.chatThreads || {};
+    const existing = this.data.chatThreads[key] || {
+      phone: key,
+      chatId: resolvedChatId,
+      isGroup: isGrp,
+      name: name || key,
+      unreadCount: 0,
+      accountId
+    };
+
+    existing.chatId = resolvedChatId;
+    existing.isGroup = isGrp;
+    if (name && name !== key) existing.name = name;
+    if (accountId) existing.accountId = accountId;
+    if (lastMessage) existing.lastMessage = lastMessage;
+    if (ts > (existing.timestamp || 0)) existing.timestamp = ts;
+    if (typeof unreadCount === 'number') existing.unreadCount = unreadCount;
+
+    this.data.chatThreads[key] = existing;
+    this.saveSync();
+    return existing;
+  }
+
+  saveChatMessage({ accountId, phone, chatId, name, fromMe, body, timestamp, type, mediaUrl, filename, skipUnread }) {
+    if (!phone && !chatId) return null;
+    const rawId = String(chatId || phone || '').trim();
+    const cleanDigits = rawId.includes('@') ? rawId.replace(/@.*$/, '').replace(/\D+/g, '') : rawId.replace(/\D+/g, '');
+    const cleanPhone = cleanDigits || rawId;
+    const resolvedChatId = rawId.includes('@') ? rawId : (cleanPhone.startsWith('120363') ? (cleanPhone + '@g.us') : (cleanPhone + '@c.us'));
+    const isGrp = Boolean(resolvedChatId.includes('@g.us') || cleanPhone.startsWith('120363'));
+
+    const ts = timestamp || Date.now();
+
+    this.data.chatThreads = this.data.chatThreads || {};
+    this.data.chatMessages = this.data.chatMessages || {};
+
+    const existingThread = this.data.chatThreads[cleanPhone] || {
+      phone: cleanPhone,
+      chatId: resolvedChatId,
+      isGroup: isGrp,
+      name: name || cleanPhone,
+      unreadCount: 0,
+      accountId
+    };
+
+    existingThread.chatId = resolvedChatId;
+    existingThread.isGroup = isGrp;
+    existingThread.lastMessage = body || '';
+    existingThread.timestamp = ts;
+    if (name && name !== cleanPhone) existingThread.name = name;
+    if (accountId) existingThread.accountId = accountId;
+    if (!fromMe && !skipUnread) existingThread.unreadCount = (existingThread.unreadCount || 0) + 1;
+
+    this.data.chatThreads[cleanPhone] = existingThread;
+
+    const msgEntry = {
+      id: 'msg_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+      fromMe: Boolean(fromMe),
+      body: body || '',
+      type: type || 'chat',
+      mediaUrl: mediaUrl || '',
+      filename: filename || '',
+      chatId: resolvedChatId,
+      timestamp: ts,
+      status: fromMe ? 'sent' : 'received'
+    };
+
+    if (!this.data.chatMessages[cleanPhone]) {
+      this.data.chatMessages[cleanPhone] = [];
+    }
+    this.data.chatMessages[cleanPhone].push(msgEntry);
+
+    // Keep last 200 messages per contact
+    if (this.data.chatMessages[cleanPhone].length > 200) {
+      this.data.chatMessages[cleanPhone].shift();
+    }
+
+    this.saveSync();
+    return { thread: existingThread, message: msgEntry };
+  }
+
+  markChatRead(phone) {
+    if (!phone) return false;
+    const rawId = String(phone).trim();
+    const cleanDigits = rawId.includes('@') ? rawId.replace(/@.*$/, '').replace(/\D+/g, '') : rawId.replace(/\D+/g, '');
+    const cleanPhone = cleanDigits || rawId;
+    this.data.chatThreads = this.data.chatThreads || {};
+    if (this.data.chatThreads[cleanPhone]) {
+      this.data.chatThreads[cleanPhone].unreadCount = 0;
+      this.saveSync();
+      return true;
+    }
+    return false;
+  }
+
+  deleteChatThread(phone) {
+    if (!phone) return false;
+    const rawId = String(phone).trim();
+    const cleanDigits = rawId.includes('@') ? rawId.replace(/@.*$/, '').replace(/\D+/g, '') : rawId.replace(/\D+/g, '');
+    const cleanPhone = cleanDigits || rawId;
+    this.data.chatThreads = this.data.chatThreads || {};
+    this.data.chatMessages = this.data.chatMessages || {};
+    delete this.data.chatThreads[cleanPhone];
+    delete this.data.chatMessages[cleanPhone];
+    this.saveSync();
+    return true;
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  KANBAN PIPELINE CRM (Chrome Extension Port)
+  // ═══════════════════════════════════════════════════════
+  getKanbanData() {
+    this.data.kanbanStages = this.data.kanbanStages || [];
+    this.data.kanbanCards = this.data.kanbanCards || [];
+    if (!this.data.kanbanStages.length) {
+      this.data.kanbanStages = [
+        { id: 'stage_lead', name: 'New Leads', color: '#7dd3fc', textColor: '#14110a', order: 0 },
+        { id: 'stage_contacted', name: 'Contacted', color: '#fde047', textColor: '#14110a', order: 1 },
+        { id: 'stage_qualified', name: 'Qualified', color: '#86efac', textColor: '#14110a', order: 2 },
+        { id: 'stage_proposal', name: 'Proposal Sent', color: '#fdba74', textColor: '#14110a', order: 3 },
+        { id: 'stage_won', name: 'Won / Closed', color: '#5eead4', textColor: '#14110a', order: 4 },
+        { id: 'stage_lost', name: 'Lost', color: '#fca5a5', textColor: '#14110a', order: 5 }
+      ];
+      this.saveSync();
+    }
+    return {
+      stages: [...this.data.kanbanStages].sort((a, b) => (a.order || 0) - (b.order || 0)),
+      cards: this.data.kanbanCards
+    };
+  }
+
+  saveKanbanStage(stage) {
+    this.data.kanbanStages = this.data.kanbanStages || [];
+    if (!stage.id) {
+      stage.id = 'stage_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+      stage.order = this.data.kanbanStages.length;
+      this.data.kanbanStages.push(stage);
+    } else {
+      const idx = this.data.kanbanStages.findIndex(s => s.id === stage.id);
+      if (idx >= 0) {
+        this.data.kanbanStages[idx] = { ...this.data.kanbanStages[idx], ...stage };
+      } else {
+        this.data.kanbanStages.push(stage);
+      }
+    }
+    this.saveSync();
+    return this.getKanbanData();
+  }
+
+  deleteKanbanStage(stageId) {
+    this.data.kanbanStages = (this.data.kanbanStages || []).filter(s => s.id !== stageId);
+    const fallbackStage = this.data.kanbanStages[0] ? this.data.kanbanStages[0].id : '';
+    (this.data.kanbanCards || []).forEach(c => {
+      if (c.stageId === stageId) c.stageId = fallbackStage;
+    });
+    this.saveSync();
+    return this.getKanbanData();
+  }
+
+  saveKanbanCard(card) {
+    this.data.kanbanCards = this.data.kanbanCards || [];
+    if (!card.id) {
+      card.id = 'kcard_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+      card.createdAt = Date.now();
+      card.updatedAt = Date.now();
+      this.data.kanbanCards.push(card);
+    } else {
+      const idx = this.data.kanbanCards.findIndex(c => c.id === card.id);
+      if (idx >= 0) {
+        this.data.kanbanCards[idx] = { ...this.data.kanbanCards[idx], ...card, updatedAt: Date.now() };
+      } else {
+        card.updatedAt = Date.now();
+        this.data.kanbanCards.push(card);
+      }
+    }
+    this.saveSync();
+    return this.getKanbanData();
+  }
+
+  moveKanbanCard(cardId, newStageId) {
+    this.data.kanbanCards = this.data.kanbanCards || [];
+    const card = this.data.kanbanCards.find(c => c.id === cardId);
+    if (card) {
+      card.stageId = newStageId;
+      card.updatedAt = Date.now();
+      this.saveSync();
+      return true;
+    }
+    return false;
+  }
+
+  deleteKanbanCard(cardId) {
+    this.data.kanbanCards = (this.data.kanbanCards || []).filter(c => c.id !== cardId);
+    this.saveSync();
+    return this.getKanbanData();
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  CANNED RESPONSES (Chrome Extension Port)
+  // ═══════════════════════════════════════════════════════
+  getCannedResponses() {
+    this.data.cannedResponses = this.data.cannedResponses || [];
+    return this.data.cannedResponses;
+  }
+
+  saveCannedResponse(canned) {
+    this.data.cannedResponses = this.data.cannedResponses || [];
+    if (!canned.id) {
+      canned.id = 'canned_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+      canned.createdAt = Date.now();
+      this.data.cannedResponses.unshift(canned);
+    } else {
+      const idx = this.data.cannedResponses.findIndex(c => c.id === canned.id);
+      if (idx >= 0) {
+        this.data.cannedResponses[idx] = { ...this.data.cannedResponses[idx], ...canned, updatedAt: Date.now() };
+      } else {
+        this.data.cannedResponses.unshift(canned);
+      }
+    }
+    this.saveSync();
+    return this.data.cannedResponses;
+  }
+
+  deleteCannedResponse(id) {
+    this.data.cannedResponses = (this.data.cannedResponses || []).filter(c => c.id !== id);
+    this.saveSync();
+    return this.data.cannedResponses;
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  NOTES & REMINDERS (Chrome Extension Port)
+  // ═══════════════════════════════════════════════════════
+  getReminders() {
+    this.data.reminders = this.data.reminders || [];
+    return [...this.data.reminders].sort((a, b) => (a.dueAt || 0) - (b.dueAt || 0));
+  }
+
+  saveReminder(reminder) {
+    this.data.reminders = this.data.reminders || [];
+    if (!reminder.id) {
+      reminder.id = 'rem_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+      reminder.createdAt = Date.now();
+      reminder.completed = false;
+      this.data.reminders.unshift(reminder);
+    } else {
+      const idx = this.data.reminders.findIndex(r => r.id === reminder.id);
+      if (idx >= 0) {
+        this.data.reminders[idx] = { ...this.data.reminders[idx], ...reminder };
+      } else {
+        this.data.reminders.unshift(reminder);
+      }
+    }
+    this.saveSync();
+    return this.getReminders();
+  }
+
+  toggleReminder(id) {
+    this.data.reminders = this.data.reminders || [];
+    const r = this.data.reminders.find(rem => rem.id === id);
+    if (r) {
+      r.completed = !r.completed;
+      this.saveSync();
+      return true;
+    }
+    return false;
+  }
+
+  deleteReminder(id) {
+    this.data.reminders = (this.data.reminders || []).filter(r => r.id !== id);
+    this.saveSync();
+    return this.getReminders();
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  WEBHOOKS & AUTOMATIONS (Chrome Extension Port)
+  // ═══════════════════════════════════════════════════════
+  getWebhooks() {
+    this.data.webhooks = this.data.webhooks || [];
+    return this.data.webhooks;
+  }
+
+  saveWebhook(wh) {
+    this.data.webhooks = this.data.webhooks || [];
+    if (!wh.id) {
+      wh.id = 'wh_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+      wh.createdAt = Date.now();
+      wh.enabled = wh.enabled !== false;
+      this.data.webhooks.unshift(wh);
+    } else {
+      const idx = this.data.webhooks.findIndex(w => w.id === wh.id);
+      if (idx >= 0) {
+        this.data.webhooks[idx] = { ...this.data.webhooks[idx], ...wh };
+      } else {
+        this.data.webhooks.unshift(wh);
+      }
+    }
+    this.saveSync();
+    return this.data.webhooks;
+  }
+
+  deleteWebhook(id) {
+    this.data.webhooks = (this.data.webhooks || []).filter(w => w.id !== id);
+    this.saveSync();
+    return this.data.webhooks;
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  VISUAL FLOW BUILDER & CHATBOT ENGINE
+  // ═══════════════════════════════════════════════════════
+  getFlows() {
+    this.data.flows = this.data.flows || [];
+    return this.data.flows;
+  }
+
+  getFlow(id) {
+    return (this.data.flows || []).find(f => f.id === id) || null;
+  }
+
+  saveFlow(flow) {
+    this.data.flows = this.data.flows || [];
+    if (!flow.id) {
+      flow.id = 'flow_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+      flow.createdAt = Date.now();
+      flow.updatedAt = Date.now();
+      flow.enabled = flow.enabled !== false;
+      this.data.flows.unshift(flow);
+    } else {
+      const idx = this.data.flows.findIndex(f => f.id === flow.id);
+      flow.updatedAt = Date.now();
+      if (idx >= 0) {
+        this.data.flows[idx] = { ...this.data.flows[idx], ...flow };
+      } else {
+        this.data.flows.unshift(flow);
+      }
+    }
+    this.saveSync();
+    return flow;
+  }
+
+  deleteFlow(id) {
+    this.data.flows = (this.data.flows || []).filter(f => f.id !== id);
+    this.saveSync();
+    return true;
+  }
+
+  toggleFlow(id, enabled) {
+    const f = (this.data.flows || []).find(flow => flow.id === id);
+    if (f) {
+      f.enabled = typeof enabled === 'boolean' ? enabled : !f.enabled;
+      f.updatedAt = Date.now();
+      this.saveSync();
+      return f;
+    }
+    return null;
+  }
+
+  duplicateFlow(id) {
+    const orig = this.getFlow(id);
+    if (!orig) return null;
+    const copy = JSON.parse(JSON.stringify(orig));
+    copy.id = 'flow_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+    copy.name = `${orig.name} (Copy)`;
+    copy.createdAt = Date.now();
+    copy.updatedAt = Date.now();
+    if (copy.trigger && copy.trigger.keywords) {
+      copy.trigger.keywords = copy.trigger.keywords.map(k => `${k}_copy`);
+    }
+    this.data.flows.unshift(copy);
+    this.saveSync();
+    return copy;
+  }
+
+  getFlowSession(phone) {
+    if (!phone) return null;
+    const cleanPhone = String(phone).replace(/\D+/g, '');
+    this.data.flowSessions = this.data.flowSessions || {};
+    return this.data.flowSessions[cleanPhone] || null;
+  }
+
+  saveFlowSession(phone, session) {
+    if (!phone) return null;
+    const cleanPhone = String(phone).replace(/\D+/g, '');
+    this.data.flowSessions = this.data.flowSessions || {};
+    if (!session) {
+      delete this.data.flowSessions[cleanPhone];
+    } else {
+      this.data.flowSessions[cleanPhone] = { ...session, updatedAt: Date.now() };
+    }
+    this.saveSync();
+    return this.data.flowSessions[cleanPhone];
+  }
+
+  clearFlowSession(phone) {
+    if (!phone) return false;
+    const cleanPhone = String(phone).replace(/\D+/g, '');
+    this.data.flowSessions = this.data.flowSessions || {};
+    delete this.data.flowSessions[cleanPhone];
     this.saveSync();
     return true;
   }

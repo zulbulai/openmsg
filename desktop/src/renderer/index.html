@@ -63,9 +63,44 @@
             </button>
           </li>
           <li class="nav-item">
+            <button class="nav-btn" data-tab="livechat">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+              <span>Live Chat</span>
+              <span class="nav-badge-new">PRO</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-btn" data-tab="kanban">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="5" height="18" rx="1"></rect><rect x="10" y="3" width="5" height="12" rx="1"></rect><rect x="17" y="3" width="5" height="15" rx="1"></rect></svg>
+              <span>Kanban CRM</span>
+              <span class="nav-badge-new" style="background:#ffc72c; color:#18191b;">CRM</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-btn" data-tab="flows">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="6" r="3"></circle><path d="M5 9v6"></path><circle cx="5" cy="18" r="3"></circle><path d="M8 6h5a4 4 0 0 1 4 4v2"></path><circle cx="17" cy="16" r="3"></circle></svg>
+              <span>Flow Builder</span>
+              <span class="nav-badge-new" style="background:#ffc72c; color:#18191b;">HOT</span>
+            </button>
+          </li>
+          <li class="nav-item">
             <button class="nav-btn" data-tab="campaigns">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"></path><path d="M22 2l-7 20-4-9-9-4 20-7z"></path></svg>
               <span>Bulk Campaign</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-btn" data-tab="canned">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path><line x1="9" y1="10" x2="15" y2="10"></line><line x1="12" y1="7" x2="12" y2="13"></line></svg>
+              <span>Canned Replies</span>
+              <span class="nav-badge-new" style="background:#ffc72c; color:#18191b;">CRM</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-btn" data-tab="calendar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              <span>Calendar</span>
+              <span class="nav-badge-new" style="background:#ffc72c; color:#18191b;">CRM</span>
             </button>
           </li>
           <li class="nav-item">
@@ -108,9 +143,23 @@
             </button>
           </li>
           <li class="nav-item">
+            <button class="nav-btn" data-tab="reminders">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              <span>Reminders</span>
+              <span class="nav-badge-new" style="background:#ffc72c; color:#18191b;">CRM</span>
+            </button>
+          </li>
+          <li class="nav-item">
             <button class="nav-btn" data-tab="chatbot">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4"></path><line x1="8" y1="16" x2="8.01" y2="16"></line><line x1="16" y1="16" x2="16.01" y2="16"></line></svg>
               <span>AI & Chatbot</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-btn" data-tab="webhooks">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+              <span>Webhooks</span>
+              <span class="nav-badge-new" style="background:#ffc72c; color:#18191b;">CRM</span>
             </button>
           </li>
           <li class="nav-item">
@@ -208,6 +257,97 @@
 
           <!-- 16-Tool Cards Grid -->
           <div class="tools-grid" id="toolsGrid">
+            <!-- 0. Live Chat & Unified Inbox CRM (NEW) -->
+            <div class="tool-card" data-tab="livechat">
+              <div class="tool-card-top">
+                <div class="tool-icon-wrap" style="background:rgba(59,130,246,0.12); color:#3b82f6; border-color:rgba(59,130,246,0.25);">💬</div>
+                <span class="tool-badge badge-popular">LIVE CHAT</span>
+              </div>
+              <h4 class="tool-title">Multi-Account Live Chat CRM</h4>
+              <p class="tool-desc">Unified inbox to view active WhatsApp conversations, reply in real time, apply Spintax templates, and track unread chats.</p>
+              <div class="tool-footer">
+                <span class="tool-action-link">Open Live Chat &rarr;</span>
+              </div>
+            </div>
+
+            <!-- Kanban CRM Pipeline (Extension Port) -->
+            <div class="tool-card" data-tab="kanban">
+              <div class="tool-card-top">
+                <div class="tool-icon-wrap" style="background:rgba(255,199,44,0.12); color:#ffc72c; border-color:rgba(255,199,44,0.3);">📊</div>
+                <span class="tool-badge badge-popular" style="background:#ffc72c; color:#18191b;">CRM PIPELINE</span>
+              </div>
+              <h4 class="tool-title">Kanban Sales Pipeline</h4>
+              <p class="tool-desc">Visual drag-and-drop lead stages (Leads, Contacted, Qualified, Won/Lost) directly ported from OpenMsg Extension.</p>
+              <div class="tool-footer">
+                <span class="tool-action-link">Open Kanban &rarr;</span>
+              </div>
+            </div>
+
+            <!-- Visual Flow Builder & Workflows (Extension Port) -->
+            <div class="tool-card" data-tab="flows">
+              <div class="tool-card-top">
+                <div class="tool-icon-wrap" style="background:rgba(255,199,44,0.15); color:#ffc72c; border-color:rgba(255,199,44,0.35);">🔀</div>
+                <span class="tool-badge badge-popular" style="background:#ffc72c; color:#18191b;">FLOW BUILDER</span>
+              </div>
+              <h4 class="tool-title">Visual Flow Builder &amp; Chatbots</h4>
+              <p class="tool-desc">Build multi-step conversational flows, interactive buttons, variable capture, and CRM branching with drag &amp; drop canvas.</p>
+              <div class="tool-footer">
+                <span class="tool-action-link">Open Flow Builder &rarr;</span>
+              </div>
+            </div>
+
+            <!-- Canned Replies (Extension Port) -->
+            <div class="tool-card" data-tab="canned">
+              <div class="tool-card-top">
+                <div class="tool-icon-wrap" style="background:rgba(255,199,44,0.12); color:#ffc72c; border-color:rgba(255,199,44,0.3);">💬</div>
+                <span class="tool-badge badge-new" style="background:#ffc72c; color:#18191b;">QUICK REPLIES</span>
+              </div>
+              <h4 class="tool-title">Canned Responses Library</h4>
+              <p class="tool-desc">Organize reusable templates with slash shortcuts (/intro, /pricing) for 1-click dispatch into Live Chat.</p>
+              <div class="tool-footer">
+                <span class="tool-action-link">Manage Replies &rarr;</span>
+              </div>
+            </div>
+
+            <!-- Marketing Calendar (Extension Port) -->
+            <div class="tool-card" data-tab="calendar">
+              <div class="tool-card-top">
+                <div class="tool-icon-wrap" style="background:rgba(125,196,255,0.15); color:#7dc4ff; border-color:rgba(125,196,255,0.3);">📅</div>
+                <span class="tool-badge badge-new" style="background:#7dc4ff; color:#18191b;">CALENDAR</span>
+              </div>
+              <h4 class="tool-title">Broadcast Calendar</h4>
+              <p class="tool-desc">Interactive month calendar showing scheduled bulk campaigns, automated broadcasts, and due follow-ups.</p>
+              <div class="tool-footer">
+                <span class="tool-action-link">Open Calendar &rarr;</span>
+              </div>
+            </div>
+
+            <!-- Contact Reminders (Extension Port) -->
+            <div class="tool-card" data-tab="reminders">
+              <div class="tool-card-top">
+                <div class="tool-icon-wrap" style="background:rgba(245,158,11,0.15); color:#f59e0b; border-color:rgba(245,158,11,0.3);">⏰</div>
+                <span class="tool-badge badge-new" style="background:#f59e0b; color:#18191b;">REMINDERS</span>
+              </div>
+              <h4 class="tool-title">Follow-up Reminders & Notes</h4>
+              <p class="tool-desc">Set date & time alarms for important contact follow-ups with overdue alerts and sticky notes.</p>
+              <div class="tool-footer">
+                <span class="tool-action-link">View Reminders &rarr;</span>
+              </div>
+            </div>
+
+            <!-- Webhooks & Integrations (Extension Port) -->
+            <div class="tool-card" data-tab="webhooks">
+              <div class="tool-card-top">
+                <div class="tool-icon-wrap" style="background:rgba(139,92,246,0.15); color:#8b5cf6; border-color:rgba(139,92,246,0.3);">🔗</div>
+                <span class="tool-badge badge-new" style="background:#8b5cf6; color:#fff;">INTEGRATIONS</span>
+              </div>
+              <h4 class="tool-title">Webhooks & Zapier Sync</h4>
+              <p class="tool-desc">Forward WhatsApp incoming messages and campaign completion events to Zapier, Make, or n8n in real-time.</p>
+              <div class="tool-footer">
+                <span class="tool-action-link">Configure Hooks &rarr;</span>
+              </div>
+            </div>
+
             <!-- 1. Bulk Campaign Sender -->
             <div class="tool-card" data-tab="campaigns">
               <div class="tool-card-top">
@@ -439,24 +579,550 @@
           <div class="qr-modal-overlay" id="qrModal" style="display: none;">
             <div class="qr-modal-content">
               <div class="qr-modal-header">
-                <h3 id="qrModalTitle">Scan WhatsApp QR Code</h3>
+                <div>
+                  <h3 id="qrModalTitle" style="margin-bottom:2px;">Scan WhatsApp QR Code</h3>
+                  <span id="qrStatusText" style="font-size:12px; color:var(--text-muted);">Initializing WhatsApp Web session...</span>
+                </div>
                 <button class="btn-close" id="closeQrModal">&times;</button>
               </div>
               <div class="qr-modal-body">
-                <div class="qr-box" id="qrContainer">
+                <div class="qr-box" id="qrContainer" style="min-height:260px; display:flex; align-items:center; justify-content:center; flex-direction:column; position:relative;">
                   <div class="qr-spinner" id="qrLoading">
                     <div class="spinner"></div>
-                    <p>Generating session QR code...</p>
+                    <p style="margin-top:8px;">Connecting to WhatsApp servers...</p>
+                    <span style="font-size:11px; color:var(--text-dim);">This usually takes 2-5 seconds on first launch</span>
                   </div>
-                  <canvas id="qrCanvas" style="display:none;"></canvas>
+                  <!-- Direct base64 image rendered by Node/WhatsApp -->
+                  <img id="qrImage" style="display:none; width:240px; height:240px; border-radius:10px; background:#fff; padding:8px; box-shadow:0 8px 24px rgba(0,0,0,0.5);" alt="WhatsApp QR Code">
+                  <!-- Fallback Canvas -->
+                  <canvas id="qrCanvas" style="display:none; width:240px; height:240px; border-radius:10px; background:#fff; padding:8px;"></canvas>
                 </div>
                 <div class="qr-instructions">
                   <ol>
-                    <li>Open WhatsApp on your mobile phone</li>
-                    <li>Tap <strong>Settings</strong> > <strong>Linked Devices</strong></li>
+                    <li>Open <strong>WhatsApp</strong> on your mobile phone</li>
+                    <li>Tap <strong>Settings (or 3 dots)</strong> &gt; <strong>Linked Devices</strong></li>
                     <li>Tap <strong>Link a Device</strong> and point your camera at this QR code</li>
                   </ol>
                 </div>
+                <!-- Action Controls for Instant Fallback & Refresh -->
+                <div style="display:flex; gap:8px; justify-content:center; margin-top:14px; border-top:1px solid rgba(255,255,255,0.08); padding-top:12px;">
+                  <button type="button" class="btn btn-outline btn-sm" id="btnModalRefreshQr" title="Force generate new QR code or reload">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" style="margin-right:4px;"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                    Refresh QR Code
+                  </button>
+                  <button type="button" class="btn btn-outline btn-sm" id="btnModalOpenWeb" title="Open native WhatsApp Web browser window directly">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" style="margin-right:4px;"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                    Open Native Window
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Add Account Modal (In-App Dialog) -->
+          <div class="qr-modal-overlay" id="addAccountModal" style="display: none;">
+            <div class="qr-modal-content" style="max-width: 440px;">
+              <div class="qr-modal-header">
+                <div>
+                  <h3 style="margin-bottom:2px;">Connect New WhatsApp</h3>
+                  <span style="font-size:12px; color:var(--text-muted);">Each profile runs in an isolated browser partition</span>
+                </div>
+                <button class="btn-close" id="closeAddAccountModal">&times;</button>
+              </div>
+              <div class="qr-modal-body" style="padding: 16px 20px;">
+                <div class="form-group" style="margin-bottom: 16px;">
+                  <label style="display:block; margin-bottom: 6px; font-weight: 600; font-size: 13px;">Account Label / Name</label>
+                  <input type="text" id="newAccountNameInput" class="form-control" placeholder="e.g. Sales Account, Support Line, Marketing #2" style="width:100%;">
+                  <span style="font-size:11px; color:var(--text-dim); margin-top:4px; display:block;">Give this account a recognizable name to switch between profiles easily.</span>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:8px;">
+                  <button type="button" class="btn btn-outline" id="btnCancelAddAccount">Cancel</button>
+                  <button type="button" class="btn btn-primary" id="btnConfirmAddAccount">
+                    <span>Create &amp; Scan QR &rarr;</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- LIVE CHAT & CRM INBOX VIEW -->
+        <section class="tab-pane" id="pane-livechat">
+          <div class="livechat-container">
+            <!-- Left Column: Threads / Conversations Sidebar -->
+            <div class="livechat-sidebar">
+              <div class="livechat-sidebar-header">
+                <div class="flex-between" style="margin-bottom:8px;">
+                  <div>
+                    <h3 style="font-size:16px; font-weight:700; color:var(--text-main); margin:0;">Live Chat &amp; Inbox</h3>
+                    <span id="livechatThreadCount" style="font-size:11px; color:var(--text-dim);">0 Conversations</span>
+                  </div>
+                  <button type="button" class="btn btn-outline btn-sm" id="btnSyncLiveChat" title="Sync latest conversations from WhatsApp Web" style="padding:4px 8px; font-size:11px;">
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:2px;"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                    Sync
+                  </button>
+                </div>
+                <!-- WhatsApp Account Filter -->
+                <div class="form-group" style="margin-bottom:8px;">
+                  <select id="livechatAccountFilter" class="form-control" style="font-size:12px; height:32px; padding:2px 8px; background:rgba(0,0,0,0.3);">
+                    <option value="">All Accounts</option>
+                  </select>
+                </div>
+                <!-- Search & Filters -->
+                <div class="livechat-search-bar" style="margin-bottom:8px;">
+                  <input type="text" id="livechatSearchInput" placeholder="🔍 Search contacts or phone..." class="form-control" style="font-size:12px; height:32px; background:rgba(0,0,0,0.3);">
+                </div>
+                <!-- Chat Category Filter Pills -->
+                <div class="livechat-filter-pills" style="display:flex; gap:6px;">
+                  <button type="button" class="btn-chip active" id="livechatFilterAll" style="font-size:11px; padding:3px 10px;">All</button>
+                  <button type="button" class="btn-chip" id="livechatFilterUnread" style="font-size:11px; padding:3px 10px;">Unread</button>
+                  <button type="button" class="btn-chip" id="livechatFilterGroups" style="font-size:11px; padding:3px 10px;">Groups</button>
+                </div>
+              </div>
+
+              <!-- Conversation Threads List -->
+              <div class="livechat-threads-list" id="livechatThreadsList">
+                <div class="text-center text-muted" style="padding:40px 16px; font-size:12px;">
+                  <div style="font-size:24px; margin-bottom:8px;">💬</div>
+                  Loading conversations...
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Column: Active Conversation & Reply Area -->
+            <div class="livechat-chat-area">
+              <!-- Empty state (No chat selected) -->
+              <div class="livechat-empty-state" id="livechatEmptyState">
+                <div class="livechat-empty-content">
+                  <div class="empty-icon-circle">
+                    <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                  </div>
+                  <h3 style="margin-top:14px; margin-bottom:6px;">Select a conversation</h3>
+                  <p style="color:var(--text-muted); font-size:13px; max-width:380px; margin:0 auto 16px;">Choose a contact from the left sidebar to start chatting live, or sync conversations directly from your connected WhatsApp accounts.</p>
+                  <div class="livechat-empty-features">
+                    <span>⚡ Real-Time Instant Messages</span>
+                    <span>🛡️ Partition-Isolated Sessions</span>
+                    <span>🔄 Automatic Synchronization</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Active Chat View (When conversation is selected) -->
+              <div class="livechat-active-chat" id="livechatActiveChat" style="display:none;">
+                <!-- Chat Top Header -->
+                <div class="livechat-active-header">
+                  <div class="livechat-contact-meta">
+                    <div class="livechat-contact-avatar" id="livechatActiveAvatar">WA</div>
+                    <div>
+                      <div class="livechat-contact-title" id="livechatActiveName">Contact Name</div>
+                      <div class="livechat-contact-sub">
+                        <span id="livechatActivePhone" class="code-font" style="font-size:11px; color:var(--text-dim);">+1234567890</span>
+                        <span class="livechat-acc-badge" id="livechatActiveAccountBadge">Primary</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="livechat-header-actions">
+                    <button type="button" class="btn btn-outline btn-sm" id="btnLiveChatOpenWeb" title="Open native WhatsApp Web window">
+                      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                      Open Web
+                    </button>
+                    <button type="button" class="btn btn-outline btn-sm" id="btnLiveChatDeleteThread" title="Delete conversation history from local CRM" style="color:#f87171;">
+                      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Messages Feed Container -->
+                <div class="livechat-messages-container" id="livechatMessagesContainer">
+                  <!-- Messages rendered dynamically -->
+                </div>
+
+                <!-- Spintax & Quick Insert Toolbar -->
+                <div class="livechat-toolbar" style="position:relative;">
+                  <div class="livechat-spintax-chips">
+                    <button type="button" class="btn-xs btn-primary" id="btnLiveChatPickCanned" style="background:linear-gradient(135deg, #ffc72c, #e5ab17); color:#18191b; font-weight:700; border:none; padding:3px 9px; border-radius:4px; cursor:pointer;">
+                      ⚡ Quick Replies
+                    </button>
+                    <span style="font-size:11px; color:var(--text-dim); margin-left:6px; margin-right:2px;">Tags:</span>
+                    <button type="button" class="btn-xs btn-outline btn-chat-tag" data-insert="{Hello|Hi|Hey}">+ Spintax</button>
+                    <button type="button" class="btn-xs btn-outline btn-chat-tag" data-insert="{{name}}">+ Name</button>
+                    <button type="button" class="btn-xs btn-outline btn-chat-tag" data-insert="{{phone}}">+ Phone</button>
+                    <button type="button" class="btn-xs btn-outline btn-chat-tag" data-insert="Thank you for contacting us! How can we assist you today?">💬 Welcome</button>
+                    <button type="button" class="btn-xs btn-outline btn-chat-tag" data-insert="Our support team is reviewing your inquiry. We will get back shortly.">⏱️ Wait Note</button>
+                  </div>
+                  <!-- Quick Canned Replies Floating Popover -->
+                  <div id="livechatCannedPopover" class="card" style="display:none; position:absolute; bottom:100%; left:18px; width:340px; max-height:260px; overflow-y:auto; z-index:100; box-shadow:0 10px 25px rgba(0,0,0,0.5); padding:8px; border:1px solid var(--border-subtle); margin-bottom:6px;">
+                    <div style="font-size:11px; font-weight:700; color:var(--accent-primary); padding:4px 8px; border-bottom:1px solid rgba(255,255,255,0.06); margin-bottom:4px; display:flex; justify-content:space-between; align-items:center;">
+                      <span>SELECT QUICK REPLY</span>
+                      <span id="closeCannedPopover" style="cursor:pointer; font-size:14px; color:var(--text-muted);">&times;</span>
+                    </div>
+                    <div id="livechatCannedPopoverList"></div>
+                  </div>
+                </div>
+
+                <!-- Bottom Message Input Composer -->
+                <div class="livechat-composer-wrap">
+                  <textarea id="livechatComposerInput" class="form-control livechat-input" rows="2" placeholder="Type a message... (Press Enter to send, Shift+Enter for newline)"></textarea>
+                  <button type="button" class="btn btn-primary btn-chat-send" id="btnLiveChatSend">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                    <span>Send</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 1B. KANBAN CRM PIPELINE VIEW (Chrome Extension Port) -->
+        <section class="tab-pane" id="pane-kanban">
+          <div class="pane-header">
+            <div>
+              <h2>Pipeline CRM & Kanban Board</h2>
+              <p>Visual sales funnel directly from OpenMsg Chrome Extension. Drag & drop leads across custom pipeline stages.</p>
+            </div>
+            <div class="flex-gap">
+              <span class="badge" id="kanbanTotalLeads" style="background:rgba(255,199,44,0.15); color:#ffc72c; font-weight:700; padding:6px 12px; border-radius:999px;">0 Leads</span>
+              <button type="button" class="btn btn-outline" id="btnKanbanAddStage">+ Add Stage</button>
+              <button type="button" class="btn btn-primary" id="btnKanbanAddLead">+ Add Lead</button>
+            </div>
+          </div>
+
+          <div class="kanban-toolbar">
+            <div class="kanban-search-wrap">
+              <input type="text" id="kanbanSearchInput" class="form-control form-control-sm" placeholder="🔍 Search by name, phone or tag...">
+            </div>
+            <div style="font-size:12px; color:var(--text-dim);">
+              Tip: Drag cards between columns to change lead status in real-time.
+            </div>
+          </div>
+
+          <!-- Horizontal Kanban Board Columns Container -->
+          <div class="kanban-board-container" id="kanbanBoard">
+            <!-- Stages and Cards Rendered Dynamically -->
+          </div>
+        </section>
+
+        <!-- VISUAL FLOW BUILDER & CHATBOT WORKFLOWS VIEW -->
+        <section class="tab-pane" id="pane-flows">
+          <!-- VIEW 1: FLOWS LIST MANAGER -->
+          <div id="flowListView" class="flow-list-view">
+            <div class="pane-header">
+              <div>
+                <h2>Visual Flow Builder &amp; Workflows</h2>
+                <p>Build interactive, multi-step WhatsApp chatbots with visual drag-and-drop nodes, branching conditions, and CRM actions.</p>
+              </div>
+              <div style="display:flex; gap:10px; align-items:center;">
+                <button type="button" class="btn btn-outline" id="btnImportFlowTemplate" onclick="window.useFlowTemplate && window.useFlowTemplate('lead')">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  Import Template
+                </button>
+                <button type="button" class="btn btn-primary" id="btnCreateNewFlow" onclick="window.createNewFlow && window.createNewFlow()">
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:4px;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                  + Create New Flow
+                </button>
+              </div>
+            </div>
+
+            <!-- Pre-built Quick Templates Strip -->
+            <div class="flow-templates-strip">
+              <div class="flow-template-card" data-template="lead" onclick="window.useFlowTemplate && window.useFlowTemplate('lead')">
+                <div class="ft-icon" style="background:rgba(255,199,44,0.12); color:#ffc72c;">💼</div>
+                <div class="ft-body">
+                  <h4>Lead Qualification &amp; Sales</h4>
+                  <p>Asks for client requirement, captures name/budget, and auto-assigns to CRM stage.</p>
+                </div>
+                <button type="button" class="btn btn-outline btn-xs btn-use-template">Use Template &rarr;</button>
+              </div>
+
+              <div class="flow-template-card" data-template="support" onclick="window.useFlowTemplate && window.useFlowTemplate('support')">
+                <div class="ft-icon" style="background:rgba(0,168,132,0.12); color:#00a884;">🏢</div>
+                <div class="ft-body">
+                  <h4>Customer Support &amp; FAQ</h4>
+                  <p>Handles common questions, validates customer queries, and routes to live human agents.</p>
+                </div>
+                <button type="button" class="btn btn-outline btn-xs btn-use-template">Use Template &rarr;</button>
+              </div>
+
+              <div class="flow-template-card" data-template="booking" onclick="window.useFlowTemplate && window.useFlowTemplate('booking')">
+                <div class="ft-icon" style="background:rgba(125,196,255,0.12); color:#7dc4ff;">📅</div>
+                <div class="ft-body">
+                  <h4>Appointment &amp; Demo Booking</h4>
+                  <p>Presents interactive time slots, captures contact details, and sets calendar reminder.</p>
+                </div>
+                <button type="button" class="btn btn-outline btn-xs btn-use-template">Use Template &rarr;</button>
+              </div>
+            </div>
+
+            <!-- Search and Filter Bar -->
+            <div class="flex-between" style="margin: 18px 0 14px;">
+              <div class="flex-gap" style="align-items:center;">
+                <input type="text" id="flowSearchInput" placeholder="🔍 Search flows by name or trigger..." class="form-control" style="width:280px; height:34px; font-size:12px;">
+                <span id="flowsCountLabel" style="font-size:12px; color:var(--text-dim);">1 Flow Active</span>
+              </div>
+            </div>
+
+            <!-- Flows Grid -->
+            <div class="flows-grid" id="flowsGrid">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- VIEW 2: VISUAL CANVAS BUILDER STUDIO (Hidden by default, shown when editing a flow) -->
+          <div id="flowEditorView" class="flow-editor-view" style="display:none;">
+            <!-- Top Studio Navigation Bar -->
+            <div class="flow-editor-topbar">
+              <div class="flex-gap" style="align-items:center;">
+                <button type="button" class="btn btn-outline btn-sm" id="btnBackToFlows">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:2px;"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                  Flows
+                </button>
+                <div class="flow-title-wrap">
+                  <input type="text" id="flowEditorTitleInput" class="flow-title-input" value="Welcome Flow">
+                  <span class="flow-edit-hint">Click title to rename</span>
+                </div>
+                <button type="button" class="btn-xs btn-outline" id="btnEditTriggerBadge" style="margin-left:8px;">
+                  ⚡ Trigger: <span id="flowTriggerSummary">Keywords: hi, hello</span>
+                </button>
+              </div>
+
+              <div class="flex-gap" style="align-items:center;">
+                <!-- Status Switch -->
+                <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:12px; margin-right:8px;">
+                  <input type="checkbox" id="flowActiveToggle" checked style="width:16px; height:16px;">
+                  <span style="font-weight:600; color:var(--text-main);">Active</span>
+                </label>
+                <!-- Test in Simulator -->
+                <button type="button" class="btn btn-outline btn-sm" id="btnTestFlowSimulator">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" style="margin-right:4px;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                  ▶️ Test Flow
+                </button>
+                <!-- Zoom Controls -->
+                <div class="btn-group" style="display:flex; border:1px solid var(--border-subtle); border-radius:6px; overflow:hidden;">
+                  <button type="button" class="btn-xs btn-outline" id="btnZoomOut" style="border:none; padding:4px 8px;">−</button>
+                  <button type="button" class="btn-xs btn-outline" id="btnZoomReset" style="border:none; padding:4px 8px; font-family:var(--font-mono);">100%</button>
+                  <button type="button" class="btn-xs btn-outline" id="btnZoomIn" style="border:none; padding:4px 8px;">+</button>
+                </div>
+                <!-- Save Flow -->
+                <button type="button" class="btn btn-primary btn-sm" id="btnSaveFlowGraph">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                  Save Flow
+                </button>
+              </div>
+            </div>
+
+            <!-- Studio Main Layout (Palette + Canvas + Inspector) -->
+            <div class="flow-studio-body">
+              <!-- Left: Node Palette -->
+              <div class="flow-palette" id="flowPalette">
+                <div class="palette-header">
+                  <span>Add Node to Flow</span>
+                </div>
+                <div class="palette-scroll">
+                  <!-- Group 1: Messages -->
+                  <div class="palette-group">
+                    <div class="palette-group-title">💬 Messages</div>
+                    <div class="palette-item" data-node-type="text">
+                      <div class="palette-item-icon" style="background:#7dd3fc; color:#0c4a6e;">💬</div>
+                      <div>
+                        <div class="palette-item-name">Send Text</div>
+                        <div class="palette-item-desc">Sends text with Spintax</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Group 2: Interactive -->
+                  <div class="palette-group">
+                    <div class="palette-group-title">🔘 Interactive</div>
+                    <div class="palette-item" data-node-type="buttons">
+                      <div class="palette-item-icon" style="background:#fde047; color:#713f12;">🔘</div>
+                      <div>
+                        <div class="palette-item-name">Quick Buttons</div>
+                        <div class="palette-item-desc">Choice buttons &amp; branches</div>
+                      </div>
+                    </div>
+                    <div class="palette-item" data-node-type="list">
+                      <div class="palette-item-icon" style="background:#fdba74; color:#7c2d12;">📋</div>
+                      <div>
+                        <div class="palette-item-name">Menu List</div>
+                        <div class="palette-item-desc">Interactive list picker</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Group 3: Logic -->
+                  <div class="palette-group">
+                    <div class="palette-group-title">🔀 Logic &amp; Memory</div>
+                    <div class="palette-item" data-node-type="condition">
+                      <div class="palette-item-icon" style="background:#c4b5fd; color:#4c1d95;">🔀</div>
+                      <div>
+                        <div class="palette-item-name">Condition (If/Else)</div>
+                        <div class="palette-item-desc">Branch on variable values</div>
+                      </div>
+                    </div>
+                    <div class="palette-item" data-node-type="setVariable">
+                      <div class="palette-item-icon" style="background:#c4b5fd; color:#4c1d95;">🏷️</div>
+                      <div>
+                        <div class="palette-item-name">Set Variable</div>
+                        <div class="palette-item-desc">Save contact or flow data</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Group 4: Flow Control -->
+                  <div class="palette-group">
+                    <div class="palette-group-title">⏳ Flow Control</div>
+                    <div class="palette-item" data-node-type="delay">
+                      <div class="palette-item-icon" style="background:#a7f3d0; color:#064e3b;">⏳</div>
+                      <div>
+                        <div class="palette-item-name">Delay / Wait</div>
+                        <div class="palette-item-desc">Pause execution seconds</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Group 5: Actions -->
+                  <div class="palette-group">
+                    <div class="palette-group-title">⚡ CRM &amp; API Actions</div>
+                    <div class="palette-item" data-node-type="action">
+                      <div class="palette-item-icon" style="background:#fed7aa; color:#7c2d12;">📊</div>
+                      <div>
+                        <div class="palette-item-name">Kanban Stage</div>
+                        <div class="palette-item-desc">Move lead in CRM pipeline</div>
+                      </div>
+                    </div>
+                    <div class="palette-item" data-node-type="webhook">
+                      <div class="palette-item-icon" style="background:#fed7aa; color:#7c2d12;">🌐</div>
+                      <div>
+                        <div class="palette-item-name">Webhook API</div>
+                        <div class="palette-item-desc">Call external HTTP REST API</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Group 6: Escalate & End -->
+                  <div class="palette-group">
+                    <div class="palette-group-title">🛑 Escalate &amp; End</div>
+                    <div class="palette-item" data-node-type="handoff">
+                      <div class="palette-item-icon" style="background:#fca5a5; color:#7f1d1d;">👨‍💼</div>
+                      <div>
+                        <div class="palette-item-name">Human Handoff</div>
+                        <div class="palette-item-desc">Transfer to support agent</div>
+                      </div>
+                    </div>
+                    <div class="palette-item" data-node-type="end">
+                      <div class="palette-item-icon" style="background:#e2e8f0; color:#1e293b;">🏁</div>
+                      <div>
+                        <div class="palette-item-name">End Conversation</div>
+                        <div class="palette-item-desc">Close session cleanly</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Center: Visual Canvas -->
+              <div class="flow-canvas-container" id="flowCanvasContainer">
+                <div class="flow-canvas-surface" id="flowCanvasSurface">
+                  <!-- SVG Connecting lines layer -->
+                  <svg class="flow-svg-layer" id="flowSvgLayer"></svg>
+                  <!-- Node elements container -->
+                  <div class="flow-nodes-layer" id="flowNodesLayer"></div>
+                </div>
+                <!-- Canvas Helper Floating Controls -->
+                <div class="flow-canvas-tips">
+                  <span>💡 Drag nodes to arrange &bull; Click output port (circle) &amp; drag to input port to connect &bull; Click connection line to delete</span>
+                </div>
+              </div>
+
+              <!-- Right: Node Inspector Drawer -->
+              <div class="flow-inspector" id="flowInspector" style="display:none;">
+                <div class="inspector-header">
+                  <div class="flex-between">
+                    <div>
+                      <h4 id="inspectorNodeTitle" style="margin:0; font-size:14px; font-weight:700;">Edit Node</h4>
+                      <span id="inspectorNodeType" style="font-size:11px; color:var(--text-dim); text-transform:uppercase;">TEXT</span>
+                    </div>
+                    <button type="button" class="btn-close" id="btnCloseInspector">&times;</button>
+                  </div>
+                </div>
+                <div class="inspector-body" id="inspectorBody">
+                  <!-- Rendered dynamically depending on node type -->
+                </div>
+                <div class="inspector-footer">
+                  <button type="button" class="btn btn-outline btn-sm" id="btnDeleteSelectedNode" style="color:#f87171;">Delete Node</button>
+                  <button type="button" class="btn btn-primary btn-sm" id="btnApplyInspector">Apply</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TRIGGER CONFIGURATION MODAL -->
+          <div class="qr-modal-overlay" id="flowTriggerModal" style="display:none;">
+            <div class="qr-modal-content" style="max-width:480px;">
+              <div class="qr-modal-header">
+                <div>
+                  <h3 style="margin-bottom:2px;">Flow Activation Trigger</h3>
+                  <span style="font-size:12px; color:var(--text-muted);">Decide when this automated flow should execute</span>
+                </div>
+                <button class="btn-close" id="btnCloseTriggerModal">&times;</button>
+              </div>
+              <div class="qr-modal-body" style="padding:16px 20px;">
+                <div class="form-group">
+                  <label>Trigger Type</label>
+                  <select id="modalTriggerType" class="form-control">
+                    <option value="keyword">Keywords Match (e.g. hi, price, order)</option>
+                    <option value="new_chat">New Contact (First time messaging)</option>
+                    <option value="any_message">Every Message (Universal Autoresponder)</option>
+                  </select>
+                </div>
+                <div id="modalKeywordConfigWrap">
+                  <div class="form-group">
+                    <label>Keywords (comma-separated)</label>
+                    <input type="text" id="modalKeywordsInput" class="form-control" placeholder="e.g. hi, hello, demo, price, start">
+                  </div>
+                  <div class="form-group">
+                    <label>Match Mode</label>
+                    <select id="modalMatchMode" class="form-control">
+                      <option value="contains">Contains Keyword</option>
+                      <option value="exact">Exact Match</option>
+                      <option value="startswith">Starts With</option>
+                      <option value="regex">Regular Expression</option>
+                    </select>
+                  </div>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+                  <button type="button" class="btn btn-outline" id="btnCancelTriggerModal">Cancel</button>
+                  <button type="button" class="btn btn-primary" id="btnSaveTriggerModal">Save Trigger</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- INTERACTIVE LIVE SIMULATOR MODAL -->
+          <div class="qr-modal-overlay" id="flowSimulatorModal" style="display:none;">
+            <div class="qr-modal-content" style="max-width:580px; height:620px; display:flex; flex-direction:column; padding:0; overflow:hidden;">
+              <div class="qr-modal-header" style="padding:12px 18px; border-bottom:1px solid var(--border-subtle);">
+                <div>
+                  <h3 style="margin-bottom:2px; font-size:15px;">🧪 Flow Sandbox &amp; Simulator</h3>
+                  <span style="font-size:11px; color:var(--text-muted);">Test and dry-run your visual chatbot logic before deploying</span>
+                </div>
+                <div class="flex-gap" style="align-items:center;">
+                  <button type="button" class="btn btn-outline btn-xs" id="btnRestartSimulator">🔄 Restart</button>
+                  <button class="btn-close" id="btnCloseSimulatorModal">&times;</button>
+                </div>
+              </div>
+              <!-- Simulator Messages Feed -->
+              <div class="simulator-feed" id="simulatorFeed" style="flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:10px; background:rgba(0,0,0,0.25);">
+                <!-- Messages rendered here -->
+              </div>
+              <!-- Simulator Variables Inspection Bar -->
+              <div style="padding:6px 14px; background:rgba(0,0,0,0.4); border-top:1px solid rgba(255,255,255,0.05); font-size:11px; color:var(--text-dim); display:flex; gap:12px; overflow-x:auto;" id="simulatorVarsBar">
+                <span>Variables: None</span>
+              </div>
+              <!-- Simulator Input Bar -->
+              <div style="padding:10px 14px; border-top:1px solid var(--border-subtle); display:flex; gap:8px; background:rgba(0,0,0,0.3);">
+                <input type="text" id="simulatorInput" class="form-control" placeholder="Type a customer reply or click buttons above..." style="font-size:13px; height:38px;">
+                <button type="button" class="btn btn-primary btn-sm" id="btnSimulatorSend">Send</button>
               </div>
             </div>
           </div>
@@ -793,6 +1459,82 @@ Reply INFO to learn more, or STOP to unsubscribe.</textarea>
                 </div>
               </div>
             </div>
+        </section>
+
+        <!-- CANNED REPLIES (Chrome Extension Port) -->
+        <section class="tab-pane" id="pane-canned">
+          <div class="pane-header">
+            <div>
+              <h2>Canned Replies & Quick Responses</h2>
+              <p>Store recurring marketing pitches, customer support answers, and payment details for 1-click reply.</p>
+            </div>
+            <div class="flex-gap">
+              <span class="badge" id="cannedTotalCount" style="background:rgba(255,199,44,0.15); color:#ffc72c; font-weight:700; padding:6px 12px; border-radius:999px;">0 Responses</span>
+              <button type="button" class="btn btn-primary" id="btnNewCanned">+ New Canned Response</button>
+            </div>
+          </div>
+
+          <div class="canned-toolbar">
+            <div class="canned-filter-bar">
+              <input type="text" id="cannedSearchInput" class="form-control form-control-sm" placeholder="🔍 Search shortcut (/intro) or text..." style="width:260px;">
+              <select id="cannedCategoryFilter" class="form-control form-control-sm" style="width:140px;">
+                <option value="all">All Categories</option>
+                <option value="Sales">Sales</option>
+                <option value="Support">Support</option>
+                <option value="General">General</option>
+              </select>
+            </div>
+            <div style="font-size:12px; color:var(--text-dim);">
+              Click "Insert in Chat" to load directly into the active WhatsApp Live Chat composer.
+            </div>
+          </div>
+
+          <div class="canned-grid" id="cannedList">
+            <!-- Canned cards rendered dynamically -->
+          </div>
+        </section>
+
+        <!-- INTERACTIVE CALENDAR VIEW (Chrome Extension Port) -->
+        <section class="tab-pane" id="pane-calendar">
+          <div class="pane-header">
+            <div>
+              <h2>Marketing & Follow-up Calendar</h2>
+              <p>Visual overview of scheduled bulk campaigns, automated broadcasts, and contact reminders.</p>
+            </div>
+            <div class="flex-gap">
+              <button type="button" class="btn btn-primary" id="calBtnQuickSchedule">+ Schedule Broadcast</button>
+            </div>
+          </div>
+
+          <div class="calendar-layout">
+            <div class="calendar-main-card">
+              <div class="calendar-header">
+                <div class="calendar-month-title" id="calMonthYear">September 2026</div>
+                <div class="calendar-nav-controls">
+                  <button type="button" class="btn btn-outline btn-sm" id="calBtnPrev">&larr; Prev</button>
+                  <button type="button" class="btn btn-outline btn-sm" id="calBtnToday">Today</button>
+                  <button type="button" class="btn btn-outline btn-sm" id="calBtnNext">Next &rarr;</button>
+                </div>
+              </div>
+
+              <div class="calendar-weekdays-row">
+                <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+              </div>
+
+              <div class="calendar-grid" id="calGridDays">
+                <!-- Day cells rendered dynamically -->
+              </div>
+            </div>
+
+            <!-- Selected Date Events Sidebar -->
+            <div class="calendar-sidebar-card">
+              <div style="font-size:15px; font-weight:800; color:var(--text-main); margin-bottom:4px;" id="calSelectedDateTitle">Selected Date</div>
+              <div style="font-size:12px; color:var(--text-dim); margin-bottom:16px;">Scheduled events & reminders:</div>
+              <div id="calSelectedDateEvents" style="display:flex; flex-direction:column; gap:10px; overflow-y:auto; flex:1;">
+                <!-- Events rendered dynamically -->
+              </div>
+            </div>
+          </div>
         </section>
 
         <!-- 2B. GOOGLE MAPS B2B LEAD EXTRACTOR (Phase 7B) -->
@@ -1788,6 +2530,51 @@ Reply INFO to learn more, or STOP to unsubscribe.</textarea>
 
         </section>
 
+        <!-- NOTES & FOLLOW-UP REMINDERS (Chrome Extension Port) -->
+        <section class="tab-pane" id="pane-reminders">
+          <div class="pane-header">
+            <div>
+              <h2>Contact Reminders & Notes</h2>
+              <p>Never miss a lead follow-up. Set date-driven alerts and sticky notes for key contacts.</p>
+            </div>
+            <div class="flex-gap">
+              <span class="badge" id="remindersTotalCount" style="background:rgba(255,199,44,0.15); color:#ffc72c; font-weight:700; padding:6px 12px; border-radius:999px;">0 Pending</span>
+              <button type="button" class="btn btn-primary" id="btnNewReminder">+ Add Reminder</button>
+            </div>
+          </div>
+
+          <div class="reminders-toolbar">
+            <div class="reminders-filter-tabs">
+              <button type="button" class="reminder-filter-tab active" id="remindersFilterPending">Pending Follow-ups</button>
+              <button type="button" class="reminder-filter-tab" id="remindersFilterAll">All Reminders</button>
+              <button type="button" class="reminder-filter-tab" id="remindersFilterDone">Completed</button>
+            </div>
+            <input type="text" id="remindersSearchInput" class="form-control form-control-sm" placeholder="🔍 Search reminders by title or phone..." style="width:260px;">
+          </div>
+
+          <div class="reminders-list" id="remindersList">
+            <!-- Reminders rendered dynamically -->
+          </div>
+        </section>
+
+        <!-- WEBHOOKS & AUTOMATIONS (Chrome Extension Port) -->
+        <section class="tab-pane" id="pane-webhooks">
+          <div class="pane-header">
+            <div>
+              <h2>Webhooks & Integrations</h2>
+              <p>Real-time HTTP event dispatching to Zapier, Make, n8n, and custom web servers with zero CORS limits.</p>
+            </div>
+            <div class="flex-gap">
+              <span class="badge" id="webhooksTotalCount" style="background:rgba(255,199,44,0.15); color:#ffc72c; font-weight:700; padding:6px 12px; border-radius:999px;">0 Webhooks</span>
+              <button type="button" class="btn btn-primary" id="btnNewWebhook">+ Add Webhook</button>
+            </div>
+          </div>
+
+          <div class="webhooks-grid" id="webhooksList">
+            <!-- Webhook cards rendered dynamically -->
+          </div>
+        </section>
+
         <!-- 6. SETTINGS & LICENSE VIEW -->
         <section class="tab-pane" id="pane-settings">
           <div class="pane-header">
@@ -1984,14 +2771,219 @@ Reply INFO to learn more, or STOP to unsubscribe.</textarea>
     </div>
   </div>
 
+  <!-- Modal for Kanban Add/Edit Lead -->
+  <div class="qr-modal-overlay" id="modalKanbanLead" style="display: none;">
+    <div class="qr-modal-content" style="width: 520px; max-width: 95vw;">
+      <div class="qr-modal-header">
+        <h3 id="kanbanLeadModalTitle">Add Pipeline Lead</h3>
+        <button class="btn-close" id="btnCancelKanbanLead">&times;</button>
+      </div>
+      <div class="qr-modal-body">
+        <input type="hidden" id="kanbanLeadId" value="">
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label>Contact Phone</label>
+            <input type="text" id="kanbanLeadPhone" class="form-control code-font" placeholder="+1234567890">
+          </div>
+          <div class="form-group flex-1">
+            <label>Contact Name</label>
+            <input type="text" id="kanbanLeadName" class="form-control" placeholder="Acme Corp / John">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label>Pipeline Stage</label>
+            <select id="kanbanLeadStage" class="form-control"></select>
+          </div>
+          <div class="form-group flex-1">
+            <label>Deal Value (Est.)</label>
+            <input type="text" id="kanbanLeadValue" class="form-control" placeholder="$500 or $5,000">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Tags (comma-separated)</label>
+          <input type="text" id="kanbanLeadTags" class="form-control" placeholder="VIP, Enterprise, Demo">
+        </div>
+        <div class="form-group">
+          <label>CRM Notes & Next Steps</label>
+          <textarea id="kanbanLeadNotes" class="form-control" rows="3" placeholder="Client requested customized bulk quote. Follow up on Monday."></textarea>
+        </div>
+        <div class="flex-between">
+          <button type="button" class="btn btn-outline" onclick="document.getElementById('modalKanbanLead').style.display='none'">Cancel</button>
+          <button type="button" class="btn btn-primary" id="btnSaveKanbanLead">Save Lead</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for Kanban Add Stage -->
+  <div class="qr-modal-overlay" id="modalKanbanStage" style="display: none;">
+    <div class="qr-modal-content" style="width: 400px; max-width: 95vw;">
+      <div class="qr-modal-header">
+        <h3>Add Pipeline Stage</h3>
+        <button class="btn-close" id="btnCancelKanbanStage">&times;</button>
+      </div>
+      <div class="qr-modal-body">
+        <div class="form-group">
+          <label>Stage Name</label>
+          <input type="text" id="kanbanStageName" class="form-control" placeholder="e.g. Contract Signed">
+        </div>
+        <div class="form-group">
+          <label>Color Accent</label>
+          <select id="kanbanStageColor" class="form-control">
+            <option value="#7dd3fc">Sky Blue (#7dd3fc)</option>
+            <option value="#fde047">Yellow (#fde047)</option>
+            <option value="#86efac">Emerald (#86efac)</option>
+            <option value="#fdba74">Orange (#fdba74)</option>
+            <option value="#c4b5fd">Purple (#c4b5fd)</option>
+            <option value="#fca5a5">Rose (#fca5a5)</option>
+            <option value="#5eead4">Teal (#5eead4)</option>
+          </select>
+        </div>
+        <div class="flex-between">
+          <button type="button" class="btn btn-outline" onclick="document.getElementById('modalKanbanStage').style.display='none'">Cancel</button>
+          <button type="button" class="btn btn-primary" id="btnSaveKanbanStage">Add Stage</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for Canned Responses -->
+  <div class="qr-modal-overlay" id="modalCanned" style="display: none;">
+    <div class="qr-modal-content" style="width: 520px; max-width: 95vw;">
+      <div class="qr-modal-header">
+        <h3 id="cannedModalTitle">New Canned Response</h3>
+        <button class="btn-close" id="btnCancelCanned">&times;</button>
+      </div>
+      <div class="qr-modal-body">
+        <input type="hidden" id="cannedId" value="">
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label>Shortcut</label>
+            <input type="text" id="cannedShortcut" class="form-control code-font" placeholder="/pricing">
+          </div>
+          <div class="form-group flex-1">
+            <label>Category</label>
+            <select id="cannedCategory" class="form-control">
+              <option value="Sales">Sales</option>
+              <option value="Support">Support</option>
+              <option value="General">General</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Title / Description</label>
+          <input type="text" id="cannedTitle" class="form-control" placeholder="Pricing plans and features list">
+        </div>
+        <div class="form-group">
+          <label>Response Message Text</label>
+          <textarea id="cannedMessage" class="form-control" rows="4" placeholder="Hello! Our current pricing plans start at $29/mo..."></textarea>
+        </div>
+        <div class="flex-between">
+          <button type="button" class="btn btn-outline" onclick="document.getElementById('modalCanned').style.display='none'">Cancel</button>
+          <button type="button" class="btn btn-primary" id="btnSaveCanned">Save Response</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for Follow-up Reminders -->
+  <div class="qr-modal-overlay" id="modalReminder" style="display: none;">
+    <div class="qr-modal-content" style="width: 500px; max-width: 95vw;">
+      <div class="qr-modal-header">
+        <h3 id="reminderModalTitle">Add Follow-up Reminder</h3>
+        <button class="btn-close" id="btnCancelReminder">&times;</button>
+      </div>
+      <div class="qr-modal-body">
+        <input type="hidden" id="reminderId" value="">
+        <div class="form-group">
+          <label>Task / Reminder Title</label>
+          <input type="text" id="reminderTitle" class="form-control" placeholder="Call client about renewal agreement">
+        </div>
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label>Contact Phone</label>
+            <input type="text" id="reminderPhone" class="form-control code-font" placeholder="+1234567890">
+          </div>
+          <div class="form-group flex-1">
+            <label>Contact Name</label>
+            <input type="text" id="reminderName" class="form-control" placeholder="John Doe">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label>Due Date</label>
+            <input type="date" id="reminderDueDate" class="form-control">
+          </div>
+          <div class="form-group flex-1">
+            <label>Due Time</label>
+            <input type="time" id="reminderDueTime" class="form-control" value="10:00">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Notes / Context</label>
+          <textarea id="reminderNote" class="form-control" rows="3" placeholder="Sent quote on WhatsApp. Client requested call on Friday morning."></textarea>
+        </div>
+        <div class="flex-between">
+          <button type="button" class="btn btn-outline" onclick="document.getElementById('modalReminder').style.display='none'">Cancel</button>
+          <button type="button" class="btn btn-primary" id="btnSaveReminder">Set Reminder</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for Webhook -->
+  <div class="qr-modal-overlay" id="modalWebhook" style="display: none;">
+    <div class="qr-modal-content" style="width: 520px; max-width: 95vw;">
+      <div class="qr-modal-header">
+        <h3 id="webhookModalTitle">Configure Webhook Endpoint</h3>
+        <button class="btn-close" id="btnCancelWebhook">&times;</button>
+      </div>
+      <div class="qr-modal-body">
+        <input type="hidden" id="webhookId" value="">
+        <div class="form-group">
+          <label>Webhook Name</label>
+          <input type="text" id="webhookName" class="form-control" placeholder="Zapier WhatsApp Lead Sync">
+        </div>
+        <div class="form-group">
+          <label>Target HTTP POST URL</label>
+          <input type="url" id="webhookUrl" class="form-control code-font" placeholder="https://hooks.zapier.com/hooks/catch/...">
+        </div>
+        <div class="form-group">
+          <label>Trigger Events</label>
+          <div style="display:flex; flex-direction:column; gap:8px; margin-top:6px;">
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+              <input type="checkbox" id="webhookEvMsg" checked>
+              <span style="font-size:13px;">Incoming WhatsApp Message (<code>message_received</code>)</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+              <input type="checkbox" id="webhookEvCamp" checked>
+              <span style="font-size:13px;">Campaign Finished (<code>campaign_done</code>)</span>
+            </label>
+          </div>
+        </div>
+        <div class="flex-between">
+          <button type="button" class="btn btn-outline" onclick="document.getElementById('modalWebhook').style.display='none'">Cancel</button>
+          <button type="button" class="btn btn-primary" id="btnSaveWebhook">Save Webhook</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Hidden file inputs for Excel/CSV imports -->
   <input type="file" id="campXlsxFile" accept=".xlsx,.xls,.csv" style="display:none;">
 
-  <!-- QR Code Generator Library (pure JS) -->
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <!-- QR Code Generator Library (offline local vendor) -->
+  <script src="js/vendor/qrcode.min.js"></script>
   <!-- Renderer JavaScript Modules -->
   <script src="js/app.js"></script>
   <script src="js/accounts.js"></script>
+  <script src="js/livechat.js"></script>
+  <script src="js/kanban.js"></script>
+  <script src="js/canned.js"></script>
+  <script src="js/calendar.js"></script>
+  <script src="js/reminders.js"></script>
+  <script src="js/webhooks.js"></script>
   <script src="js/phone-preview.js"></script>
   <script src="js/campaigns.js"></script>
   <script src="js/maps-scraper.js"></script>
@@ -2003,5 +2995,6 @@ Reply INFO to learn more, or STOP to unsubscribe.</textarea>
   <script src="js/settings.js"></script>
   <script src="js/contacts.js"></script>
   <script src="js/history.js"></script>
+  <script src="js/flow-builder.js"></script>
 </body>
 </html>

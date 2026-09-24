@@ -13,6 +13,7 @@ contextBridge.exposeInMainWorld('api', {
   switchAccount:     (id) => ipcRenderer.invoke('accounts:switch', { id }),
   getAccountStatus:  (id) => ipcRenderer.invoke('accounts:get-status', { id }),
   openAccountWindow: (id) => ipcRenderer.invoke('accounts:show-window', { id }),
+  refreshAccountQr:  (id) => ipcRenderer.invoke('accounts:refresh-qr', { id }),
   getRecentChats:    (id) => ipcRenderer.invoke('extractor:recent-chats', { id }),
 
   // ─── Bulk Campaigns ─────────────────────────────────────
@@ -102,6 +103,48 @@ contextBridge.exposeInMainWorld('api', {
   getLicenseStatus: () => ipcRenderer.invoke('licensing:status'),
   activateLicense:  (key) => ipcRenderer.invoke('licensing:activate', { key }),
 
+  // ─── Live Chat & Inbox CRM ───────────────────────────────
+  getChatThreads:   (accountId) => ipcRenderer.invoke('chats:threads', { accountId }),
+  getChatMessages:  (phone, accountId) => ipcRenderer.invoke('chats:messages', { phone, accountId }),
+  sendChatMessage:  (phone, message, accountId) => ipcRenderer.invoke('chats:send', { phone, message, accountId }),
+  markChatRead:     (phone) => ipcRenderer.invoke('chats:mark-read', { phone }),
+  deleteChatThread: (phone) => ipcRenderer.invoke('chats:delete-thread', { phone }),
+  syncRecentChats:  (accountId) => ipcRenderer.invoke('chats:sync', { accountId }),
+
+  // ─── Kanban Pipeline CRM (Extension Port) ───────────────
+  getKanbanData:    () => ipcRenderer.invoke('kanban:get-data'),
+  saveKanbanStage:  (stage) => ipcRenderer.invoke('kanban:save-stage', { stage }),
+  deleteKanbanStage:(stageId) => ipcRenderer.invoke('kanban:delete-stage', { stageId }),
+  saveKanbanCard:   (card) => ipcRenderer.invoke('kanban:save-card', { card }),
+  moveKanbanCard:   (cardId, newStageId) => ipcRenderer.invoke('kanban:move-card', { cardId, newStageId }),
+  deleteKanbanCard: (cardId) => ipcRenderer.invoke('kanban:delete-card', { cardId }),
+
+  // ─── Canned Responses (Extension Port) ───────────────────
+  getCannedResponses: () => ipcRenderer.invoke('canned:list'),
+  saveCannedResponse: (canned) => ipcRenderer.invoke('canned:save', { canned }),
+  deleteCannedResponse: (id) => ipcRenderer.invoke('canned:delete', { id }),
+
+  // ─── Notes & Reminders (Extension Port) ──────────────────
+  getReminders:     () => ipcRenderer.invoke('reminders:list'),
+  saveReminder:     (reminder) => ipcRenderer.invoke('reminders:save', { reminder }),
+  toggleReminder:   (id) => ipcRenderer.invoke('reminders:toggle', { id }),
+  deleteReminder:   (id) => ipcRenderer.invoke('reminders:delete', { id }),
+
+  // ─── Webhooks & Automations (Extension Port) ─────────────
+  getWebhooks:      () => ipcRenderer.invoke('webhooks:list'),
+  saveWebhook:      (webhook) => ipcRenderer.invoke('webhooks:save', { webhook }),
+  deleteWebhook:    (id) => ipcRenderer.invoke('webhooks:delete', { id }),
+  testWebhook:      (url, payload) => ipcRenderer.invoke('webhooks:test', { url, payload }),
+
+  // ─── Visual Flow Builder & Chatbots ─────────────────────
+  getFlows:         () => ipcRenderer.invoke('flows:list'),
+  getFlow:          (id) => ipcRenderer.invoke('flows:get', { id }),
+  saveFlow:         (flow) => ipcRenderer.invoke('flows:save', { flow }),
+  deleteFlow:       (id) => ipcRenderer.invoke('flows:delete', { id }),
+  toggleFlow:       (id, enabled) => ipcRenderer.invoke('flows:toggle', { id, enabled }),
+  duplicateFlow:    (id) => ipcRenderer.invoke('flows:duplicate', { id }),
+  testFlowStep:     (data) => ipcRenderer.invoke('flows:test-step', data),
+
   // ─── Event Subscriptions ────────────────────────────────
   onAccountStatus: (cb) => {
     const h = (e, d) => cb(d);
@@ -157,5 +200,10 @@ contextBridge.exposeInMainWorld('api', {
     const h = (e, d) => cb(d);
     ipcRenderer.on('event:warmer-progress', h);
     return () => ipcRenderer.removeListener('event:warmer-progress', h);
+  },
+  onChatMessage: (cb) => {
+    const h = (e, d) => cb(d);
+    ipcRenderer.on('event:chat-message', h);
+    return () => ipcRenderer.removeListener('event:chat-message', h);
   }
 });

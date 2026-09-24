@@ -5,10 +5,13 @@
 const { app, BrowserWindow } = require('electron');
 const path = require('path');
 const { getDatabase } = require('./database');
-const { SessionManager } = require('./session-manager');
+const { SessionManager, CHROME_USER_AGENT } = require('./session-manager');
 const { AiEngine } = require('./ai-engine');
 const { registerIpcHandlers } = require('./ipc-handlers');
 const { createMainWindow, getMainWindow } = require('./window-manager');
+
+// Set modern Chrome user agent globally to prevent WhatsApp Web browser warnings
+app.userAgentFallback = CHROME_USER_AGENT;
 
 // Ensure single instance
 const gotTheLock = app.requestSingleInstanceLock();
@@ -62,6 +65,12 @@ async function bootstrap() {
 
 app.whenReady().then(bootstrap);
 
+app.on('before-quit', () => {
+  if (sessionManager) {
+    sessionManager.destroyAll();
+  }
+});
+
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
@@ -73,3 +82,4 @@ app.on('activate', () => {
     createMainWindow();
   }
 });
+

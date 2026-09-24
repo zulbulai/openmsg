@@ -346,3 +346,175 @@ test('Group Link Extraction Pattern', () => {
   assert.ok(found.has('A1B2C3D4E5F6G7H8I9J0kL'));
 });
 
+test('QR Code System - DataURL Generation & Offline Vendor Script', async () => {
+  const QRCode = require('qrcode');
+  const mockWaQr = '2@1B2C3D4E5F6G7H8I9J0kL1M2N3O4P5Q6R7S8T9U0V1W2X3Y4Z,TEST_SECRET_KEY,TEST_CLIENT_ID';
+
+  // 1. Verify Node.js QRCode creates valid base64 PNG data URL
+  const dataUrl = await QRCode.toDataURL(mockWaQr, { width: 280, margin: 1 });
+  assert.ok(dataUrl.startsWith('data:image/png;base64,'), 'QR dataURL must start with PNG base64 header');
+  assert.ok(dataUrl.length > 200, 'QR dataURL must contain image bytes');
+
+  // 2. Verify offline local vendor script exists
+  const vendorPath = path.join(__dirname, '../src/renderer/js/vendor/qrcode.min.js');
+  assert.ok(fs.existsSync(vendorPath), 'Local vendor qrcode.min.js must exist for offline support');
+  const vendorContent = fs.readFileSync(vendorPath, 'utf8');
+  assert.ok(vendorContent.includes('QRCode'), 'Vendor script must define QRCode');
+});
+
+test('Live Chat & Inbox Persistence (Threads, Messages, Unread Count, Cleanup)', () => {
+  const tmpDbPath = path.join(__dirname, 'test-livechat.json');
+  if (fs.existsSync(tmpDbPath)) fs.unlinkSync(tmpDbPath);
+
+  const db = new LocalDatabase(tmpDbPath);
+
+  // 1. Incoming message saves to thread and messages
+  const res1 = db.saveChatMessage({
+    accountId: 'acc_sales',
+    phone: '919876543210',
+    name: 'Alice Johnson',
+    fromMe: false,
+    body: 'Hello, need pricing details!',
+    timestamp: 1000
+  });
+  assert.ok(res1);
+  assert.equal(res1.thread.unreadCount, 1);
+  assert.equal(res1.message.body, 'Hello, need pricing details!');
+  assert.equal(res1.message.fromMe, false);
+
+  // 2. Outgoing reply saves to same thread, does not increment unread
+  const res2 = db.saveChatMessage({
+    accountId: 'acc_sales',
+    phone: '919876543210',
+    name: 'Alice Johnson',
+    fromMe: true,
+    body: 'Hi Alice! Plans start at $19.',
+    timestamp: 2000
+  });
+  assert.ok(res2);
+  assert.equal(res2.thread.unreadCount, 1);
+  assert.equal(res2.thread.lastMessage, 'Hi Alice! Plans start at $19.');
+
+  // 3. Check threads list
+  const threads = db.getChatThreads();
+  assert.equal(threads.length, 1);
+  assert.equal(threads[0].phone, '919876543210');
+  assert.equal(threads[0].name, 'Alice Johnson');
+
+  // Filter by accountId
+  const salesThreads = db.getChatThreads('acc_sales');
+  assert.equal(salesThreads.length, 1);
+  const supportThreads = db.getChatThreads('acc_support');
+  assert.equal(supportThreads.length, 0);
+
+  // 4. Check messages
+  const msgs = db.getChatMessages('919876543210');
+  assert.equal(msgs.length, 2);
+  assert.equal(msgs[0].fromMe, false);
+  assert.equal(msgs[1].fromMe, true);
+
+  // 5. Mark as read
+  db.markChatRead('919876543210');
+  const readThreads = db.getChatThreads();
+  assert.equal(readThreads[0].unreadCount, 0);
+
+  // 6. Delete thread
+  db.deleteChatThread('919876543210');
+  assert.equal(db.getChatThreads().length, 0);
+  assert.equal(db.getChatMessages('919876543210').length, 0);
+
+  if (fs.existsSync(tmpDbPath)) fs.unlinkSync(tmpDbPath);
+});
+
+test('Flow Engine & Database - Flow CRUD, Branching & Simulator Execution', async () => {
+  const { FlowEngine } = require('../src/main/flow-engine');
+  const tmpDbPath = path.join(__dirname, 'test-flows-db.json');
+  if (fs.existsSync(tmpDbPath)) fs.unlinkSync(tmpDbPath);
+
+  const db = new LocalDatabase(tmpDbPath);
+
+  // 1. Initial Starter Flow loaded by default
+  const flows = db.getFlows();
+  assert.ok(flows.length >= 1, 'Should have at least 1 starter flow');
+  const starter = flows[0];
+  assert.equal(starter.id, 'flow_welcome_lead');
+  assert.equal(starter.nodes.length, 6);
+  assert.equal(starter.edges.length, 5);
+
+  // 2. Flow CRUD
+  const customFlow = {
+    id: 'flow_test_bot',
+    name: 'Test Sales Bot',
+    description: 'Unit test flow',
+    trigger: {
+      type: 'keyword',
+      keywords: ['order', 'status'],
+      match: 'exact',
+      caseSensitive: false
+    },
+    enabled: true,
+    nodes: [
+      { id: 'n_start', type: 'start', title: 'Start', x: 0, y: 0, data: {} },
+      { id: 'n_ask', type: 'buttons', title: 'Choices', x: 200, y: 0, data: {
+        text: 'Hello {{name}}! Please select your order query:',
+        buttons: [{ id: 'b1', text: 'Track Order' }, { id: 'b2', text: 'Cancel Order' }],
+        saveAs: 'selected_query'
+      }},
+      { id: 'n_track', type: 'text', title: 'Track', x: 400, y: 0, data: { text: 'Your order is in transit!', wait: false }},
+      { id: 'n_cancel', type: 'action', title: 'Cancel Stage', x: 400, y: 150, data: { action: 'move_stage', stage: 'lost' }}
+    ],
+    edges: [
+      { id: 'e1', from: 'n_start', handle: 'next', to: 'n_ask' },
+      { id: 'e2', from: 'n_ask', handle: 'option:0', to: 'n_track' },
+      { id: 'e3', from: 'n_ask', handle: 'option:1', to: 'n_cancel' }
+    ]
+  };
+
+  db.saveFlow(customFlow);
+  assert.equal(db.getFlow('flow_test_bot').name, 'Test Sales Bot');
+
+  // Toggle & Duplicate
+  db.toggleFlow('flow_test_bot', false);
+  assert.equal(db.getFlow('flow_test_bot').enabled, false);
+
+  const dup = db.duplicateFlow('flow_test_bot');
+  assert.ok(dup.id !== 'flow_test_bot');
+  assert.match(dup.name, /Copy/);
+
+  // 3. FlowEngine Execution & Trigger Match
+  const engine = new FlowEngine({ db, sessionManager: { execute: async () => {} } });
+
+  assert.equal(engine.matchesTrigger(customFlow.trigger, 'order'), true);
+  assert.equal(engine.matchesTrigger(customFlow.trigger, 'order please'), false); // exact match mode
+  assert.equal(engine.matchesTrigger({ type: 'any_message' }, 'random'), true);
+  assert.equal(engine.matchesTrigger({ type: 'new_chat' }, 'hello', true), true);
+  assert.equal(engine.matchesTrigger({ type: 'new_chat' }, 'hello', false), false);
+
+  // 4. Simulator Dry-runner Test Step
+  // Step 1: Start node -> advances to ask node
+  const step1 = await engine.testStep(customFlow, 'n_start', '', { name: 'Jitendra' });
+  assert.equal(step1.done, false);
+  assert.equal(step1.currentNodeId, 'n_ask');
+  assert.equal(step1.waitingForReply, false);
+
+  // Step 2: Ask node -> prompts buttons and waits for reply
+  const step2 = await engine.testStep(customFlow, 'n_ask', '', { name: 'Jitendra' });
+  assert.equal(step2.done, false);
+  assert.equal(step2.waitingForReply, true);
+  assert.match(step2.replyText, /Hello Jitendra! Please select your order query/);
+
+  // Step 3: User picks 'Track Order'
+  const step3 = await engine.testStep(customFlow, 'n_ask', 'Track Order', step2.variables);
+  assert.equal(step3.variables.selected_query, 'Track Order');
+  assert.equal(step3.replyText, 'Your order is in transit!');
+  assert.equal(step3.done, true);
+
+  // Cleanup
+  db.deleteFlow('flow_test_bot');
+  db.deleteFlow(dup.id);
+  assert.equal(db.getFlow('flow_test_bot'), null);
+
+  if (fs.existsSync(tmpDbPath)) fs.unlinkSync(tmpDbPath);
+});
+
+

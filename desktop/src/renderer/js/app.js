@@ -90,10 +90,10 @@ window.addEventListener('DOMContentLoaded', async () => {
       const badge = document.getElementById('headerLicenseBadge');
       const text = document.getElementById('headerLicenseText');
       if (lic.isActivated) {
-        badge.style.background = 'rgba(16, 185, 129, 0.15)';
-        badge.style.borderColor = 'rgba(16, 185, 129, 0.4)';
-        badge.style.color = '#34d399';
-        text.textContent = lic.isLifetime ? 'PRO LIFETIME' : 'PRO ACTIVE';
+        badge.style.background = 'rgba(255, 199, 44, 0.15)';
+        badge.style.borderColor = 'rgba(255, 199, 44, 0.4)';
+        badge.style.color = '#ffc72c';
+        text.textContent = 'COMMUNITY PRO (UNLOCKED)';
       } else {
         badge.style.background = 'rgba(239, 68, 68, 0.12)';
         badge.style.borderColor = 'rgba(239, 68, 68, 0.3)';
@@ -228,4 +228,21 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   // Periodic refresh every 25 seconds
   setInterval(refreshDashboardStats, 25000);
+
+  // Universal Modal Backdrop Click & Escape Key dismiss
+  document.addEventListener('click', (e) => {
+    if (e.target && e.target.classList && e.target.classList.contains('qr-modal-overlay')) {
+      e.target.style.display = 'none';
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.qr-modal-overlay').forEach(modal => {
+        if (modal.style.display !== 'none') {
+          modal.style.display = 'none';
+        }
+      });
+    }
+  });
 });

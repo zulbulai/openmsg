@@ -21,6 +21,7 @@ const { GroupFinder } = require('./group-finder');
 const { GroupJoiner } = require('./group-joiner');
 const { AccountWarmer } = require('./account-warmer');
 const { getAllCuratedDialogues } = require('../shared/data/warmer-templates');
+const { FlowEngine } = require('./flow-engine');
 
 function registerIpcHandlers({ sessionManager, db, aiEngine, getMainWindow }) {
   let activeCampaignQueue = null;
@@ -35,6 +36,16 @@ function registerIpcHandlers({ sessionManager, db, aiEngine, getMainWindow }) {
       const win = getMainWindow();
       if (win && !win.isDestroyed()) {
         win.webContents.send('event:warmer-progress', payload);
+      }
+    }
+  });
+  const flowEngine = new FlowEngine({
+    db,
+    sessionManager,
+    emitLog: (entry) => {
+      const win = getMainWindow();
+      if (win && !win.isDestroyed()) {
+        win.webContents.send('event:autoresponder-log', entry);
       }
     }
   });
@@ -65,9 +76,26 @@ function registerIpcHandlers({ sessionManager, db, aiEngine, getMainWindow }) {
     }
   });
 
-  // ─── Autoresponder / AI Chatbot ────────────────────────────────────────
+  // ─── Autoresponder / AI Chatbot & Live Chat Broadcast ────────────────
   sessionManager.on('incoming-msg', async ({ accountId, msg }) => {
-    if (!msg || !msg.body || msg.isGroup) return;
+    // 1. Broadcast all incoming/outgoing messages to Live Chat UI
+    const win = getMainWindow();
+    if (win && !win.isDestroyed() && msg) {
+      win.webContents.send('event:chat-message', {
+        accountId,
+        phone: msg.senderPhone,
+        name: msg.name || msg.senderPhone,
+        fromMe: Boolean(msg.fromMe),
+        body: msg.body || '',
+        type: msg.type || 'chat',
+        mediaUrl: msg.mediaUrl || '',
+        filename: msg.filename || '',
+        timestamp: msg.timestamp || Date.now()
+      });
+    }
+
+    // 2. Autoresponder only processes incoming messages from other contacts (not groups or self)
+    if (!msg || !msg.body || msg.isGroup || msg.fromMe) return;
 
     const senderPhone = (msg.senderPhone || '').replace(/\D+/g, '');
     if (!senderPhone) return;
@@ -83,7 +111,34 @@ function registerIpcHandlers({ sessionManager, db, aiEngine, getMainWindow }) {
       }
     }
 
-    const win = getMainWindow();
+    // Trigger active webhooks for message_received
+    try {
+      const activeHooks = (db.getWebhooks() || []).filter(w => w.enabled && (w.events || []).includes('message_received'));
+      if (activeHooks.length > 0) {
+        const payload = {
+          event: 'message_received',
+          accountId,
+          phone: senderPhone,
+          name: msg.name || senderPhone,
+          body: msg.body,
+          timestamp: msg.timestamp || Date.now()
+        };
+        activeHooks.forEach(hook => {
+          if (hook.url) {
+            try {
+              const https = hook.url.startsWith('https') ? require('https') : require('http');
+              const data = JSON.stringify(payload);
+              const u = new URL(hook.url);
+              const r = https.request(u, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(data) }, timeout: 5000 });
+              r.on('error', () => {});
+              r.write(data);
+              r.end();
+            } catch(e) {}
+          }
+        });
+      }
+    } catch(e) {}
+
     const emitLog = (logEntry) => {
       if (win && !win.isDestroyed()) {
         win.webContents.send('event:autoresponder-log', logEntry);
@@ -96,7 +151,23 @@ function registerIpcHandlers({ sessionManager, db, aiEngine, getMainWindow }) {
     // Record incoming message in conversation history
     db.appendConversationHistory(senderPhone, { role: 'user', text: msg.body });
 
-    // 1. Evaluate Keyword Rules first (Exact, Contains, StartsWith, EndsWith, Regex)
+    // 0. Evaluate Visual Flow Builder first (Multi-step interactive chatbots)
+    try {
+      const flowHandled = await flowEngine.handleIncoming({
+        accountId,
+        phone: senderPhone,
+        name: msg.name || senderPhone,
+        body: msg.body
+      });
+      if (flowHandled) {
+        console.log(`[FlowEngine] Handled message from ${senderPhone}`);
+        return;
+      }
+    } catch (err) {
+      console.error('[FlowEngine] Error handling message:', err);
+    }
+
+    // 1. Evaluate Keyword Rules (Exact, Contains, StartsWith, EndsWith, Regex)
     const matchedRule = aiEngine.evaluateRules(msg.body, { senderPhone, phone: senderPhone });
     if (matchedRule) {
       console.log(`[Autoresponder] Matched rule "${matchedRule.trigger}" (${matchedRule.matchType}) for ${senderPhone}`);
@@ -287,8 +358,9 @@ function registerIpcHandlers({ sessionManager, db, aiEngine, getMainWindow }) {
       return {
         ...acc,
         status: s ? s.status : 'OFFLINE',
-        hasQr: Boolean(s && s.qr),
+        hasQr: Boolean(s && (s.qr || s.qrDataUrl)),
         qr: s ? s.qr : null,
+        qrDataUrl: s ? s.qrDataUrl : null,
         isActive: sessionManager.activeAccountId === acc.id
       };
     });
@@ -321,7 +393,16 @@ function registerIpcHandlers({ sessionManager, db, aiEngine, getMainWindow }) {
 
   ipcMain.handle('accounts:get-status', (event, { id }) => {
     const s = sessionManager.sessions.get(id);
-    return { id, status: s ? s.status : 'OFFLINE', qr: s ? s.qr : null };
+    return {
+      id,
+      status: s ? s.status : 'OFFLINE',
+      qr: s ? s.qr : null,
+      qrDataUrl: s ? s.qrDataUrl : null
+    };
+  });
+
+  ipcMain.handle('accounts:refresh-qr', async (event, { id }) => {
+    return await sessionManager.refreshAccountQr(id);
   });
 
   ipcMain.handle('accounts:show-window', (event, { id }) => {
@@ -812,6 +893,336 @@ function registerIpcHandlers({ sessionManager, db, aiEngine, getMainWindow }) {
       return { success: true };
     }
     return { success: false };
+  });
+
+  // ═══════════════════════════════════════════════════════
+  //  LIVE CHAT / INBOX CRM ENGINE
+  // ═══════════════════════════════════════════════════════
+  ipcMain.handle('chats:threads', (event, { accountId } = {}) => {
+    try {
+      return db.getChatThreads(accountId || null);
+    } catch (err) {
+      console.error('[IPC] chats:threads error:', err);
+      return [];
+    }
+  });
+
+  ipcMain.handle('chats:messages', async (event, { phone, accountId } = {}) => {
+    try {
+      if (!phone) return [];
+      const cleanPhone = String(phone).replace(/\D+/g, '');
+      const localMsgs = db.getChatMessages(cleanPhone);
+
+      // If active session exists, try fetching recent WhatsApp Web messages to augment
+      const targetAccId = accountId || sessionManager.activeAccountId;
+      if (targetAccId && sessionManager.sessions.has(targetAccId)) {
+        try {
+          const webMsgs = await sessionManager.execute('GET_CHAT_MESSAGES', { phone: cleanPhone, count: 40 }, targetAccId);
+          if (Array.isArray(webMsgs) && webMsgs.length > 0) {
+            // Save newly fetched messages to DB if not present
+            for (const m of webMsgs) {
+              const exists = localMsgs.some(lm =>
+                lm.body === m.body && Math.abs((lm.timestamp || 0) - (m.timestamp || 0)) < 3000
+              );
+              if (!exists) {
+                db.saveChatMessage({
+                  accountId: targetAccId,
+                  phone: cleanPhone,
+                  name: cleanPhone,
+                  fromMe: m.fromMe,
+                  body: m.body,
+                  type: m.type,
+                  mediaUrl: m.mediaUrl,
+                  filename: m.filename,
+                  skipUnread: true,
+                  timestamp: m.timestamp
+                });
+              }
+            }
+            return db.getChatMessages(cleanPhone);
+          }
+        } catch (e) {
+          // Fallback to local
+        }
+      }
+      return localMsgs;
+    } catch (err) {
+      console.error('[IPC] chats:messages error:', err);
+      return [];
+    }
+  });
+
+  ipcMain.handle('chats:send', async (event, { phone, message, accountId } = {}) => {
+    if (!phone || !message) throw new Error('Phone and message required');
+    const rawPhone = String(phone).trim();
+    const cleanDigits = rawPhone.includes('@') ? rawPhone.replace(/@.*$/, '').replace(/\D+/g, '') : rawPhone.replace(/\D+/g, '');
+    const cleanPhone = cleanDigits || rawPhone;
+
+    // Resolve connected session
+    let targetAccountId = accountId || sessionManager.activeAccountId;
+    const currentSession = targetAccountId ? sessionManager.sessions.get(targetAccountId) : null;
+    if (!currentSession || currentSession.status !== 'CONNECTED' || !currentSession.window || currentSession.window.isDestroyed()) {
+      for (const [id, s] of sessionManager.sessions.entries()) {
+        if (s.window && !s.window.isDestroyed() && s.status === 'CONNECTED') {
+          targetAccountId = id;
+          break;
+        }
+      }
+    }
+
+    // Resolve target JID
+    const thread = db.data.chatThreads && (db.data.chatThreads[cleanPhone] || db.data.chatThreads[rawPhone]);
+    let targetDestination = rawPhone;
+    if (thread && thread.chatId) {
+      targetDestination = thread.chatId;
+    } else if (rawPhone.includes('@')) {
+      targetDestination = rawPhone;
+    } else if (cleanPhone.startsWith('120363') || rawPhone.includes('-')) {
+      targetDestination = cleanPhone + '@g.us';
+    } else {
+      targetDestination = cleanDigits ? (cleanDigits + '@c.us') : rawPhone;
+    }
+
+    // Send via WhatsApp Web session
+    const sendResult = await sessionManager.execute('SEND_MESSAGE', {
+      phone: targetDestination,
+      chatId: targetDestination,
+      message,
+      simulateTyping: false
+    }, targetAccountId);
+
+    // Save to local database
+    const saved = db.saveChatMessage({
+      accountId: targetAccountId,
+      phone: cleanPhone,
+      chatId: targetDestination,
+      name: (thread && thread.name) || cleanPhone,
+      fromMe: true,
+      body: message,
+      timestamp: Date.now()
+    });
+
+    // Notify UI
+    const win = getMainWindow();
+    if (win && !win.isDestroyed()) {
+      win.webContents.send('event:chat-message', {
+        accountId: targetAccountId,
+        phone: cleanPhone,
+        chatId: targetDestination,
+        fromMe: true,
+        body: message,
+        timestamp: Date.now()
+      });
+    }
+
+    return { success: true, ...saved, ...sendResult };
+  });
+
+  ipcMain.handle('chats:mark-read', async (event, { phone, accountId } = {}) => {
+    if (!phone) return { success: false };
+    const rawPhone = String(phone).trim();
+    const cleanDigits = rawPhone.includes('@') ? rawPhone.replace(/@.*$/, '').replace(/\D+/g, '') : rawPhone.replace(/\D+/g, '');
+    const cleanPhone = cleanDigits || rawPhone;
+    const thread = db.data.chatThreads && (db.data.chatThreads[cleanPhone] || db.data.chatThreads[rawPhone]);
+    const targetJid = (thread && thread.chatId) || rawPhone;
+
+    let targetAccountId = accountId || sessionManager.activeAccountId;
+    try {
+      sessionManager.execute('MARK_CHAT_READ', { phone: targetJid, chatId: targetJid }, targetAccountId).catch(() => {});
+    } catch(e) {}
+    return { success: db.markChatRead(cleanPhone) };
+  });
+
+  ipcMain.handle('chats:delete-thread', (event, { phone } = {}) => {
+    if (!phone) return { success: false };
+    return { success: db.deleteChatThread(phone) };
+  });
+
+  ipcMain.handle('chats:sync', async (event, { accountId } = {}) => {
+    let targetAccountId = accountId || sessionManager.activeAccountId;
+    const currentSession = targetAccountId ? sessionManager.sessions.get(targetAccountId) : null;
+    if (!currentSession || currentSession.status !== 'CONNECTED' || !currentSession.window || currentSession.window.isDestroyed()) {
+      for (const [id, s] of sessionManager.sessions.entries()) {
+        if (s.window && !s.window.isDestroyed() && s.status === 'CONNECTED') {
+          targetAccountId = id;
+          break;
+        }
+      }
+    }
+
+    try {
+      const recentChats = await sessionManager.execute('GET_RECENT_CHATS', {}, targetAccountId);
+      if (Array.isArray(recentChats)) {
+        for (const chat of recentChats) {
+          const rawId = chat.id || chat.phone || '';
+          const cleanPhone = (chat.phone || rawId.replace(/@.*$/, '')).replace(/\D+/g, '') || rawId;
+          if (cleanPhone || rawId) {
+            db.upsertChatThread({
+              accountId: targetAccountId,
+              phone: cleanPhone,
+              chatId: rawId,
+              isGroup: Boolean(chat.isGroup || rawId.includes('@g.us')),
+              name: chat.name || cleanPhone,
+              lastMessage: chat.lastMessage || '',
+              timestamp: chat.timestamp ? (chat.timestamp < 1e11 ? chat.timestamp * 1000 : chat.timestamp) : Date.now(),
+              unreadCount: chat.unreadCount || 0
+            });
+          }
+        }
+      }
+      return db.getChatThreads(targetAccountId);
+    } catch (err) {
+      console.warn('[IPC] chats:sync error:', err.message);
+      return db.getChatThreads(targetAccountId);
+    }
+  });
+
+  // ═══════════════════════════════════════════════════════
+  //  KANBAN PIPELINE CRM IPC (Extension Port)
+  // ═══════════════════════════════════════════════════════
+  ipcMain.handle('kanban:get-data', () => {
+    return db.getKanbanData();
+  });
+
+  ipcMain.handle('kanban:save-stage', (event, { stage } = {}) => {
+    if (!stage) return { success: false };
+    return { success: true, data: db.saveKanbanStage(stage) };
+  });
+
+  ipcMain.handle('kanban:delete-stage', (event, { stageId } = {}) => {
+    if (!stageId) return { success: false };
+    return { success: true, data: db.deleteKanbanStage(stageId) };
+  });
+
+  ipcMain.handle('kanban:save-card', (event, { card } = {}) => {
+    if (!card) return { success: false };
+    return { success: true, data: db.saveKanbanCard(card) };
+  });
+
+  ipcMain.handle('kanban:move-card', (event, { cardId, newStageId } = {}) => {
+    if (!cardId || !newStageId) return { success: false };
+    return { success: db.moveKanbanCard(cardId, newStageId), data: db.getKanbanData() };
+  });
+
+  ipcMain.handle('kanban:delete-card', (event, { cardId } = {}) => {
+    if (!cardId) return { success: false };
+    return { success: true, data: db.deleteKanbanCard(cardId) };
+  });
+
+  // ═══════════════════════════════════════════════════════
+  //  CANNED RESPONSES IPC (Extension Port)
+  // ═══════════════════════════════════════════════════════
+  ipcMain.handle('canned:list', () => {
+    return db.getCannedResponses();
+  });
+
+  ipcMain.handle('canned:save', (event, { canned } = {}) => {
+    if (!canned) return { success: false };
+    return { success: true, data: db.saveCannedResponse(canned) };
+  });
+
+  ipcMain.handle('canned:delete', (event, { id } = {}) => {
+    if (!id) return { success: false };
+    return { success: true, data: db.deleteCannedResponse(id) };
+  });
+
+  // ═══════════════════════════════════════════════════════
+  //  NOTES & REMINDERS IPC (Extension Port)
+  // ═══════════════════════════════════════════════════════
+  ipcMain.handle('reminders:list', () => {
+    return db.getReminders();
+  });
+
+  ipcMain.handle('reminders:save', (event, { reminder } = {}) => {
+    if (!reminder) return { success: false };
+    return { success: true, data: db.saveReminder(reminder) };
+  });
+
+  ipcMain.handle('reminders:toggle', (event, { id } = {}) => {
+    if (!id) return { success: false };
+    return { success: db.toggleReminder(id), data: db.getReminders() };
+  });
+
+  ipcMain.handle('reminders:delete', (event, { id } = {}) => {
+    if (!id) return { success: false };
+    return { success: true, data: db.deleteReminder(id) };
+  });
+
+  // ═══════════════════════════════════════════════════════
+  //  WEBHOOKS & AUTOMATIONS IPC (Extension Port)
+  // ═══════════════════════════════════════════════════════
+  ipcMain.handle('webhooks:list', () => {
+    return db.getWebhooks();
+  });
+
+  ipcMain.handle('webhooks:save', (event, { webhook } = {}) => {
+    if (!webhook) return { success: false };
+    return { success: true, data: db.saveWebhook(webhook) };
+  });
+
+  ipcMain.handle('webhooks:delete', (event, { id } = {}) => {
+    if (!id) return { success: false };
+    return { success: true, data: db.deleteWebhook(id) };
+  });
+
+  ipcMain.handle('webhooks:test', async (event, { url, payload } = {}) => {
+    if (!url) return { success: false, error: 'URL is required' };
+    try {
+      const https = url.startsWith('https') ? require('https') : require('http');
+      const testData = JSON.stringify(payload || {
+        event: 'test_ping',
+        timestamp: Date.now(),
+        message: 'OpenMsg Webhook Test Successful!'
+      });
+      const urlObj = new URL(url);
+      return new Promise((resolve) => {
+        const req = https.request(urlObj, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(testData)
+          },
+          timeout: 8000
+        }, (res) => {
+          let body = '';
+          res.on('data', chunk => body += chunk);
+          res.on('end', () => {
+            resolve({ success: res.statusCode >= 200 && res.statusCode < 300, statusCode: res.statusCode, response: body.slice(0, 300) });
+          });
+        });
+        req.on('error', (err) => resolve({ success: false, error: err.message }));
+        req.on('timeout', () => { req.destroy(); resolve({ success: false, error: 'Request timed out' }); });
+        req.write(testData);
+        req.end();
+      });
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  });
+
+  // ═══════════════════════════════════════════════════════
+  //  VISUAL FLOW BUILDER IPC
+  // ═══════════════════════════════════════════════════════
+  ipcMain.handle('flows:list', () => db.getFlows());
+  ipcMain.handle('flows:get', (event, { id }) => db.getFlow(id));
+  ipcMain.handle('flows:save', (event, { flow }) => {
+    if (!flow) return { success: false };
+    return { success: true, flow: db.saveFlow(flow) };
+  });
+  ipcMain.handle('flows:delete', (event, { id }) => {
+    if (!id) return { success: false };
+    return { success: db.deleteFlow(id) };
+  });
+  ipcMain.handle('flows:toggle', (event, { id, enabled }) => {
+    if (!id) return { success: false };
+    return { success: true, flow: db.toggleFlow(id, enabled) };
+  });
+  ipcMain.handle('flows:duplicate', (event, { id }) => {
+    if (!id) return { success: false };
+    return { success: true, flow: db.duplicateFlow(id) };
+  });
+  ipcMain.handle('flows:test-step', async (event, { flow, currentNodeId, incomingText, variables }) => {
+    return await flowEngine.testStep(flow, currentNodeId, incomingText, variables);
   });
 }
 
