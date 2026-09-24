@@ -225,27 +225,36 @@ class SessionManager extends EventEmitter {
               }
             }
 
-            // WhatsApp Web UserPrefs LID Safety Hotfix
+            // WhatsApp Web LID Safety Hotfix — namespace scan (version-agnostic)
             try {
-              if (window.WPP && window.WPP.whatsapp && window.WPP.whatsapp.UserPrefs) {
-                const up = window.WPP.whatsapp.UserPrefs;
-                if (!up.__openmsgPatched) {
-                  up.__openmsgPatched = true;
-                  const origGet = up.getMeLidUserOrThrow;
-                  up.getMeLidUserOrThrow = function() {
+              function _omPatch(obj) {
+                if (!obj || obj.__omLidP || typeof obj.getMeLidUserOrThrow !== 'function') return;
+                obj.__omLidP = true;
+                const _orig = obj.getMeLidUserOrThrow;
+                obj.getMeLidUserOrThrow = function() {
+                  try { const r = _orig.apply(this, arguments); if (r) return r; } catch(e) {}
+                  const up2 = window.WPP && window.WPP.whatsapp && window.WPP.whatsapp.UserPrefs;
+                  try { const r = up2 && typeof up2.getMaybeMeLidUser === 'function' && up2.getMaybeMeLidUser(); if (r) return r; } catch(e) {}
+                  try { const r = up2 && typeof up2.getMaybeMePnUser === 'function' && up2.getMaybeMePnUser(); if (r) return r; } catch(e) {}
+                  try { const r = typeof obj.getMaybeMePnUser === 'function' && obj.getMaybeMePnUser(); if (r) return r; } catch(e) {}
+                  try { return window.WPP && window.WPP.conn && window.WPP.conn.getMyUserId && window.WPP.conn.getMyUserId(); } catch(e) {}
+                  return null;
+                };
+              }
+              if (window.WPP && window.WPP.whatsapp) {
+                _omPatch(window.WPP.whatsapp.UserPrefs);
+                try {
+                  const keys = Object.keys(window.WPP.whatsapp);
+                  for (let i = 0; i < keys.length; i++) {
                     try {
-                      if (origGet) {
-                        const r = origGet.apply(this, arguments);
-                        if (r) return r;
+                      const m = window.WPP.whatsapp[keys[i]];
+                      if (m && typeof m === 'object') {
+                        if (typeof m.getMeLidUserOrThrow === 'function') _omPatch(m);
+                        if (m.UserPrefs && typeof m.UserPrefs === 'object') _omPatch(m.UserPrefs);
                       }
                     } catch(e) {}
-                    return (typeof up.getMaybeMeLidUser === 'function' && up.getMaybeMeLidUser()) ||
-                           (typeof up.getMaybeMePnUser === 'function' && up.getMaybeMePnUser()) ||
-                           (typeof up.getMaybeMeUser === 'function' && up.getMaybeMeUser()) ||
-                           (typeof up.getMe === 'function' && up.getMe()) ||
-                           (window.WPP.conn && window.WPP.conn.getMyUserId && window.WPP.conn.getMyUserId());
-                  };
-                }
+                  }
+                } catch(e) {}
               }
             } catch(e) {}
           `);

@@ -28,99 +28,104 @@ const pageBridgeScript = `
   let currentStatus = 'LOADING';
 
   // ─── WhatsApp Web LID & UserPrefs Safety Hotfix ─────────────────────────────
+  // Helper: patch any object that has getMeLidUserOrThrow on it
+  function patchMeLidObject(obj) {
+    if (!obj || obj.__omLidP) return;
+    if (typeof obj.getMeLidUserOrThrow !== 'function') return;
+    obj.__omLidP = true;
+
+    const origFn = obj.getMeLidUserOrThrow;
+
+    const getFallback = () => {
+      const sources = [obj, window.WPP && window.WPP.whatsapp && window.WPP.whatsapp.UserPrefs];
+      for (const src of sources) {
+        if (!src) continue;
+        try { const r = typeof src.getMaybeMeLidUser === 'function' && src.getMaybeMeLidUser(); if (r) return r; } catch(e) {}
+        try { const r = typeof src.getMaybeMePnUser === 'function' && src.getMaybeMePnUser(); if (r) return r; } catch(e) {}
+        try { const r = typeof src.getMaybeMeUser === 'function' && src.getMaybeMeUser(); if (r) return r; } catch(e) {}
+        try { const r = typeof src.getMe === 'function' && src.getMe(); if (r) return r; } catch(e) {}
+      }
+      try {
+        if (window.WPP && window.WPP.conn && typeof window.WPP.conn.getMyUserId === 'function') {
+          return window.WPP.conn.getMyUserId();
+        }
+      } catch(e) {}
+      return null;
+    };
+
+    obj.getMeLidUserOrThrow = function() {
+      try {
+        const r = origFn.apply(this, arguments);
+        if (r) return r;
+      } catch(e) {}
+      const fb = getFallback();
+      if (fb) return fb;
+      // Return null instead of throwing — lets WA decide gracefully
+      return null;
+    };
+  }
+
   function applyLidHotfix() {
     try {
       if (typeof window.WPP === 'undefined') return;
 
-      // 1. Monkeypatch UserPrefs so getMeLidUserOrThrow never throws "No LID for user"
+      // 1. Patch WPP.whatsapp.UserPrefs (primary known location)
       if (window.WPP.whatsapp && window.WPP.whatsapp.UserPrefs) {
-        const up = window.WPP.whatsapp.UserPrefs;
-        if (!up.__openmsgPatched) {
-          up.__openmsgPatched = true;
-          const origGetMeLid = up.getMeLidUserOrThrow;
-
-          const getFallbackUser = () => {
-            try {
-              if (typeof up.getMaybeMeLidUser === 'function') {
-                const lid = up.getMaybeMeLidUser();
-                if (lid) return lid;
-              }
-            } catch (e) {}
-            try {
-              if (typeof up.getMaybeMePnUser === 'function') {
-                const pn = up.getMaybeMePnUser();
-                if (pn) return pn;
-              }
-            } catch (e) {}
-            try {
-              if (typeof up.getMaybeMeUser === 'function') {
-                const u = up.getMaybeMeUser();
-                if (u) return u;
-              }
-            } catch (e) {}
-            try {
-              if (typeof up.getMe === 'function') {
-                const me = up.getMe();
-                if (me) return me;
-              }
-            } catch (e) {}
-            try {
-              if (window.WPP.conn && typeof window.WPP.conn.getMyUserId === 'function') {
-                const myId = window.WPP.conn.getMyUserId();
-                if (myId) return myId;
-              }
-            } catch (e) {}
-            return null;
-          };
-
-          up.getMeLidUserOrThrow = function() {
-            try {
-              if (origGetMeLid) {
-                const res = origGetMeLid.apply(this, arguments);
-                if (res) return res;
-              }
-            } catch (err) {
-              // Suppress "No LID for user"
-            }
-            const fallback = getFallbackUser();
-            if (fallback) return fallback;
-            throw new Error('Sender user identifier is not loaded yet');
-          };
-        }
+        patchMeLidObject(window.WPP.whatsapp.UserPrefs);
+        // Also check if UserPrefs has a nested UserPrefs property
+        const nested = window.WPP.whatsapp.UserPrefs.UserPrefs;
+        if (nested) patchMeLidObject(nested);
       }
 
-      // 2. Monkeypatch WPP.conn.getMyUserLid if available
-      if (window.WPP.conn && typeof window.WPP.conn.getMyUserLid === 'function') {
-        if (!window.WPP.conn.__openmsgLidPatched) {
-          window.WPP.conn.__openmsgLidPatched = true;
-          const origConnLid = window.WPP.conn.getMyUserLid;
-          window.WPP.conn.getMyUserLid = function() {
+      // 2. Scan ENTIRE WPP.whatsapp namespace — version-agnostic discovery
+      if (window.WPP.whatsapp) {
+        try {
+          const keys = Object.keys(window.WPP.whatsapp);
+          for (let i = 0; i < keys.length; i++) {
             try {
-              const res = origConnLid.apply(this, arguments);
-              if (res) return res;
-            } catch (e) {}
-            if (typeof window.WPP.conn.getMyUserWid === 'function') {
-              return window.WPP.conn.getMyUserWid();
-            }
-            return window.WPP.conn.getMyUserId ? window.WPP.conn.getMyUserId() : null;
-          };
-        }
+              const mod = window.WPP.whatsapp[keys[i]];
+              if (!mod || typeof mod !== 'object') continue;
+              // Direct method
+              if (typeof mod.getMeLidUserOrThrow === 'function') {
+                patchMeLidObject(mod);
+              }
+              // Nested UserPrefs sub-object
+              if (mod.UserPrefs && typeof mod.UserPrefs === 'object') {
+                patchMeLidObject(mod.UserPrefs);
+              }
+            } catch(e) {}
+          }
+        } catch(e) {}
       }
 
-      // 3. Monkeypatch Lid1X1MigrationUtils if available
-      if (window.WPP.whatsapp && window.WPP.whatsapp.Lid1X1MigrationUtils) {
-        const lm = window.WPP.whatsapp.Lid1X1MigrationUtils;
-        if (typeof lm.isLidMigrated === 'function' && !lm.__openmsgPatched) {
-          lm.__openmsgPatched = true;
-          const origIsLid = lm.isLidMigrated;
-          lm.isLidMigrated = function() {
-            try {
-              return origIsLid.apply(this, arguments);
-            } catch (e) {
-              return false;
-            }
-          };
+      // 3. Patch WPP.conn.getMyUserLid → fallback to WID
+      if (window.WPP.conn && typeof window.WPP.conn.getMyUserLid === 'function' && !window.WPP.conn.__omLidP) {
+        window.WPP.conn.__omLidP = true;
+        const origConnLid = window.WPP.conn.getMyUserLid;
+        window.WPP.conn.getMyUserLid = function() {
+          try {
+            const res = origConnLid.apply(this, arguments);
+            if (res) return res;
+          } catch (e) {}
+          try { return window.WPP.conn.getMyUserWid && window.WPP.conn.getMyUserWid(); } catch(e) {}
+          return window.WPP.conn.getMyUserId ? window.WPP.conn.getMyUserId() : null;
+        };
+      }
+
+      // 4. Try known META module names via WPP loader
+      if (window.WPP.loader && window.WPP.loader.moduleRequire && !window.__omMetaPatched) {
+        const req = window.WPP.loader.moduleRequire;
+        const metaNames = [
+          'WAWebUserPrefsInfo', 'WAWebUserPrefs', 'WAWebMeLidInfo',
+          'WAWebIdentityManager', 'WAWebLidMigrationUtils', 'WAWebContactsInfoUtils'
+        ];
+        for (const name of metaNames) {
+          try {
+            const mod = req(name);
+            if (mod) patchMeLidObject(mod);
+          } catch(e) {}
         }
+        window.__omMetaPatched = true;
       }
     } catch (err) {
       console.warn('[OpenMsg Bridge] applyLidHotfix error:', err);
@@ -465,14 +470,21 @@ const pageBridgeScript = `
             applyLidHotfix();
             let resolvedTarget = targetId;
 
-            // 1. For @c.us contacts: call queryExists to force LID cache population on server
+            // 1. For @c.us contacts: call queryExists to verify number exists on WhatsApp
+            // IMPORTANT: We intentionally NEVER switch to @lid JIDs from queryExists.
+            // Using a @lid JID as target forces isLid()=true in WA's prepareRawMessage,
+            // which then demands the SENDER's LID via getMeLidUserOrThrow().
+            // For non-LID accounts, that throws 'No LID for user'. Keep @c.us always.
             if (targetId.includes('@c.us') && WPP.contact && typeof WPP.contact.queryExists === 'function') {
               try {
                 const info = await WPP.contact.queryExists(targetId);
-                if (info) {
-                  if (info.wid && info.wid._serialized) {
-                    resolvedTarget = info.wid._serialized;
+                if (info && info.wid && info.wid._serialized) {
+                  const resolved = info.wid._serialized;
+                  // Only use resolved JID if it is @c.us or @g.us — never @lid
+                  if (resolved.endsWith('@c.us') || resolved.endsWith('@g.us')) {
+                    resolvedTarget = resolved;
                   }
+                  // @lid JID → fall back to original @c.us to avoid LID sender requirement
                 }
               } catch (qe) {
                 console.warn('[OpenMsg Bridge] queryExists warning:', qe && qe.message ? qe.message : qe);
