@@ -983,13 +983,31 @@ function registerIpcHandlers({ sessionManager, db, aiEngine, getMainWindow }) {
       targetDestination = cleanDigits ? (cleanDigits + '@c.us') : rawPhone;
     }
 
-    // Send via WhatsApp Web session
-    const sendResult = await sessionManager.execute('SEND_MESSAGE', {
-      phone: targetDestination,
-      chatId: targetDestination,
-      message,
-      simulateTyping: false
-    }, targetAccountId);
+    // Send via WhatsApp Web session with automatic fallback on LID errors
+    let sendResult;
+    try {
+      sendResult = await sessionManager.execute('SEND_MESSAGE', {
+        phone: targetDestination,
+        chatId: targetDestination,
+        message,
+        simulateTyping: false
+      }, targetAccountId);
+    } catch (primaryErr) {
+      const errMsg = (primaryErr && primaryErr.message) ? primaryErr.message : String(primaryErr);
+      if (/lid/i.test(errMsg) && cleanDigits && cleanDigits.length >= 7) {
+        console.warn(`[IPC chats:send] Primary send failed with LID error (${errMsg}), retrying with phone number: ${cleanDigits}@c.us`);
+        const fallbackTarget = cleanDigits + '@c.us';
+        sendResult = await sessionManager.execute('SEND_MESSAGE', {
+          phone: fallbackTarget,
+          chatId: fallbackTarget,
+          message,
+          simulateTyping: false
+        }, targetAccountId);
+        targetDestination = fallbackTarget;
+      } else {
+        throw primaryErr;
+      }
+    }
 
     // Save to local database
     const saved = db.saveChatMessage({

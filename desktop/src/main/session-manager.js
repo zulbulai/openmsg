@@ -224,6 +224,30 @@ class SessionManager extends EventEmitter {
                 console.error('[OpenMsg Bridge] Main World mounting error:', e);
               }
             }
+
+            // WhatsApp Web UserPrefs LID Safety Hotfix
+            try {
+              if (window.WPP && window.WPP.whatsapp && window.WPP.whatsapp.UserPrefs) {
+                const up = window.WPP.whatsapp.UserPrefs;
+                if (!up.__openmsgPatched) {
+                  up.__openmsgPatched = true;
+                  const origGet = up.getMeLidUserOrThrow;
+                  up.getMeLidUserOrThrow = function() {
+                    try {
+                      if (origGet) {
+                        const r = origGet.apply(this, arguments);
+                        if (r) return r;
+                      }
+                    } catch(e) {}
+                    return (typeof up.getMaybeMeLidUser === 'function' && up.getMaybeMeLidUser()) ||
+                           (typeof up.getMaybeMePnUser === 'function' && up.getMaybeMePnUser()) ||
+                           (typeof up.getMaybeMeUser === 'function' && up.getMaybeMeUser()) ||
+                           (typeof up.getMe === 'function' && up.getMe()) ||
+                           (window.WPP.conn && window.WPP.conn.getMyUserId && window.WPP.conn.getMyUserId());
+                  };
+                }
+              }
+            } catch(e) {}
           `);
         }
       } catch (err) {

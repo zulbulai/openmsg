@@ -27,6 +27,109 @@ const pageBridgeScript = `
   let lastCanvasData = null;
   let currentStatus = 'LOADING';
 
+  // ─── WhatsApp Web LID & UserPrefs Safety Hotfix ─────────────────────────────
+  function applyLidHotfix() {
+    try {
+      if (typeof window.WPP === 'undefined') return;
+
+      // 1. Monkeypatch UserPrefs so getMeLidUserOrThrow never throws "No LID for user"
+      if (window.WPP.whatsapp && window.WPP.whatsapp.UserPrefs) {
+        const up = window.WPP.whatsapp.UserPrefs;
+        if (!up.__openmsgPatched) {
+          up.__openmsgPatched = true;
+          const origGetMeLid = up.getMeLidUserOrThrow;
+
+          const getFallbackUser = () => {
+            try {
+              if (typeof up.getMaybeMeLidUser === 'function') {
+                const lid = up.getMaybeMeLidUser();
+                if (lid) return lid;
+              }
+            } catch (e) {}
+            try {
+              if (typeof up.getMaybeMePnUser === 'function') {
+                const pn = up.getMaybeMePnUser();
+                if (pn) return pn;
+              }
+            } catch (e) {}
+            try {
+              if (typeof up.getMaybeMeUser === 'function') {
+                const u = up.getMaybeMeUser();
+                if (u) return u;
+              }
+            } catch (e) {}
+            try {
+              if (typeof up.getMe === 'function') {
+                const me = up.getMe();
+                if (me) return me;
+              }
+            } catch (e) {}
+            try {
+              if (window.WPP.conn && typeof window.WPP.conn.getMyUserId === 'function') {
+                const myId = window.WPP.conn.getMyUserId();
+                if (myId) return myId;
+              }
+            } catch (e) {}
+            return null;
+          };
+
+          up.getMeLidUserOrThrow = function() {
+            try {
+              if (origGetMeLid) {
+                const res = origGetMeLid.apply(this, arguments);
+                if (res) return res;
+              }
+            } catch (err) {
+              // Suppress "No LID for user"
+            }
+            const fallback = getFallbackUser();
+            if (fallback) return fallback;
+            throw new Error('Sender user identifier is not loaded yet');
+          };
+        }
+      }
+
+      // 2. Monkeypatch WPP.conn.getMyUserLid if available
+      if (window.WPP.conn && typeof window.WPP.conn.getMyUserLid === 'function') {
+        if (!window.WPP.conn.__openmsgLidPatched) {
+          window.WPP.conn.__openmsgLidPatched = true;
+          const origConnLid = window.WPP.conn.getMyUserLid;
+          window.WPP.conn.getMyUserLid = function() {
+            try {
+              const res = origConnLid.apply(this, arguments);
+              if (res) return res;
+            } catch (e) {}
+            if (typeof window.WPP.conn.getMyUserWid === 'function') {
+              return window.WPP.conn.getMyUserWid();
+            }
+            return window.WPP.conn.getMyUserId ? window.WPP.conn.getMyUserId() : null;
+          };
+        }
+      }
+
+      // 3. Monkeypatch Lid1X1MigrationUtils if available
+      if (window.WPP.whatsapp && window.WPP.whatsapp.Lid1X1MigrationUtils) {
+        const lm = window.WPP.whatsapp.Lid1X1MigrationUtils;
+        if (typeof lm.isLidMigrated === 'function' && !lm.__openmsgPatched) {
+          lm.__openmsgPatched = true;
+          const origIsLid = lm.isLidMigrated;
+          lm.isLidMigrated = function() {
+            try {
+              return origIsLid.apply(this, arguments);
+            } catch (e) {
+              return false;
+            }
+          };
+        }
+      }
+    } catch (err) {
+      console.warn('[OpenMsg Bridge] applyLidHotfix error:', err);
+    }
+  }
+
+  // Continuously ensure hotfix stays attached across WhatsApp Web lifecycle
+  setInterval(applyLidHotfix, 3000);
+
   // ─── DOM QR & Status Scanner (Runs continuously & independently of WPP) ─────
   function checkStatusAndQr() {
     try {
@@ -336,26 +439,6 @@ const pageBridgeScript = `
         if (target.startsWith('120363') || target.includes('-')) {
           return target + '@g.us';
         }
-        // Check if this user has a LID entry in lidPnCache
-        try {
-          if (typeof WPP !== 'undefined' && WPP.whatsapp) {
-            const ws = WPP.whatsapp;
-            if (ws.ChatStore) {
-              const cidLid = target + '@lid';
-              if (ws.ChatStore.get && ws.ChatStore.get(cidLid)) {
-                return cidLid;
-              }
-            }
-            // Check lidPnCache for @c.us -> @lid mapping
-            if (ws.lidPnCache && typeof ws.lidPnCache.getCurrentLid === 'function') {
-              const pnWid = { user: target, server: 'c.us', _serialized: target + '@c.us', isLid: () => false };
-              const lid = ws.lidPnCache.getCurrentLid(pnWid);
-              if (lid && lid._serialized) {
-                return lid._serialized;
-              }
-            }
-          }
-        } catch(e) {}
         return target.replace(/\D+/g, '') + '@c.us';
       }
 
@@ -365,6 +448,8 @@ const pageBridgeScript = `
 
       switch (action) {
         case 'SEND_MESSAGE': {
+          applyLidHotfix();
+
           let to = resolveTargetJid(payload.phone || payload.chatId || '');
 
           if (payload.simulateTyping && WPP.chat && typeof WPP.chat.markIsComposing === 'function') {
@@ -375,36 +460,17 @@ const pageBridgeScript = `
 
           let sendRes = null;
 
-          // Check if our own account's LID is available (needed by wa-js prepareRawMessage)
-          function isMyLidAvailable() {
-            try {
-              if (WPP.whatsapp && WPP.whatsapp.UserPrefs) {
-                const myLid = (typeof WPP.whatsapp.UserPrefs.getMaybeMeLidUser === 'function')
-                  ? WPP.whatsapp.UserPrefs.getMaybeMeLidUser()
-                  : null;
-                return Boolean(myLid);
-              }
-            } catch(e) {}
-            return false;
-          }
-
           // Helper to send with automatic LID discovery and fallback
           const doSend = async (targetId) => {
+            applyLidHotfix();
             let resolvedTarget = targetId;
 
             // 1. For @c.us contacts: call queryExists to force LID cache population on server
-            //    IMPORTANT: Only use @lid as target if our OWN LID is loaded (needed by prepareRawMessage)
-            //    If our LID is not loaded, keep @c.us — wa-js will use getMyUserWid() which works
             if (targetId.includes('@c.us') && WPP.contact && typeof WPP.contact.queryExists === 'function') {
               try {
                 const info = await WPP.contact.queryExists(targetId);
                 if (info) {
-                  const myLidLoaded = isMyLidAvailable();
-                  if (info.lid && info.lid._serialized && myLidLoaded) {
-                    // Both recipient has LID AND our sender LID is loaded → safe to use LID
-                    resolvedTarget = info.lid._serialized;
-                  } else if (info.wid && info.wid._serialized) {
-                    // Fallback: use @c.us WID (getMyUserWid() will be used, doesn't need our LID)
+                  if (info.wid && info.wid._serialized) {
                     resolvedTarget = info.wid._serialized;
                   }
                 }
@@ -424,6 +490,7 @@ const pageBridgeScript = `
 
             // 2. Primary attempt with sendTextMessage
             try {
+              applyLidHotfix();
               return await WPP.chat.sendTextMessage(resolvedTarget, payload.message, {
                 createChat: true,
                 waitForAck: false
@@ -432,27 +499,31 @@ const pageBridgeScript = `
               const errMsg = (err1 && err1.message) ? err1.message : String(err1);
               console.warn('[OpenMsg Bridge] sendTextMessage primary failed:', errMsg);
 
-              // 3. If "No LID for user" — our sender LID isn't loaded. Retry with @c.us target.
-              //    wa-js prepareRawMessage uses getMyUserWid() for @c.us targets (doesn't need LID)
-              const isLidError = /no lid/i.test(errMsg) || /lid.*user/i.test(errMsg);
-              if (isLidError && resolvedTarget !== targetId) {
-                console.log('[OpenMsg Bridge] LID error, retrying with original @c.us target:', targetId);
-                try {
-                  return await WPP.chat.sendTextMessage(targetId, payload.message, {
-                    createChat: true,
-                    waitForAck: false
-                  });
-                } catch (lidFallbackErr) {
-                  console.warn('[OpenMsg Bridge] @c.us fallback also failed:', lidFallbackErr && lidFallbackErr.message);
+              // 3. If target was @lid or error contains "lid", retry with clean phone @c.us
+              const cleanDigits = (payload.phone || targetId).replace(/@.*$/, '').replace(/\D+/g, '');
+              if (cleanDigits && cleanDigits.length >= 7) {
+                const cusTarget = cleanDigits + '@c.us';
+                if (resolvedTarget !== cusTarget) {
+                  console.log('[OpenMsg Bridge] Retrying with clean phone @c.us target:', cusTarget);
+                  try {
+                    applyLidHotfix();
+                    return await WPP.chat.sendTextMessage(cusTarget, payload.message, {
+                      createChat: true,
+                      waitForAck: false
+                    });
+                  } catch (cusErr) {
+                    console.warn('[OpenMsg Bridge] @c.us fallback failed:', cusErr && cusErr.message);
+                  }
                 }
               }
 
               // 4. Fallback A: Force WhatsApp Web to navigate to chat (populates LID Store)
               try {
                 if (WPP.chat && typeof WPP.chat.openChatBottom === 'function') {
-                  await WPP.chat.openChatBottom(resolvedTarget !== targetId ? targetId : resolvedTarget);
-                  await new Promise(r => setTimeout(r, 500));
-                  return await WPP.chat.sendTextMessage(resolvedTarget !== targetId ? targetId : resolvedTarget, payload.message, {
+                  applyLidHotfix();
+                  await WPP.chat.openChatBottom(resolvedTarget);
+                  await new Promise(r => setTimeout(r, 600));
+                  return await WPP.chat.sendTextMessage(resolvedTarget, payload.message, {
                     createChat: false,
                     waitForAck: false
                   });
@@ -463,7 +534,8 @@ const pageBridgeScript = `
 
               // 5. Fallback B: try without createChat flag
               try {
-                return await WPP.chat.sendTextMessage(targetId, payload.message, {
+                applyLidHotfix();
+                return await WPP.chat.sendTextMessage(resolvedTarget, payload.message, {
                   createChat: false,
                   waitForAck: false
                 });

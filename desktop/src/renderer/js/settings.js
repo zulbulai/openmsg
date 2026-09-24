@@ -47,37 +47,41 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
 
   // Copy HWID
-  btnCopyHwid.addEventListener('click', () => {
-    navigator.clipboard.writeText(hwidDisplay.value);
-    window.showToast('Hardware ID copied to clipboard!', 'success');
-  });
+  if (btnCopyHwid && hwidDisplay) {
+    btnCopyHwid.addEventListener('click', () => {
+      navigator.clipboard.writeText(hwidDisplay.value);
+      window.showToast('Hardware ID copied to clipboard!', 'success');
+    });
+  }
 
   // Activate License
-  btnActivateLicense.addEventListener('click', async () => {
-    const key = licenseKeyInput.value.trim();
-    if (!key) {
-      window.showToast('Please enter a license key.', 'error');
-      return;
-    }
-
-    btnActivateLicense.disabled = true;
-    btnActivateLicense.textContent = 'Verifying...';
-
-    try {
-      const res = await window.api.activateLicense(key);
-      if (res.success) {
-        window.showToast('License successfully activated! Thank you for purchasing OpenMsg Pro.', 'success');
-        await loadLicenseInfo();
-      } else {
-        window.showToast('Activation failed: ' + res.reason, 'error');
+  if (btnActivateLicense && licenseKeyInput) {
+    btnActivateLicense.addEventListener('click', async () => {
+      const key = licenseKeyInput.value.trim();
+      if (!key) {
+        window.showToast('Please enter a license key.', 'error');
+        return;
       }
-    } catch (err) {
-      window.showToast('Error during activation: ' + err.message, 'error');
-    } finally {
-      btnActivateLicense.disabled = false;
-      btnActivateLicense.textContent = 'Activate License';
-    }
-  });
+
+      btnActivateLicense.disabled = true;
+      btnActivateLicense.textContent = 'Verifying...';
+
+      try {
+        const res = await window.api.activateLicense(key);
+        if (res.success) {
+          window.showToast('License successfully activated! Thank you for purchasing OpenMsg Pro.', 'success');
+          await loadLicenseInfo();
+        } else {
+          window.showToast('Activation failed: ' + res.reason, 'error');
+        }
+      } catch (err) {
+        window.showToast('Error during activation: ' + err.message, 'error');
+      } finally {
+        btnActivateLicense.disabled = false;
+        btnActivateLicense.textContent = 'Activate License';
+      }
+    });
+  }
 
   const setValidationDelay = document.getElementById('setValidationDelay');
   const setValidationDelayLabel = document.getElementById('setValidationDelayLabel');
@@ -105,17 +109,19 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  btnSaveSettings.addEventListener('click', async () => {
-    const newSettings = {
-      minDelay: parseInt(setDefMinDelay.value, 10) || 5,
-      maxDelay: parseInt(setDefMaxDelay.value, 10) || 15,
-      simulateTyping: setDefTyping.checked,
-      validationDelayMs: setValidationDelay ? parseInt(setValidationDelay.value, 10) : 200
-    };
+  if (btnSaveSettings) {
+    btnSaveSettings.addEventListener('click', async () => {
+      const newSettings = {
+        minDelay: setDefMinDelay ? (parseInt(setDefMinDelay.value, 10) || 5) : 5,
+        maxDelay: setDefMaxDelay ? (parseInt(setDefMaxDelay.value, 10) || 15) : 15,
+        simulateTyping: setDefTyping ? setDefTyping.checked : true,
+        validationDelayMs: setValidationDelay ? parseInt(setValidationDelay.value, 10) : 200
+      };
 
-    await window.api.saveSettings(newSettings);
-    window.showToast('Preferences saved successfully!', 'success');
-  });
+      await window.api.saveSettings(newSettings);
+      window.showToast('Preferences saved successfully!', 'success');
+    });
+  }
 
   // Initial load
   await loadLicenseInfo();
