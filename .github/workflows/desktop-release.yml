@@ -21,9 +21,18 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: 'npm'
+          cache-dependency-path: 'desktop/package.json'
+
+      - name: Install Dependencies
+        run: |
+          cd desktop
+          npm install
 
       - name: Run Core Test Suite
-        run: node --test desktop/test/desktop-core.test.js
+        run: |
+          cd desktop
+          npm test
 
   build-and-release:
     name: Build (${{ matrix.os }})
