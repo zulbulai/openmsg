@@ -1,6 +1,6 @@
 {
   "name": "openmsg-desktop",
-  "version": "1.0.0",
+  "version": "1.0.4",
   "description": "Advanced Cross-Platform WhatsApp Marketing & Automation Desktop Software",
   "main": "src/main/index.js",
   "scripts": {
