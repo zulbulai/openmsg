@@ -3,3 +3,7 @@ node_modules/
 *.log
 .env
 dist/
+build/
+desktop_old_backup/
+desktop/build/*
+!desktop/build/icon.png
