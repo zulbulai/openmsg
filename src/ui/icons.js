@@ -2041,6 +2041,34 @@ export const ICON_DATA = {
       },
     ],
   ],
+  code: [
+    [
+      'path',
+      {
+        d: 'm16 18 6-6-6-6',
+      },
+    ],
+    [
+      'path',
+      {
+        d: 'm8 6-6 6 6 6',
+      },
+    ],
+  ],
+  'arrow-left': [
+    [
+      'path',
+      {
+        d: 'm12 19-7-7 7-7',
+      },
+    ],
+    [
+      'path',
+      {
+        d: 'M19 12H5',
+      },
+    ],
+  ],
   'arrow-right': [
     [
       'path',
